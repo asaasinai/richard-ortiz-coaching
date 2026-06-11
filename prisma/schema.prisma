@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  profile       ClientProfile?
+  intakes       Intake[]
+  checkIns      CheckIn[]
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model ClientProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  dob         DateTime?
+  phone       String?
+  goals       String?
+  protocolStartDate DateTime?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Intake {
+  id          String   @id @default(cuid())
+  userId      String
+  status      IntakeStatus @default(PENDING)
+  data        Json
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+enum IntakeStatus {
+  PENDING
+  APPROVED
+  FLAGGED
+}
+
+model CheckIn {
+  id          String   @id @default(cuid())
+  userId      String
+  weekNumber  Int      @default(2)
+  data        Json
+  submittedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Peptide {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  slug            String    @unique
+  summary         String
+  description     String
+  benefits        String[]
+  contraindications String[]
+  sideEffects     String[]
+  peptidepediaUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  protocols       Protocol[]
+}
+
+model Protocol {
+  id           String   @id @default(cuid())
+  peptideId    String
+  level        ProtocolLevel
+  dosageMcg    Float
+  frequencyDays Int
+  durationWeeks Int
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  peptide      Peptide  @relation(fields: [peptideId], references: [id])
+}
+
+enum ProtocolLevel {
+  CONSERVATIVE
+  MODERATE
+  LIBERAL
+}
+
+model DosageCalculation {
+  id              String   @id @default(cuid())
+  userId          String?
+  peptideName     String
+  vialMg          Float
+  reconstitutionMl Float
+  desiredDoseMcg  Float
+  syringeUnitsPerMl Float
+  weightKg        Float?
+  protocolLevel   ProtocolLevel
+  concMgPerMl     Float
+  concMcgPerMl    Float
+  syringeUnitsExact Float
+  syringeUnitsRounded Float
+  dosesPerVial    Float
+  createdAt       DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+}
