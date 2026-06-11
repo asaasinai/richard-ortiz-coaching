@@ -1,0 +1,39 @@
+{
+  "name": "richard-ortiz-coaching",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18",
+    "@next-auth/prisma-adapter": "^1.0.7",
+    "next-auth": "^4.24.7",
+    "prisma": "^5.15.0",
+    "@prisma/client": "^5.15.0",
+    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "framer-motion": "^11.2.11",
+    "react-hook-form": "^7.52.1",
+    "zod": "^3.23.8",
+    "@hookform/resolvers": "^3.7.0",
+    "puppeteer": "^22.12.1",
+    "nodemailer": "^6.9.14",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.395.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
+  }
+}
