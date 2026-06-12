@@ -9,8 +9,7 @@ export default function Home() {
       {/* HERO */}
       <section style={{ background: "var(--bg)", minHeight: "90vh", display: "flex", alignItems: "center" }}>
         <div className="max-w-6xl mx-auto px-4 py-24">
-          <span className="section-num">01 — Coaching</span>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
+        <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
             Peptide Therapy.<br />
             <span style={{ color: "var(--gold)" }}>Done Right.</span>
           </h1>
