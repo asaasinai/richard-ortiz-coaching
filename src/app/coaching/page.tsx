@@ -39,8 +39,8 @@ export default function CoachingPage() {
     <>
       <Nav />
 
-      <section style={{ background: "var(--bg)", padding: "6rem 1rem 4rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">Coaching</span>
           <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 720 }}>
             A complete transformation system — built around your life.
@@ -54,8 +54,8 @@ export default function CoachingPage() {
       </section>
 
       {/* PILLARS IN DEPTH */}
-      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">The PHAS3 System</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
             Train. Recover. Optimize.
@@ -73,8 +73,8 @@ export default function CoachingPage() {
       </section>
 
       {/* WHAT'S INCLUDED */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg)", padding: "5rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">What&apos;s Included</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2rem" }}>
             Everything you need. Nothing you don&apos;t.
@@ -91,7 +91,7 @@ export default function CoachingPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem", textAlign: "center" }}>
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Welcome to the Next Level.

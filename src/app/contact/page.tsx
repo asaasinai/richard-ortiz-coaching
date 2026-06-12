@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
-import { Mail, MessageSquare } from "lucide-react"
+import { MessageSquare } from "lucide-react"
 
 export default function ContactPage() {
   const [data, setData] = useState({ name:"", email:"", message:"" })
@@ -19,13 +19,8 @@ export default function ContactPage() {
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-16">
         <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em" }}>Get In Touch</h1>
-        <p style={{ color:"var(--text-soft)",marginTop:"0.75rem",marginBottom:"2.5rem" }}>Questions before starting? Use the form below or email directly.</p>
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1rem",marginBottom:"2rem" }}>
-          <div className="card" style={{ display:"flex",gap:"1rem",alignItems:"center" }}>
-            <Mail size={20} style={{ color:"var(--gold)" }} />
-            <div><div style={{ fontSize:"0.75rem",color:"var(--text-mute)",textTransform:"uppercase",letterSpacing:"0.08em" }}>Email</div>
-            <a href="mailto:richard@richardortizcoaching.com" style={{ color:"var(--text)",fontWeight:600,fontSize:"0.9rem" }}>richard@richardortizcoaching.com</a></div>
-          </div>
+        <p style={{ color:"var(--text-soft)",marginTop:"0.75rem",marginBottom:"2.5rem" }}>Questions before starting? Use the form below.</p>
+        <div style={{ marginBottom:"2rem" }}>
           <div className="card" style={{ display:"flex",gap:"1rem",alignItems:"center" }}>
             <MessageSquare size={20} style={{ color:"var(--gold)" }} />
             <div><div style={{ fontSize:"0.75rem",color:"var(--text-mute)",textTransform:"uppercase",letterSpacing:"0.08em" }}>Response Time</div>

@@ -24,8 +24,8 @@ export default function SuccessStoriesPage() {
     <>
       <Nav />
 
-      <section style={{ background: "var(--bg)", padding: "6rem 1rem 4rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">Success Stories</span>
           <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 700 }}>
             Real people. Real transformations.
@@ -36,8 +36,8 @@ export default function SuccessStoriesPage() {
         </div>
       </section>
 
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1rem 5rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem 5rem" }}>
+        <div className="max-w-5xl mx-auto">
           {successStories.length === 0 ? (
             /* Designed empty state — never a blank page, never fake testimonials */
             <div className="card" style={{ textAlign: "center", padding: "4rem 2rem", maxWidth: 640, margin: "0 auto" }}>

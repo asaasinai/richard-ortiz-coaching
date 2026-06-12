@@ -22,7 +22,7 @@ export default function MeetYourCoachPage() {
     <>
       <Nav />
 
-      <section style={{ background: "var(--bg)", padding: "6rem 1rem 4rem", textAlign: "center" }}>
+      <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           <span className="section-num">Meet Your Coach</span>
           <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
@@ -42,7 +42,7 @@ export default function MeetYourCoachPage() {
         </div>
       </section>
 
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1rem 5rem" }}>
+      <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem 5rem" }}>
         <div className="max-w-3xl mx-auto" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <p style={para}>
             At 55 years old, Richard Ortiz isn&rsquo;t teaching a lifestyle he once lived&mdash;he&rsquo;s living it every day.
@@ -126,7 +126,7 @@ export default function MeetYourCoachPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem", textAlign: "center" }}>
+      <section style={{ background: "var(--bg)", padding: "5rem 1.5rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Ready to reach your next level?

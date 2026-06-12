@@ -36,7 +36,7 @@ export default function Nav() {
 
   return (
     <nav style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }} className="sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3" style={{ whiteSpace: "nowrap" }}>
           <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "var(--text)" }}>
             RICHARD ORTIZ

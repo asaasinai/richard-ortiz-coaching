@@ -35,7 +35,7 @@ export default function Home() {
 
       {/* HERO */}
       <section style={{ background: "var(--bg)", minHeight: "90vh", display: "flex", alignItems: "center" }}>
-        <div className="max-w-6xl mx-auto px-4 py-24 w-full grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto px-6 py-24 w-full grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="section-num">Welcome to the Next Level</span>
             <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
@@ -50,23 +50,17 @@ export default function Home() {
               <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
             </div>
           </div>
-          <div className="flex flex-col items-center lg:items-end">
-            <Image src="/richard-ortiz-badge.png" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
-              width={822} height={900} priority
-              style={{ width: "min(460px, 100%)", height: "auto" }} />
-            <p style={{
-              color: "var(--gold)", fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.25em",
-              textTransform: "uppercase", marginTop: "0.5rem", textAlign: "center", width: "min(460px, 100%)",
-            }}>
-              Strength&nbsp;|&nbsp;Longevity&nbsp;|&nbsp;55
-            </p>
+          <div className="flex justify-center lg:justify-end">
+            <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
+              width={1158} height={1383} priority
+              style={{ width: "min(440px, 100%)", height: "auto" }} />
           </div>
         </div>
       </section>
 
       {/* PILLARS */}
-      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">The PHAS3 System</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
             Three pillars. One system.
@@ -84,8 +78,8 @@ export default function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
-        <div className="max-w-6xl mx-auto">
+      <section style={{ background: "var(--bg)", padding: "5rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto">
           <span className="section-num">How It Works</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
             A simple system built for real life.
@@ -106,8 +100,8 @@ export default function Home() {
       </section>
 
       {/* OUTCOMES */}
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1rem" }}>
-        <div className="max-w-6xl mx-auto text-center">
+      <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto text-center">
           <span className="section-num">Real Results</span>
           <div className="flex flex-wrap justify-center gap-3 mt-4">
             {outcomes.map(o => (
@@ -121,8 +115,8 @@ export default function Home() {
       </section>
 
       {/* COACH TEASER */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+      <section style={{ background: "var(--bg)", padding: "5rem 1.5rem" }}>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <span className="section-num">Your Coach</span>
             <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
@@ -148,7 +142,7 @@ export default function Home() {
       </section>
 
       {/* SOCIAL PROOF / CTA */}
-      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem", textAlign: "center" }}>
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Ready for your transformation?
