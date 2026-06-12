@@ -41,12 +41,6 @@ const PEPTIDES = [
   { slug:"selank-semax",         name:"Selank + Semax",                       evidence:"Human observational",    aliases:"Nootropic stack",                           summary:"Russian nootropic duo for anxiolysis + cognitive enhancement via intranasal delivery." },
 ]
 
-const EC: Record<string,{bg:string,border:string,color:string}> = {
-  "Clinical / FDA-approved": { bg:"rgba(74,222,128,0.08)",  border:"rgba(74,222,128,0.3)",  color:"#4ade80" },
-  "Human observational":     { bg:"rgba(96,165,250,0.08)",  border:"rgba(96,165,250,0.3)",  color:"#60a5fa" },
-  "Community consensus":     { bg:"rgba(201,168,76,0.08)",  border:"rgba(201,168,76,0.3)",  color:"var(--gold)" },
-}
-
 export default function PeptidesPage() {
   return (
     <>
@@ -58,48 +52,6 @@ export default function PeptidesPage() {
         <p style={{ color:"var(--text-soft)",maxWidth:620,marginBottom:"0.75rem",lineHeight:1.7 }}>
           {PEPTIDES.length} peptides in our coaching catalogue. Tap any card to view the full profile and dosing calculator.
         </p>
-
-        {/* Evidence legend */}
-        <div style={{ display:"flex",gap:"0.6rem",flexWrap:"wrap",marginBottom:"2.5rem" }}>
-          {Object.entries(EC).map(([label,c])=>(
-            <span key={label} style={{ fontSize:"0.72rem",fontWeight:700,padding:"0.2rem 0.7rem",borderRadius:99,
-              background:c.bg,color:c.color,border:`1px solid ${c.border}` }}>
-              {label}
-            </span>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"1rem" }}>
-          {PEPTIDES.map(p => {
-            const ec = EC[p.evidence] ?? EC["Community consensus"]
-            return (
-              <div key={p.slug} className="card" style={{ display:"flex",flexDirection:"column",gap:"0.6rem" }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start" }}>
-                  <div>
-                    <h2 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"0.95rem",marginBottom:"0.15rem" }}>{p.name}</h2>
-                    <p style={{ fontSize:"0.68rem",color:"var(--text-mute)",lineHeight:1.4 }}>{p.aliases}</p>
-                  </div>
-                  <span style={{ fontSize:"0.62rem",fontWeight:700,padding:"0.15rem 0.5rem",borderRadius:99,flexShrink:0,marginTop:"0.1rem",
-                    background:ec.bg,color:ec.color,border:`1px solid ${ec.border}`,whiteSpace:"nowrap",marginLeft:"0.5rem" }}>
-                    {p.evidence}
-                  </span>
-                </div>
-                <p style={{ fontSize:"0.82rem",color:"var(--text-soft)",lineHeight:1.6,flex:1 }}>{p.summary}</p>
-                <div style={{ display:"flex",gap:"0.6rem",paddingTop:"0.4rem",borderTop:"1px solid var(--border)" }}>
-                  <a href={`https://thepeptidepedia.com/peptides/${p.slug}`} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize:"0.75rem",color:"var(--gold)",fontWeight:600,display:"inline-flex",alignItems:"center",gap:"0.25rem",textDecoration:"none" }}>
-                    <ExternalLink size={11}/> Full profile
-                  </a>
-                  <a href={`https://thepeptidepedia.com/dose/${p.slug}`} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize:"0.75rem",color:"var(--text-mute)",display:"inline-flex",alignItems:"center",gap:"0.25rem",textDecoration:"none" }}>
-                    <ExternalLink size={11}/> Dosing calc
-                  </a>
-                </div>
-              </div>
-            )
-          })}
-        </div>
       </div>
       <Footer/>
     </>
