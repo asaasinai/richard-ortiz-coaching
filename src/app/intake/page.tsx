@@ -184,9 +184,9 @@ export default function IntakePage() {
     /* 6 Consent */
     <div key={6} className="flex flex-col gap-4">
       {([
-        ["consentGeneral",    "I understand that Richard Ortiz provides wellness coaching, not medical advice."],
+        ["consentGeneral",    "I understand that Richard Ortiz provides wellness coaching services."],
         ["consentData",       "I consent to my intake data being stored securely and reviewed by the coach."],
-        ["consentDisclaimer", "I confirm I have consulted or will consult a licensed physician before starting any protocol."],
+        ["consentDisclaimer", "I confirm I have reviewed the information and agree to the coaching terms."],
       ] as [keyof typeof initialData, string][]).map(([k, txt]) => (
         <label key={k} style={{display:"flex",gap:"0.75rem",alignItems:"flex-start",cursor:"pointer"}}>
           <input type="checkbox" id={String(k)} checked={data[k] as boolean} onChange={handleText(k)}
