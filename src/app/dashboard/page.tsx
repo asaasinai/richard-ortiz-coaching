@@ -167,7 +167,6 @@ export default function DashboardPage() {
         <DeleteModal email={clientEmail} onClose={() => setShowDelete(false)} onDeleted={() => router.push("/")}/>
       )}
       <div className="max-w-5xl mx-auto px-4 py-16">
-        <span className="section-num">08 — Dashboard</span>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"2rem", flexWrap:"wrap", gap:"0.5rem" }}>
           <div>
             <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>
