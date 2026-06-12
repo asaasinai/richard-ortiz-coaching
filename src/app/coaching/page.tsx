@@ -10,13 +10,6 @@ export const metadata: Metadata = {
     "Personalized transformation coaching built on the PHAS3 System — training, nutrition, recovery, and accountability for real, sustainable results.",
 }
 
-const audience = [
-  "Busy professionals & entrepreneurs",
-  "Parents balancing family and health",
-  "First responders",
-  "Adults over 40 ready to feel like themselves again",
-]
-
 const included = [
   "Personalized training built around your level, schedule, and goals",
   "Nutrition guidance that builds sustainable habits — not crash diets",
@@ -60,23 +53,8 @@ export default function CoachingPage() {
         </div>
       </section>
 
-      {/* WHO IT'S FOR */}
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1rem" }}>
-        <div className="max-w-6xl mx-auto">
-          <span className="section-num">Who It&apos;s For</span>
-          <div className="grid md:grid-cols-2 gap-4 mt-4" style={{ maxWidth: 720 }}>
-            {audience.map(a => (
-              <div key={a} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <Check size={18} style={{ color: "var(--gold)", flexShrink: 0 }} />
-                <span style={{ color: "var(--text-soft)", fontSize: "0.95rem" }}>{a}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* PILLARS IN DEPTH */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem" }}>
         <div className="max-w-6xl mx-auto">
           <span className="section-num">The PHAS3 System</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
@@ -95,7 +73,7 @@ export default function CoachingPage() {
       </section>
 
       {/* WHAT'S INCLUDED */}
-      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem" }}>
+      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
         <div className="max-w-6xl mx-auto">
           <span className="section-num">What&apos;s Included</span>
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2rem" }}>
@@ -113,7 +91,7 @@ export default function CoachingPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1rem", textAlign: "center" }}>
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
           <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Welcome to the Next Level.
