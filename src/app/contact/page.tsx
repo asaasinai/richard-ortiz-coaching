@@ -18,7 +18,6 @@ export default function ContactPage() {
     <>
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <span className="section-num">07 — Contact</span>
         <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em" }}>Get In Touch</h1>
         <p style={{ color:"var(--text-soft)",marginTop:"0.75rem",marginBottom:"2.5rem" }}>Questions before starting? Use the form below or email directly.</p>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1rem",marginBottom:"2rem" }}>
