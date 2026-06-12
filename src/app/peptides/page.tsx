@@ -56,9 +56,7 @@ export default function PeptidesPage() {
           Peptide Library
         </h1>
         <p style={{ color:"var(--text-soft)",maxWidth:620,marginBottom:"0.75rem",lineHeight:1.7 }}>
-          {PEPTIDES.length} peptides in our coaching catalogue. Evidence grades and full protocol data sourced from{" "}
-          <a href="https://thepeptidepedia.com" target="_blank" rel="noopener noreferrer"
-            style={{ color:"var(--gold)",fontWeight:600 }}>thepeptidepedia.com</a>.
+          {PEPTIDES.length} peptides in our coaching catalogue. Tap any card to view the full profile and dosing calculator.
         </p>
 
         {/* Evidence legend */}
