@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
-// Demo credentials — in production these would be hashed in DB
-// Jessica Morris: jessicamariemorris@gmail.com / 12345
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
@@ -10,8 +8,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Email and password required." }, { status: 400 })
     }
 
-    // Look up client by email in intakes
-    const result = await query<{ id: string; first_name: string; last_name: string; status: string; password_hash: string | null }>(
+    const result = await query<{
+      id: string; first_name: string; last_name: string; status: string; password_hash: string | null
+    }>(
       "SELECT id, first_name, last_name, status, password_hash FROM roc.intakes WHERE lower(email) = lower($1) LIMIT 1",
       [email]
     )
@@ -21,14 +20,9 @@ export async function POST(req: NextRequest) {
     }
 
     const client = result.rows[0]
+    const stored = client.password_hash ?? ""
 
-    // Check password — stored as plain text for demo (Jessica: 12345)
-    // If password_hash is null, fall back to checking against demo password
-    const passwordOk = client.password_hash
-      ? client.password_hash === password  // plain comparison for demo; use bcrypt in prod
-      : (email.toLowerCase() === "jessicamariemorris@gmail.com" && password === "12345")
-
-    if (!passwordOk) {
+    if (!stored || stored !== String(password)) {
       return NextResponse.json({ ok: false, error: "Incorrect password." })
     }
 
@@ -39,6 +33,6 @@ export async function POST(req: NextRequest) {
     })
   } catch (e) {
     console.error("[login]", e)
-    return NextResponse.json({ ok: false, error: "Server error." }, { status: 500 })
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
   }
 }
