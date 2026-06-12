@@ -528,7 +528,6 @@ export default function CalculatorPage() {
     <>
       <Nav/>
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <span className="section-num">05 — Calculator</span>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"0.5rem", flexWrap:"wrap", gap:"0.5rem" }}>
           <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>Dosage Calculator</h1>
           <button onClick={reset} style={{ display:"flex", alignItems:"center", gap:"0.35rem", background:"none",
