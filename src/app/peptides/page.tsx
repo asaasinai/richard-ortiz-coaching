@@ -61,7 +61,7 @@ export default function PeptidesPage() {
                   <div style={{ display:"flex",gap:"1.25rem",fontSize:"0.75rem",color:"var(--text-mute)",flexWrap:"wrap",borderTop:"1px solid var(--border)",paddingTop:"0.6rem" }}>
                     <span>Vials: {p.commonVialMg.join(" / ")} mg</span>
                     <span>Routes: {p.routes}</span>
-                    <span>{p.regimens.length} regimen{p.regimens.length!==1?"s":""}</span>
+                    <span>{p.regimens.length} regimen{(p.regimens.length as number)!==1?"s":""}</span>
                   </div>
 
                   <div style={{ display:"flex",gap:"0.75rem",flexWrap:"wrap" }}>
