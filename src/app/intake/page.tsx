@@ -8,7 +8,7 @@ const STEPS = ["Basic Info","Vitals","Health History","Lifestyle","Goals","Scree
 
 const initialData = {
   firstName:"",lastName:"",email:"",phone:"",dob:"",
-  height:"",weight:"",bodyFat:"",musclePct:"",
+  heightFt:"",heightIn:"",weight:"",bodyFat:"",musclePct:"",
   conditions:"",medications:"",surgeries:"",allergies:"",
   sleepHrs:"",stressLvl:5,exerciseFreq:"",dietDesc:"",
   goals:[] as string[],goalsOther:"",
@@ -32,7 +32,13 @@ export default function IntakePage() {
 
   const submit = async () => {
     setSaving(true)
-    await fetch("/api/intake", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data) })
+    const payload = {
+      ...data,
+      height: data.heightFt && data.heightIn !== undefined
+        ? `${data.heightFt}'${data.heightIn}"`
+        : data.heightFt ? `${data.heightFt}'0"` : ""
+    }
+    await fetch("/api/intake", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
     setSaving(false)
     setSubmitted(true)
   }
@@ -55,8 +61,22 @@ export default function IntakePage() {
     </div>,
     /* 1 Vitals */
     <div key={1} className="flex flex-col gap-4">
+      <div>
+        <label>Height</label>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.75rem" }}>
+          <div style={{ position:"relative" }}>
+            <input type="number" min={0} max={8} placeholder="5" value={data.heightFt} onChange={set("heightFt")}
+              style={{ paddingRight:"2rem" }} />
+            <span style={{ position:"absolute",right:"0.75rem",top:"50%",transform:"translateY(-50%)",color:"var(--text-mute)",fontSize:"0.85rem",pointerEvents:"none" }}>ft</span>
+          </div>
+          <div style={{ position:"relative" }}>
+            <input type="number" min={0} max={11} placeholder="10" value={data.heightIn} onChange={set("heightIn")}
+              style={{ paddingRight:"2rem" }} />
+            <span style={{ position:"absolute",right:"0.75rem",top:"50%",transform:"translateY(-50%)",color:"var(--text-mute)",fontSize:"0.85rem",pointerEvents:"none" }}>in</span>
+          </div>
+        </div>
+      </div>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1rem" }}>
-        {inp("Height (in)","height","text","70")}
         {inp("Weight (lbs)","weight","text","180")}
         {inp("Body Fat % (optional)","bodyFat","text","20")}
         {inp("Muscle Mass % (optional)","musclePct","text","40")}
@@ -103,7 +123,7 @@ export default function IntakePage() {
     </div>,
     /* 5 Screening */
     <div key={5} className="flex flex-col gap-4">
-      <div><label>Have you used peptides or SARMs before? If yes, describe.</label><textarea rows={2} value={data.screenQ1} onChange={set("screenQ1")} /></div>
+      <div><label>Have you used peptides before? If yes, describe.</label><textarea rows={2} value={data.screenQ1} onChange={set("screenQ1")} /></div>
       <div><label>Do you have any active cancer diagnosis or history? Please describe.</label><textarea rows={2} value={data.screenQ2} onChange={set("screenQ2")} /></div>
     </div>,
     /* 6 Consent */
