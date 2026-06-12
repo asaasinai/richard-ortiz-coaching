@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Menu, X, ChevronDown } from "lucide-react"
 
 const links = [
@@ -20,6 +20,12 @@ export default function Nav() {
   const [resOpen, setResOpen] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setResOpen(false) }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [])
+
   // Hover-open with a small close delay so the pointer can travel into the menu
   const enter = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
@@ -32,11 +38,13 @@ export default function Nav() {
   const linkStyle = {
     fontSize: "0.8rem", letterSpacing: "0.08em", textTransform: "uppercase" as const,
     color: "var(--text-soft)", whiteSpace: "nowrap" as const,
+    padding: "0.5rem 0.25rem",   // real hover/tap area, not text-height only
   }
 
   return (
     <nav style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }} className="sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      {/* nav frame stays wider than page content so the link cluster never collides with the logo */}
+      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
         <Link href="/" className="flex items-center gap-3" style={{ whiteSpace: "nowrap" }}>
           <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "var(--text)" }}>
             RICHARD ORTIZ
@@ -77,7 +85,8 @@ export default function Nav() {
           <Link href="/intake" className="btn-gold" style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}>Start Intake</Link>
         </div>
 
-        <button className="lg:hidden" onClick={() => setOpen(!open)} style={{ color: "var(--text)" }} aria-label="Menu">
+        <button className="lg:hidden" onClick={() => setOpen(!open)} aria-label="Menu"
+          style={{ color: "var(--text)", width: 44, height: 44, display: "grid", placeItems: "center", background: "none", border: "none", cursor: "pointer" }}>
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>

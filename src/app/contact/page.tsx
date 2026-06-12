@@ -34,9 +34,9 @@ export default function ContactPage() {
           </div>
         ) : (
           <form onSubmit={submit} className="card flex flex-col gap-4">
-            <div><label>Name</label><input required value={data.name} onChange={set("name")} /></div>
-            <div><label>Email</label><input type="email" required value={data.email} onChange={set("email")} /></div>
-            <div><label>Message</label><textarea rows={5} required value={data.message} onChange={set("message")} /></div>
+            <div><label>Name</label><input name="name" required value={data.name} onChange={set("name")} /></div>
+            <div><label>Email</label><input name="email" type="email" required value={data.email} onChange={set("email")} /></div>
+            <div><label>Message</label><textarea name="message" rows={5} required value={data.message} onChange={set("message")} /></div>
             <button type="submit" className="btn-gold" style={{ alignSelf:"flex-start" }}>Send Message</button>
           </form>
         )}

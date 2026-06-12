@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
-import { User } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Meet Richard Ortiz | Richard Ortiz Coaching",
@@ -28,22 +28,15 @@ export default function MeetYourCoachPage() {
           <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
             About Richard Ortiz
           </h1>
-          {/* Photo slot — replace with next/image when the professional photo lands */}
-          <div className="card" style={{
-            width: "min(320px, 100%)", aspectRatio: "4/5", display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: "0.75rem",
-            background: "var(--surface-2)", marginTop: "2.5rem",
-          }}>
-            <User size={48} style={{ color: "var(--text-mute)" }} />
-            <span style={{ color: "var(--text-mute)", fontSize: "0.8rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-              Photo coming soon
-            </span>
-          </div>
+          {/* Brand badge — swap for the professional portrait when it lands */}
+          <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz — Strength, Longevity, 55"
+            width={1158} height={1383} priority
+            style={{ width: "min(380px, 100%)", height: "auto", marginTop: "2.5rem" }} />
         </div>
       </section>
 
       <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem 5rem" }}>
-        <div className="max-w-3xl mx-auto" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div className="mx-auto" style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "65ch" }}>
           <p style={para}>
             At 55 years old, Richard Ortiz isn&rsquo;t teaching a lifestyle he once lived&mdash;he&rsquo;s living it every day.
           </p>
@@ -100,8 +93,8 @@ export default function MeetYourCoachPage() {
           </p>
 
           <p style={para}>His mission is simple:</p>
-          <div className="card" style={{ borderLeft: "3px solid var(--gold)" }}>
-            <p style={{ color: "var(--text)", lineHeight: 1.8, fontWeight: 600 }}>
+          <div className="card" style={{ borderLeft: "3px solid var(--gold)", padding: "1.75rem" }}>
+            <p style={{ color: "var(--text)", lineHeight: 1.7, fontWeight: 600, fontSize: "1.3rem", fontStyle: "italic", fontFamily: "Inter Tight, sans-serif" }}>
               To help people become stronger in body, mind, and spirit so they can live healthier, more fulfilling
               lives and become the person God created them to be.
             </p>
