@@ -3,6 +3,8 @@ import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { ExternalLink } from "lucide-react"
 
+const DOSE_CALC_SLUGS = new Set(["bpc-157","cjc-1295","ghk-cu","ipamorelin","nad-plus","pt-141","selank","semaglutide","tb-500","tirzepatide"])
+
 const PEPTIDES = [
   { slug:"bpc-157",              name:"BPC-157",                              evidence:"Community consensus",     aliases:"Body Protection Compound 157, PL 14736",    summary:"Accelerates tissue healing, reduces inflammation, supports gut health and tendon/ligament repair." },
   { slug:"tb-500",               name:"TB-500",                               evidence:"Community consensus",     aliases:"Thymosin Beta-4, TB4",                      summary:"Actin-binding peptide for muscle repair, flexibility, cardiovascular recovery, and hair regrowth." },
@@ -91,12 +93,14 @@ export default function PeptidesPage() {
                 <div style={{ display:"flex",gap:"0.6rem",paddingTop:"0.4rem",borderTop:"1px solid var(--border)" }}>
                   <a href={`https://thepeptidepedia.com/peptides/${p.slug}`} target="_blank" rel="noopener noreferrer"
                     style={{ fontSize:"0.75rem",color:"var(--gold)",fontWeight:600,display:"inline-flex",alignItems:"center",gap:"0.25rem",textDecoration:"none" }}>
-                    <ExternalLink size={11}/> Profile
+                    <ExternalLink size={11}/> Full profile
                   </a>
-                  <a href={`https://thepeptidepedia.com/dose/${p.slug}`} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize:"0.75rem",color:"var(--text-mute)",display:"inline-flex",alignItems:"center",gap:"0.25rem",textDecoration:"none" }}>
-                    <ExternalLink size={11}/> Dosing calc
-                  </a>
+                  {DOSE_CALC_SLUGS.has(p.slug) && (
+                    <a href={`https://thepeptidepedia.com/dose/${p.slug}`} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize:"0.75rem",color:"var(--text-mute)",display:"inline-flex",alignItems:"center",gap:"0.25rem",textDecoration:"none" }}>
+                      <ExternalLink size={11}/> Dosing calc
+                    </a>
+                  )}
                 </div>
               </div>
             )
