@@ -1,27 +1,154 @@
 import Link from "next/link"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
+import { Dumbbell, Moon, Target, ClipboardList, FileText, CalendarCheck, RefreshCw, ArrowRight } from "lucide-react"
+
+const pillars = [
+  {
+    icon: Dumbbell, title: "Train.",
+    body: "Develop strength, resilience, and a body capable of performing at a high level. Build lean muscle and physical capability that lasts.",
+  },
+  {
+    icon: Moon, title: "Recover.",
+    body: "Prioritize recovery, sleep, stress management, and lifestyle habits that support long-term health, resilience, and longevity.",
+  },
+  {
+    icon: Target, title: "Optimize.",
+    body: "Use accountability, nutrition, wellness strategies, and performance-based habits to become the best version of yourself.",
+  },
+]
+
+const steps = [
+  { icon: ClipboardList, title: "Start Your Intake", body: "Tell us about your goals, history, and lifestyle through a structured intake." },
+  { icon: FileText, title: "Get Your Custom Plan", body: "Richard builds a personalized training, nutrition, and recovery plan around your life." },
+  { icon: CalendarCheck, title: "Check In Every Two Weeks", body: "Structured check-ins track weight, energy, and progress so nothing drifts." },
+  { icon: RefreshCw, title: "Adjust & Stay Accountable", body: "Your plan evolves with your results. Accountability keeps you moving forward." },
+]
+
+const outcomes = ["Fat Loss", "Lean Muscle", "Strength", "Energy", "Health Markers", "Sustainable Change"]
 
 export default function Home() {
   return (
     <>
       <Nav />
+
       {/* HERO */}
       <section style={{ background: "var(--bg)", minHeight: "90vh", display: "flex", alignItems: "center" }}>
         <div className="max-w-6xl mx-auto px-4 py-24">
-        <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
-            Peptide Therapy.<br />
-            <span style={{ color: "var(--gold)" }}>Done Right.</span>
+          <span className="section-num">Welcome to the Next Level</span>
+          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
+            Train. <span style={{ color: "var(--gold)" }}>Recover.</span> Optimize.
           </h1>
-          <p style={{ color: "var(--text-soft)", fontSize: "1.1rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 480 }}>
-            Personalized guidance on peptide protocols, dosage calculations, and wellness coaching — all evidence-referenced and coach-supervised.
+          <p style={{ color: "var(--text-soft)", fontSize: "1.1rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 520 }}>
+            Personalized coaching designed to help you lose body fat, build lean muscle,
+            improve performance, and create sustainable results.
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
             <Link href="/intake" className="btn-gold">Start Intake</Link>
-            <Link href="/peptides" className="btn-outline">Browse Peptides</Link>
+            <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
           </div>
         </div>
       </section>
+
+      {/* PILLARS */}
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem" }}>
+        <div className="max-w-6xl mx-auto">
+          <span className="section-num">The PHAS3 System</span>
+          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
+            Three pillars. One system.
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {pillars.map(p => (
+              <div key={p.title} className="card">
+                <p.icon size={26} style={{ color: "var(--gold)", marginBottom: "1rem" }} />
+                <h3 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.4rem", marginBottom: "0.6rem" }}>{p.title}</h3>
+                <p style={{ color: "var(--text-soft)", fontSize: "0.95rem", lineHeight: 1.7 }}>{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
+        <div className="max-w-6xl mx-auto">
+          <span className="section-num">How It Works</span>
+          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
+            A simple system built for real life.
+          </h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {steps.map((s, i) => (
+              <div key={s.title} className="card">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.9rem" }}>
+                  <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--gold)", lineHeight: 1 }}>{i + 1}</span>
+                  <s.icon size={20} style={{ color: "var(--text-mute)" }} />
+                </div>
+                <h3 style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem" }}>{s.title}</h3>
+                <p style={{ color: "var(--text-soft)", fontSize: "0.875rem", lineHeight: 1.65 }}>{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* OUTCOMES */}
+      <section style={{ background: "var(--bg-2)", padding: "4rem 1rem" }}>
+        <div className="max-w-6xl mx-auto text-center">
+          <span className="section-num">Real Results</span>
+          <div className="flex flex-wrap justify-center gap-3 mt-4">
+            {outcomes.map(o => (
+              <span key={o} style={{
+                border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0.5rem 1.25rem",
+                fontSize: "0.85rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--text-soft)",
+              }}>{o}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COACH TEASER */}
+      <section style={{ background: "var(--bg)", padding: "5rem 1rem" }}>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <span className="section-num">Your Coach</span>
+            <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
+              Richard Ortiz
+            </h2>
+            <p style={{ color: "var(--text-soft)", lineHeight: 1.75, marginBottom: "1.5rem" }}>
+              At 55, Richard isn&apos;t teaching a lifestyle he once lived — he&apos;s living it every day.
+              With 30+ years in health, fitness, and nutrition, he has helped hundreds of people
+              lose body fat, build lean muscle, and become the strongest version of themselves.
+            </p>
+            <Link href="/meet-your-coach" className="btn-outline" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+              Meet Your Coach <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="card" style={{ borderLeft: "3px solid var(--gold)" }}>
+            <p style={{ color: "var(--text-soft)", lineHeight: 1.75, fontStyle: "italic" }}>
+              &ldquo;My mission is simple: to help people become stronger in body, mind, and spirit so they can
+              live healthier, more fulfilling lives.&rdquo;
+            </p>
+            <p style={{ color: "var(--gold)", fontSize: "0.85rem", marginTop: "0.75rem", fontWeight: 700 }}>— Richard Ortiz</p>
+          </div>
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF / CTA */}
+      <section style={{ background: "var(--bg-2)", padding: "5rem 1rem", textAlign: "center" }}>
+        <div className="max-w-3xl mx-auto">
+          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
+            Ready for your transformation?
+          </h2>
+          <p style={{ color: "var(--text-soft)", lineHeight: 1.75, marginBottom: "2rem" }}>
+            See what clients are achieving, then start your own intake. Your next level is waiting.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/intake" className="btn-gold">Start Intake</Link>
+            <Link href="/success-stories" className="btn-outline">Success Stories</Link>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </>
   )
