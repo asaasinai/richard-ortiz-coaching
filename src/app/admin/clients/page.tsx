@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
+import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 import { Mail, X, AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
-const PEPTIDES = ["BPC-157","Ipamorelin","Semaglutide","TB-500","Sermorelin","CJC-1295","Tirzepatide","PT-141","GHK-Cu","MK-677","NAD+","Selank"]
+// Peptide list from shared data
+const PEPTIDES = PEPTIDE_NAMES
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 const DOSE_UNITS = ["mg","mcg","IU","mL"]
 
