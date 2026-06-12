@@ -255,15 +255,7 @@ export default function CalculatorPage() {
             </div>
           </div>
 
-          <div>
-            <div style={{ fontSize:"0.75rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em",
-              color:"#f87171", marginBottom:"0.4rem" }}>Contraindications — Do not use if:</div>
-            <ul style={{ margin:0, paddingLeft:"1.1rem", display:"flex", flexDirection:"column", gap:"0.3rem" }}>
-              {peptide.contraindications.map(c => (
-                <li key={c} style={{ fontSize:"0.82rem", color:"var(--text-soft)", lineHeight:1.5 }}>{c}</li>
-              ))}
-            </ul>
-          </div>
+
 
           <div style={{ fontSize:"0.8rem", color:"var(--text-mute)" }}>
             <span style={{ fontWeight:600 }}>Routes: </span>{peptide.routes} &nbsp;|&nbsp;
@@ -341,6 +333,18 @@ export default function CalculatorPage() {
 
   const stepRegimen = peptide ? (
     <div className="flex flex-col gap-5">
+      {/* Referral note */}
+      <div style={{ background:"rgba(201,168,76,0.08)", border:"1px solid var(--gold)", borderRadius:"var(--radius)",
+        padding:"0.75rem 1rem", display:"flex", gap:"0.6rem", alignItems:"flex-start" }}>
+        <Info size={13} style={{ color:"var(--gold)", flexShrink:0, marginTop:2 }}/>
+        <span style={{ fontSize:"0.82rem", color:"var(--text-soft)", lineHeight:1.6 }}>
+          For full protocol references visit{" "}
+          <a href="https://thepeptidepedia.com/dose" target="_blank" rel="noopener noreferrer"
+            style={{ color:"var(--gold)", fontWeight:700 }}>thepeptidepedia.com/dose</a>.
+          The regimens below are Richard&apos;s coaching recommendations — confirm all doses with your physician.
+        </span>
+      </div>
+
       {/* Regimen picker */}
       <div>
         <label>Select Regimen</label>
