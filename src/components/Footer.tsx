@@ -34,7 +34,7 @@ export default function Footer() {
           <span style={{ fontSize: "0.75rem", color: "var(--gold)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>Navigation</span>
           <ul style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {[
-              ["Coaching", "/coaching"],
+              ["Program", "/coaching"],
               ["Meet Your Coach", "/meet-your-coach"],
               ["Success Stories", "/success-stories"],
               ["Intake Form", "/intake"],
