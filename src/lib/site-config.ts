@@ -7,7 +7,7 @@ export const siteConfig = {
     "Personalized coaching designed to help you lose body fat, build lean muscle, improve performance, and create sustainable results.",
   url: "https://richardortizcoaching.com",
   social: {
-    instagram: "", // e.g. "https://instagram.com/..."
-    facebook: "",  // e.g. "https://facebook.com/..."
+    instagram: "https://www.instagram.com/oclabgymrich",
+    facebook: "https://www.facebook.com/richard.ortiz.1806253",
   },
 }

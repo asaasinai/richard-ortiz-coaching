@@ -50,13 +50,16 @@ export default function Home() {
               <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
-            <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
-              width={1158} height={1388} priority
-              style={{
-                width: "min(440px, 100%)", height: "auto", borderRadius: "var(--radius)",
-                boxShadow: "0 0 60px rgba(201,168,76,0.18)",
-              }} />
+          <div className="flex flex-col items-center lg:items-end">
+            <Image src="/richard-ortiz-badge.png" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
+              width={822} height={900} priority
+              style={{ width: "min(460px, 100%)", height: "auto" }} />
+            <p style={{
+              color: "var(--gold)", fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.25em",
+              textTransform: "uppercase", marginTop: "0.5rem", textAlign: "center", width: "min(460px, 100%)",
+            }}>
+              Strength&nbsp;|&nbsp;Longevity&nbsp;|&nbsp;55
+            </p>
           </div>
         </div>
       </section>
