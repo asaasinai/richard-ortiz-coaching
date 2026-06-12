@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { Dumbbell, Moon, Target, ClipboardList, FileText, CalendarCheck, RefreshCw, ArrowRight } from "lucide-react"
@@ -34,18 +35,28 @@ export default function Home() {
 
       {/* HERO */}
       <section style={{ background: "var(--bg)", minHeight: "90vh", display: "flex", alignItems: "center" }}>
-        <div className="max-w-6xl mx-auto px-4 py-24">
-          <span className="section-num">Welcome to the Next Level</span>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
-            Train. <span style={{ color: "var(--gold)" }}>Recover.</span> Optimize.
-          </h1>
-          <p style={{ color: "var(--text-soft)", fontSize: "1.1rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 520 }}>
-            Personalized coaching designed to help you lose body fat, build lean muscle,
-            improve performance, and create sustainable results.
-          </p>
-          <div className="flex flex-wrap gap-4 mt-8">
-            <Link href="/intake" className="btn-gold">Start Intake</Link>
-            <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
+        <div className="max-w-6xl mx-auto px-4 py-24 w-full grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="section-num">Welcome to the Next Level</span>
+            <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)", maxWidth: 700 }}>
+              Train. <span style={{ color: "var(--gold)" }}>Recover.</span> Optimize.
+            </h1>
+            <p style={{ color: "var(--text-soft)", fontSize: "1.1rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 520 }}>
+              Personalized coaching designed to help you lose body fat, build lean muscle,
+              improve performance, and create sustainable results.
+            </p>
+            <div className="flex flex-wrap gap-4 mt-8">
+              <Link href="/intake" className="btn-gold">Start Intake</Link>
+              <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
+            </div>
+          </div>
+          <div className="flex justify-center lg:justify-end">
+            <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
+              width={1158} height={1388} priority
+              style={{
+                width: "min(440px, 100%)", height: "auto", borderRadius: "var(--radius)",
+                boxShadow: "0 0 60px rgba(201,168,76,0.18)",
+              }} />
           </div>
         </div>
       </section>
