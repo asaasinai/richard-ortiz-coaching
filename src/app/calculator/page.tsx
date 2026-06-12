@@ -1,5 +1,6 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { ChevronRight, ChevronLeft, AlertTriangle, CheckCircle, Printer, RotateCcw, Info } from "lucide-react"
@@ -188,6 +189,18 @@ function precisionFlag(volMl: number): string | null {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function CalculatorPage() {
+  const router = useRouter()
+  const [authed, setAuthed] = useState(false)
+
+  useEffect(() => {
+    // Same client-session pattern as /dashboard (sessionStorage, set at sign-in)
+    if (!sessionStorage.getItem("roc_dashboard_email")) {
+      router.replace("/auth/signin")
+    } else {
+      setAuthed(true)
+    }
+  }, [router])
+
   const [step, setStep]                 = useState(0)
   const [peptide, setPeptide]           = useState<typeof PEPTIDE_DATA[0] | null>(null)
   const [vialMg, setVialMg]             = useState<number | null>(null)
@@ -521,6 +534,8 @@ export default function CalculatorPage() {
     !!(conc && doseMgRaw > 0 && volMl !== null),
     consented,
   ]
+
+  if (!authed) return null
 
   return (
     <>

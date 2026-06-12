@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, BarChart2, Settings, Menu, X } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, BarChart2, Settings, Menu, X, Calculator } from "lucide-react"
 
 const nav = [
   { href: "/admin",            label: "Overview",    icon: BarChart2 },
@@ -10,6 +10,7 @@ const nav = [
   { href: "/admin/checkins",   label: "Check-Ins",   icon: Activity },
   { href: "/admin/clients",    label: "Clients",     icon: Users },
   { href: "/admin/sms",        label: "SMS Builder", icon: MessageSquare },
+  { href: "/calculator",       label: "Calculator",  icon: Calculator },
   { href: "/admin/settings",   label: "Settings",    icon: Settings },
 ]
 
