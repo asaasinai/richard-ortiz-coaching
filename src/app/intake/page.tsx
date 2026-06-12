@@ -218,7 +218,6 @@ export default function IntakePage() {
     <>
       <Nav/>
       <div className="max-w-2xl mx-auto px-4 py-16">
-        <span className="section-num">04 — Intake</span>
         <h1 style={{fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2rem",letterSpacing:"-0.02em"}}>Client Intake Form</h1>
         <p style={{color:"var(--text-soft)",fontSize:"0.9rem",marginTop:"0.5rem"}}>
           Step {step+1} of {STEPS.length}: <strong>{STEPS[step]}</strong>
