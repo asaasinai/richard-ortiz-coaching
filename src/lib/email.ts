@@ -1,5 +1,6 @@
-const SG_KEY = process.env.SENDGRID_API_KEY
-const FROM = process.env.SENDGRID_FROM ?? "noreply@richardortizcoaching.com"
+// Email via Resend (https://resend.com)
+const RESEND_KEY = process.env.RESEND_API_KEY
+const FROM = process.env.RESEND_FROM ?? "onboarding@richardortizcoaching.com"
 const ADMIN = process.env.ADMIN_EMAIL ?? "richard@richardortizcoaching.com"
 
 interface EmailPayload {
@@ -9,25 +10,26 @@ interface EmailPayload {
 }
 
 async function send(payload: EmailPayload) {
-  if (!SG_KEY) {
-    console.warn("[email] SENDGRID_API_KEY not set — skipping send")
+  if (!RESEND_KEY) {
+    console.warn("[email] RESEND_API_KEY not set — skipping send")
     return
   }
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${SG_KEY}`,
+      Authorization: `Bearer ${RESEND_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: payload.to }] }],
-      from: { email: FROM, name: "Richard Ortiz Coaching" },
+      from: `Richard Ortiz Coaching <${FROM}>`,
+      to: [payload.to],
       subject: payload.subject,
-      content: [{ type: "text/html", value: payload.html }],
+      html: payload.html,
     }),
   })
   if (!res.ok) {
-    console.error("[email] SendGrid error:", res.status, await res.text())
+    const body = await res.text()
+    console.error("[email] Resend error:", res.status, body)
   }
 }
 
@@ -40,9 +42,9 @@ export async function sendIntakeConfirmation(to: string, firstName: string) {
         <h1 style="color:#C9A84C;font-size:1.4rem;margin-bottom:0.5rem">Intake Received ✓</h1>
         <p style="color:#ccc;line-height:1.7">Hi ${firstName},</p>
         <p style="color:#ccc;line-height:1.7">Your intake form has been received. Richard will review it and reach out within <strong style="color:#fff">48 hours</strong> to schedule your initial consult.</p>
-        <p style="color:#ccc;line-height:1.7">In the meantime, feel free to browse the <a href="https://richardortizcoaching.com/peptides" style="color:#C9A84C">Peptide Library</a> or the <a href="https://richardortizcoaching.com/protocols" style="color:#C9A84C">Dosage Protocols</a>.</p>
+        <p style="color:#ccc;line-height:1.7">In the meantime, browse the <a href="https://richardortizcoaching.com/peptides" style="color:#C9A84C">Peptide Library</a> or <a href="https://richardortizcoaching.com/protocols" style="color:#C9A84C">Dosage Protocols</a>.</p>
         <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
-        <p style="color:#888;font-size:0.8rem">Richard Ortiz Coaching — wellness coaching for educational purposes only. Not medical advice.</p>
+        <p style="color:#888;font-size:0.8rem">Richard Ortiz Coaching — for educational and coaching purposes only. Not medical advice.</p>
       </div>`,
   })
 }
@@ -54,10 +56,12 @@ export async function sendAdminIntakeNotify(intakeId: string, firstName: string,
     html: `
       <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
         <h2 style="color:#C9A84C">New Intake Submitted</h2>
-        <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Intake ID:</strong> ${intakeId}</p>
-        <p><a href="https://richardortizcoaching.com/admin" style="color:#C9A84C">Review in Admin Dashboard →</a></p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:0.4rem 0;color:#888">Name</td><td style="font-weight:600">${firstName} ${lastName}</td></tr>
+          <tr><td style="padding:0.4rem 0;color:#888">Email</td><td>${email}</td></tr>
+          <tr><td style="padding:0.4rem 0;color:#888">Intake ID</td><td style="font-family:monospace;font-size:0.85rem">${intakeId}</td></tr>
+        </table>
+        <p style="margin-top:1.5rem"><a href="https://richardortizcoaching.com/admin" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">Review Intake →</a></p>
       </div>`,
   })
 }
@@ -77,7 +81,7 @@ export async function sendCheckinConfirmation(to: string, firstName: string) {
   })
 }
 
-export async function sendAdminCheckinUrgent(to: string, clientEmail: string, notes: string) {
+export async function sendAdminCheckinUrgent(adminEmail: string, clientEmail: string, notes: string) {
   await send({
     to: ADMIN,
     subject: `⚠️ Urgent Check-In Flag — ${clientEmail}`,
@@ -86,7 +90,7 @@ export async function sendAdminCheckinUrgent(to: string, clientEmail: string, no
         <h2 style="color:red">Urgent Follow-Up Requested</h2>
         <p><strong>Client:</strong> ${clientEmail}</p>
         <p><strong>Notes:</strong> ${notes || "No notes provided"}</p>
-        <p><a href="https://richardortizcoaching.com/admin" style="color:#C9A84C">Review Check-In →</a></p>
+        <p><a href="https://richardortizcoaching.com/admin" style="color:#C9A84C;font-weight:700">Review Check-In →</a></p>
       </div>`,
   })
 }
@@ -99,8 +103,8 @@ export async function sendContactNotification(name: string, email: string, messa
       <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
         <h2>New Contact Message</h2>
         <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Message:</strong></p>
-        <blockquote style="border-left:3px solid #C9A84C;padding-left:1rem;color:#555">${message}</blockquote>
+        <blockquote style="border-left:3px solid #C9A84C;padding-left:1rem;color:#555;margin:1rem 0">${message}</blockquote>
+        <p><a href="mailto:${email}" style="color:#C9A84C">Reply to ${name} →</a></p>
       </div>`,
   })
 }
