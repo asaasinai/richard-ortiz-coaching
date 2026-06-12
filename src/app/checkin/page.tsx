@@ -141,7 +141,6 @@ export default function CheckInPage() {
     <>
       <Nav/>
       <div className="max-w-2xl mx-auto px-4 py-16">
-        <span className="section-num">06 — Check-In</span>
         <h1 style={{fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2rem",letterSpacing:"-0.02em"}}>2-Week Check-In</h1>
         <p style={{color:"var(--text-soft)",fontSize:"0.9rem",marginTop:"0.25rem",marginBottom:"0.5rem"}}>
           Logged in as <span style={{color:"var(--gold)"}}>{clientEmail}</span>
