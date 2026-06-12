@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
-import { Shield, Beaker, FileText, Activity, CheckCircle } from "lucide-react"
+import { Beaker, FileText, Activity, Shield } from "lucide-react"
 
 const services = [
   { icon: Beaker, title: "Peptide Guidance", desc: "Evidence-based protocols for GLP-1, BPC-157, TB-500, Sermorelin & more. Every recommendation linked to thepeptidepedia.com." },
@@ -9,8 +9,6 @@ const services = [
   { icon: Activity, title: "Progress Check-Ins", desc: "Structured 2-week check-ins track adherence, side effects, and subjective progress. Flags sent to coach automatically." },
   { icon: Shield, title: "Private Dashboard", desc: "Your protocols, PDFs, check-in history, and booking link — all in one secure client portal." },
 ]
-
-const trust = ["Certified Wellness Coach", "1:1 Client Management", "HTTPS + Encrypted Records", "No PHI via SMS", "30-Day Follow-Through Guarantee"]
 
 export default function Home() {
   return (
@@ -32,15 +30,6 @@ export default function Home() {
               <Link href="/intake" className="btn-gold">Start Intake</Link>
               <Link href="/peptides" className="btn-outline">Browse Peptides</Link>
             </div>
-          </div>
-          {/* Trust cues */}
-          <div className="flex flex-col gap-3">
-            {trust.map(t => (
-              <div key={t} className="flex items-center gap-3" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0.875rem 1.25rem" }}>
-                <CheckCircle size={16} style={{ color: "var(--gold)", flexShrink: 0 }} />
-                <span style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>{t}</span>
-              </div>
-            ))}
           </div>
         </div>
       </section>
