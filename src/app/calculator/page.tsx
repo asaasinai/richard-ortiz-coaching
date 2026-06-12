@@ -488,9 +488,7 @@ export default function CalculatorPage() {
             <span style={{ fontSize:"0.78rem", color:"var(--gold)" }}>{flag}</span>
           </div>
         )}
-        <div style={{ marginTop:"1rem", fontSize:"0.72rem", color:"var(--text-mute)", lineHeight:1.6, fontStyle:"italic" }}>
-          This dosing card is for educational and coaching purposes only. Richard Ortiz Coaching does not prescribe peptides or provide medical advice. Confirm all protocols with a licensed physician before use.
-        </div>
+        <div style={{ marginTop:"1rem", fontSize:"0.72rem", color:"var(--text-mute)", lineHeight:1.6, fontStyle:"italic" }}>        </div>
       </div>
 
       {/* Consent checkbox */}
