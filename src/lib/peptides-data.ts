@@ -456,7 +456,7 @@ export const PEPTIDES = [
       },
     ],
   },
-] as const
+]
 
-export type Peptide = typeof PEPTIDES[number]
-export const PEPTIDE_NAMES = PEPTIDES.map(p => p.name)
+export type Peptide = (typeof PEPTIDES)[number]
+export const PEPTIDE_NAMES: string[] = PEPTIDES.map(p => p.name)
