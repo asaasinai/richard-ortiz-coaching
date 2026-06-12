@@ -102,10 +102,6 @@ export default function PeptidesPage() {
             )
           })}
         </div>
-
-        <p style={{ fontSize:"0.75rem",color:"var(--text-mute)",marginTop:"3rem",lineHeight:1.6 }}>
-          Educational use only. Richard Ortiz Coaching does not prescribe peptides or provide medical advice. All protocols require a licensed physician.
-        </p>
       </div>
       <Footer/>
     </>
