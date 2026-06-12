@@ -4,7 +4,7 @@ import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 
-const SIDE_EFFECTS = ["Injection site redness","Nausea","Fatigue","Headache","Water retention","Elevated heart rate","Flushing","Hunger changes","Sleep disturbance","None"]
+const SIDE_EFFECTS = ["Injection site redness","Nausea","Fatigue","Headache","Water retention","Elevated heart rate","Flushing","Hunger changes","Sleep disturbance","None","Other"]
 const STEPS = ["Progress","Side Effects","Adherence","Notes"]
 
 export default function CheckInPage() {
@@ -13,6 +13,7 @@ export default function CheckInPage() {
     weight:"", bodyFat:"", musclePct:"",
     progressScore:5, energyScore:5, moodScore:5,
     sideEffects:[] as string[],
+    sideEffectsOther:"",
     missedDoses:"0", reason:"",
     notes:"",
     urgentFlag:false
@@ -41,6 +42,7 @@ export default function CheckInPage() {
   )
 
   const steps = [
+    /* 0 Progress — no overall progress bar */
     <div key={0} className="flex flex-col gap-5">
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"1rem"}}>
         {(["weight","bodyFat","musclePct"] as const).map(k => (
@@ -50,11 +52,11 @@ export default function CheckInPage() {
           </div>
         ))}
       </div>
-      {slider("Overall Progress","progressScore")}
       {slider("Energy Level","energyScore")}
       {slider("Mood & Wellbeing","moodScore")}
     </div>,
 
+    /* 1 Side Effects — with Other + text field */
     <div key={1} className="flex flex-col gap-4">
       <p style={{color:"var(--text-soft)",fontSize:"0.9rem"}}>Check any you experienced in the past 2 weeks:</p>
       <div className="flex flex-wrap gap-2">
@@ -67,8 +69,15 @@ export default function CheckInPage() {
           }}>{s}</button>
         ))}
       </div>
+      {data.sideEffects.includes("Other") && (
+        <div>
+          <label>Describe other side effects</label>
+          <textarea rows={2} placeholder="Describe what you experienced..." value={data.sideEffectsOther} onChange={set("sideEffectsOther")} />
+        </div>
+      )}
     </div>,
 
+    /* 2 Adherence */
     <div key={2} className="flex flex-col gap-4">
       <div>
         <label>Missed doses in past 2 weeks</label>
@@ -91,6 +100,7 @@ export default function CheckInPage() {
       </label>
     </div>,
 
+    /* 3 Notes */
     <div key={3}>
       <label>Anything else to share with your coach?</label>
       <textarea rows={5} placeholder="Changes in lifestyle, observations, questions..." value={data.notes} onChange={set("notes")} />
