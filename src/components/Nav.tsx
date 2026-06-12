@@ -1,10 +1,9 @@
 "use client"
 import Link from "next/link"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { Menu, X, ChevronDown } from "lucide-react"
 
 const links = [
-  { href: "/", label: "Home" },
   { href: "/coaching", label: "Coaching" },
   { href: "/meet-your-coach", label: "Meet Your Coach" },
   { href: "/success-stories", label: "Success Stories" },
@@ -19,25 +18,26 @@ const clientResources = [
 export default function Nav() {
   const [open, setOpen] = useState(false)
   const [resOpen, setResOpen] = useState(false)
-  const resRef = useRef<HTMLDivElement>(null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (resRef.current && !resRef.current.contains(e.target as Node)) setResOpen(false)
-    }
-    document.addEventListener("mousedown", close)
-    return () => document.removeEventListener("mousedown", close)
-  }, [])
+  // Hover-open with a small close delay so the pointer can travel into the menu
+  const enter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+    setResOpen(true)
+  }
+  const leave = () => {
+    closeTimer.current = setTimeout(() => setResOpen(false), 150)
+  }
 
   const linkStyle = {
     fontSize: "0.8rem", letterSpacing: "0.08em", textTransform: "uppercase" as const,
-    color: "var(--text-soft)",
+    color: "var(--text-soft)", whiteSpace: "nowrap" as const,
   }
 
   return (
     <nav style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }} className="sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3" style={{ whiteSpace: "nowrap" }}>
           <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "var(--text)" }}>
             RICHARD ORTIZ
           </span>
@@ -45,43 +45,47 @@ export default function Nav() {
           <span style={{ fontSize: "0.75rem", color: "var(--gold)", letterSpacing: "0.1em", textTransform: "uppercase" }}>COACHING</span>
         </Link>
 
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
+        {/* Desktop (lg+: six items + CTA need the room; md was overflowing) */}
+        <div className="hidden lg:flex items-center gap-6">
           {links.map(l => (
             <Link key={l.href} href={l.href} style={linkStyle} className="hover:text-white transition-colors">{l.label}</Link>
           ))}
-          <div ref={resRef} style={{ position: "relative" }}>
-            <button onClick={() => setResOpen(o => !o)}
-              style={{ ...linkStyle, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem" }}
+          <div style={{ position: "relative" }} onMouseEnter={enter} onMouseLeave={leave}>
+            <button onClick={() => setResOpen(o => !o)} aria-expanded={resOpen} aria-haspopup="true"
+              style={{ ...linkStyle, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.5rem 0" }}
               className="hover:text-white transition-colors">
               Client Resources <ChevronDown size={13} style={{ transform: resOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
             </button>
             {resOpen && (
               <div style={{
-                position: "absolute", top: "calc(100% + 0.75rem)", right: 0, minWidth: 200,
-                background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                padding: "0.5rem", display: "flex", flexDirection: "column", zIndex: 60,
+                position: "absolute", top: "100%", right: 0, minWidth: 210, paddingTop: "0.5rem",
               }}>
-                {clientResources.map(r => (
-                  <Link key={r.href} href={r.href} onClick={() => setResOpen(false)}
-                    style={{ fontSize: "0.82rem", color: "var(--text-soft)", padding: "0.55rem 0.75rem", borderRadius: "var(--radius)" }}
-                    className="hover:text-white hover:bg-black/30 transition-colors">{r.label}</Link>
-                ))}
+                <div style={{
+                  background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius)",
+                  padding: "0.5rem", display: "flex", flexDirection: "column", boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+                }}>
+                  {clientResources.map(r => (
+                    <Link key={r.href} href={r.href} onClick={() => setResOpen(false)}
+                      style={{ fontSize: "0.82rem", color: "var(--text-soft)", padding: "0.55rem 0.75rem", borderRadius: "var(--radius)", whiteSpace: "nowrap" }}
+                      className="hover:text-white hover:bg-black/30 transition-colors">{r.label}</Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>
           <Link href="/contact" style={linkStyle} className="hover:text-white transition-colors">Contact</Link>
-          <Link href="/intake" className="btn-gold" style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem" }}>Start Intake</Link>
+          <Link href="/intake" className="btn-gold" style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}>Start Intake</Link>
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen(!open)} style={{ color: "var(--text)" }}>
+        <button className="lg:hidden" onClick={() => setOpen(!open)} style={{ color: "var(--text)" }} aria-label="Menu">
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile / tablet drawer */}
       {open && (
-        <div style={{ background: "var(--surface-2)", borderTop: "1px solid var(--border)" }} className="md:hidden px-4 py-4 flex flex-col gap-4">
+        <div style={{ background: "var(--surface-2)", borderTop: "1px solid var(--border)" }} className="lg:hidden px-4 py-4 flex flex-col gap-4">
+          <Link href="/" onClick={() => setOpen(false)} style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>Home</Link>
           {links.map(l => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
               style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>{l.label}</Link>
