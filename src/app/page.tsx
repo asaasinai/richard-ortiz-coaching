@@ -50,7 +50,7 @@ export default function Home() {
               <Link href="/coaching" className="btn-outline">Learn About Coaching</Link>
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex justify-center lg:justify-end order-first lg:order-last">
             <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz Coaching — Strength, Longevity, 55"
               width={1158} height={1383} priority
               style={{ width: "min(440px, 100%)", height: "auto" }} />
