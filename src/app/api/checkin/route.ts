@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
+import { sendCheckinConfirmation, sendAdminCheckinUrgent } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
-  const data = await req.json()
-  // TODO: persist to DB, flag urgent if data.urgentFlag
-  console.log("[checkin]", JSON.stringify(data).slice(0, 200))
-  return NextResponse.json({ ok: true })
+  try {
+    const data = await req.json()
+    const { urgentFlag = false, notes = "" } = data
+    const email = req.headers.get("x-user-email") || ""
+    const firstName = req.headers.get("x-user-name") || ""
+
+    const result = await query(
+      `INSERT INTO roc.checkins (data, urgent_flag) VALUES ($1, $2) RETURNING id`,
+      [JSON.stringify(data), urgentFlag ? "true" : "false"]
+    )
+    const checkinId = (result.rows[0] as { id: string }).id
+
+    if (email) {
+      Promise.allSettled([
+        sendCheckinConfirmation(email, firstName),
+        urgentFlag ? sendAdminCheckinUrgent(email, email, notes) : Promise.resolve(),
+      ]).catch(console.error)
+    }
+
+    await query(
+      `INSERT INTO roc.activity_log (action, details) VALUES ('checkin_submitted', $1)`,
+      [JSON.stringify({ checkinId, urgentFlag })]
+    )
+
+    return NextResponse.json({ ok: true, checkinId })
+  } catch (err) {
+    console.error("[checkin]", err)
+    return NextResponse.json({ ok: false, error: String(err) }, { status: 500 })
+  }
 }
