@@ -19,8 +19,7 @@ export default function Footer() {
         </div>
         <div>
           <span style={{ fontSize: "0.75rem", color: "var(--gold)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>Disclaimer</span>
-          <p style={{ color: "var(--text-mute)", fontSize: "0.82rem", marginTop: "0.75rem", lineHeight: 1.7 }}>
-            Peptide content links to <a href="https://thepeptidepedia.com" target="_blank" rel="noopener" style={{ color: "var(--gold)" }}>thepeptidepedia.com</a> for in-depth education. Nothing on this site constitutes medical advice. Consult a licensed physician before starting any protocol.
+          <p style={{ color: "var(--text-mute)", fontSize: "0.82rem", marginTop: "0.75rem", lineHeight: 1.7 }}> com</a> for in-depth education. Nothing on this site constitutes medical advice. Consult a licensed physician before starting any protocol.
           </p>
         </div>
       </div>
