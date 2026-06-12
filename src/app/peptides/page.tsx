@@ -52,7 +52,6 @@ export default function PeptidesPage() {
     <>
       <Nav/>
       <div className="max-w-6xl mx-auto px-4 py-16">
-        <span className="section-num">03 — Peptide Library</span>
         <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em",marginBottom:"0.5rem" }}>
           Peptide Library
         </h1>
