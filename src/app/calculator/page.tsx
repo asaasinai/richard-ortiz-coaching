@@ -48,20 +48,44 @@ function calculate(i: Inputs): Result | null {
   const syringeUnitsRounded = roundToMark(syringeUnitsExact)
   const dosesPerVial = (vialMg * 1000) / adjustedDoseMcg
   const warnings: string[] = []
-  if (syringeUnitsExact > 100) warnings.push("Calculated dose exceeds typical 100-unit syringe capacity — consider a larger syringe or lower dose.")
+  if (syringeUnitsExact > 100) warnings.push("Calculated dose exceeds typical 100-unit syringe capacity.")
   if (dosesPerVial < 1) warnings.push("Desired dose exceeds vial contents — check inputs.")
   if (adjustedDoseMcg > 1000) warnings.push("High dose: verify with your practitioner before proceeding.")
   return { concMgPerMl, concMcgPerMl, syringeUnitsExact, syringeUnitsRounded, dosesPerVial, adjustedDoseMcg, warnings }
 }
 
 const defaultInputs: Inputs = {
-  peptideName: "", vialMg: "", reconMl: "", desiredDose: "", doseUnit: "mcg",
-  syringeUnits: "100", weightKg: "", level: "moderate"
+  peptideName:"", vialMg:"", reconMl:"", desiredDose:"", doseUnit:"mcg",
+  syringeUnits:"100", weightKg:"", level:"moderate"
+}
+
+async function exportPDF(inputs: Inputs, result: Result) {
+  const res = await fetch("/api/pdf", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      peptideName: inputs.peptideName || "Peptide",
+      vialMg: inputs.vialMg,
+      reconMl: inputs.reconMl,
+      desiredDoseMcg: result.adjustedDoseMcg,
+      syringeUnitsExact: result.syringeUnitsExact,
+      syringeUnitsRounded: result.syringeUnitsRounded,
+      dosesPerVial: result.dosesPerVial,
+      concMgPerMl: result.concMgPerMl,
+      concMcgPerMl: result.concMcgPerMl,
+      protocolLevel: inputs.level.charAt(0).toUpperCase() + inputs.level.slice(1),
+      coachContact: "richard@richardortizcoaching.com"
+    })
+  })
+  const html = await res.text()
+  const win = window.open("","_blank")
+  if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 600) }
 }
 
 export default function CalculatorPage() {
   const [inputs, setInputs] = useState<Inputs>(defaultInputs)
   const [result, setResult] = useState<Result | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const set = (k: keyof Inputs) => (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) =>
     setInputs(p => ({ ...p, [k]: e.target.value }))
@@ -69,7 +93,14 @@ export default function CalculatorPage() {
   const run = () => setResult(calculate(inputs))
   const reset = () => { setInputs(defaultInputs); setResult(null) }
 
-  const rowStyle = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }
+  const handleExport = async () => {
+    if (!result) return
+    setExporting(true)
+    await exportPDF(inputs, result)
+    setExporting(false)
+  }
+
+  const rowStyle = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem" }
 
   return (
     <>
@@ -78,9 +109,8 @@ export default function CalculatorPage() {
         <span className="section-num">05 — Calculator</span>
         <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2.25rem",letterSpacing:"-0.03em" }}>Dosage Calculator</h1>
         <p style={{ color:"var(--text-soft)",marginTop:"0.6rem",marginBottom:"2rem" }}>
-          Enter your vial specs and desired dose. Results include exact + rounded syringe units and a PDF export.
+          Enter your vial specs and desired dose. Results include exact + rounded syringe units and a printable PDF card.
         </p>
-
         <div className="card flex flex-col gap-5">
           <div>
             <label>Peptide Name</label>
@@ -91,12 +121,8 @@ export default function CalculatorPage() {
             <div><label>Reconstitution (mL)</label><input type="number" placeholder="2" value={inputs.reconMl} onChange={set("reconMl")} /></div>
           </div>
           <div style={rowStyle}>
-            <div>
-              <label>Desired Dose</label>
-              <input type="number" placeholder="250" value={inputs.desiredDose} onChange={set("desiredDose")} />
-            </div>
-            <div>
-              <label>Unit</label>
+            <div><label>Desired Dose</label><input type="number" placeholder="250" value={inputs.desiredDose} onChange={set("desiredDose")} /></div>
+            <div><label>Unit</label>
               <select value={inputs.doseUnit} onChange={set("doseUnit")}>
                 <option value="mcg">mcg</option>
                 <option value="mg">mg</option>
@@ -104,8 +130,7 @@ export default function CalculatorPage() {
             </div>
           </div>
           <div style={rowStyle}>
-            <div>
-              <label>Syringe Units/mL</label>
+            <div><label>Syringe Units/mL</label>
               <select value={inputs.syringeUnits} onChange={set("syringeUnits")}>
                 <option value="100">100 U/mL (standard insulin)</option>
                 <option value="40">40 U/mL</option>
@@ -113,8 +138,7 @@ export default function CalculatorPage() {
             </div>
             <div><label>Weight (kg, optional)</label><input type="number" placeholder="80" value={inputs.weightKg} onChange={set("weightKg")} /></div>
           </div>
-          <div>
-            <label>Protocol Level</label>
+          <div><label>Protocol Level</label>
             <select value={inputs.level} onChange={set("level")}>
               <option value="conservative">Conservative (×0.8)</option>
               <option value="moderate">Moderate (×1.0)</option>
@@ -139,25 +163,25 @@ export default function CalculatorPage() {
             <table style={{ width:"100%",borderCollapse:"collapse",fontSize:"0.9rem" }}>
               <tbody>
                 {[
-                  ["Adjusted Dose", `${result.adjustedDoseMcg.toFixed(2)} mcg`],
-                  ["Concentration", `${result.concMgPerMl.toFixed(3)} mg/mL (${result.concMcgPerMl.toFixed(1)} mcg/mL)`],
-                  ["Syringe Units (exact)", `${result.syringeUnitsExact.toFixed(2)} units`],
-                  ["Syringe Units (rounded)", `${result.syringeUnitsRounded} units ← draw to this mark`],
-                  ["Doses per Vial", `${result.dosesPerVial.toFixed(1)}`],
+                  ["Adjusted Dose",           `${result.adjustedDoseMcg.toFixed(2)} mcg`],
+                  ["Concentration",            `${result.concMgPerMl.toFixed(3)} mg/mL (${result.concMcgPerMl.toFixed(1)} mcg/mL)`],
+                  ["Syringe Units (exact)",    `${result.syringeUnitsExact.toFixed(2)} units`],
+                  ["Syringe Units (rounded)",  `${result.syringeUnitsRounded} units ← draw to this mark`],
+                  ["Doses per Vial",           `${result.dosesPerVial.toFixed(1)}`],
                 ].map(([k,v]) => (
                   <tr key={k} style={{ borderBottom:"1px solid var(--border)" }}>
                     <td style={{ padding:"0.6rem 0",color:"var(--text-mute)",width:"50%" }}>{k}</td>
-                    <td style={{ padding:"0.6rem 0",fontWeight:600,color:"var(--text)" }}>{v}</td>
+                    <td style={{ padding:"0.6rem 0",fontWeight:600,color: k.includes("rounded") ? "var(--gold)" : "var(--text)" }}>{v}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <button className="btn-gold" style={{ alignSelf:"flex-start",display:"flex",alignItems:"center",gap:"0.5rem" }}
-              onClick={() => window.print()}>
-              <Download size={15}/> Export PDF
+              onClick={handleExport} disabled={exporting}>
+              <Download size={15}/>{exporting ? "Generating..." : "Export PDF Card"}
             </button>
             <p style={{ fontSize:"0.75rem",color:"var(--text-mute)",marginTop:"0.5rem" }}>
-              Calculations are for educational/coaching purposes only. Verify all doses with your prescribing physician.
+              For educational and coaching purposes only. Verify all doses with your prescribing physician.
             </p>
           </div>
         )}
