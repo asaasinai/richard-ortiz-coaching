@@ -7,11 +7,24 @@ import { ChevronRight, ChevronLeft, CheckCircle } from "lucide-react"
 // ─── Question definitions ─────────────────────────────────────────────────────
 
 type Option = { label: string; value: string }
-type Question =
-  | { kind: "single"; id: string; num: number; text: string; options: Option[] }
-  | { kind: "conditional"; id: string; num: number; text: string; options: Option[]; followUpId: string; followUpTrigger: string; followUpText: string; followUpOptions: Option[] }
-  | { kind: "single"; id: string; num: number; text: string; options: Option[] }
 
+interface SingleQuestion {
+  kind: "single"
+  id: string; num: number; text: string; options: Option[]
+}
+interface MultiQuestion {
+  kind: "multi"
+  id: string; num: number; text: string; options: Option[]
+}
+interface ConditionalQuestion {
+  kind: "conditional"
+  id: string; num: number; text: string; options: Option[]
+  followUpId: string; followUpTrigger: string; followUpText: string; followUpOptions: Option[]
+}
+
+type Question = SingleQuestion | MultiQuestion | ConditionalQuestion
+
+// Questions 3, 4, 10 are multi-select
 const QUESTIONS: Question[] = [
   {
     kind: "single",
@@ -37,31 +50,31 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    kind: "single",
+    kind: "multi",
     id: "primaryGoal",
     num: 3,
-    text: "What is your primary goal?",
+    text: "What are your primary goals?",
     options: [
-      { label: "Fat loss",             value: "fat-loss" },
-      { label: "Muscle / strength",    value: "muscle-strength" },
-      { label: "Energy & focus",       value: "energy-focus" },
+      { label: "Fat loss",               value: "fat-loss" },
+      { label: "Muscle / strength",      value: "muscle-strength" },
+      { label: "Energy & focus",         value: "energy-focus" },
       { label: "Longevity / anti-aging", value: "longevity" },
-      { label: "Hormone balance",      value: "hormone-balance" },
-      { label: "Combination",          value: "combination" },
+      { label: "Hormone balance",        value: "hormone-balance" },
+      { label: "Combination",            value: "combination" },
     ],
   },
   {
-    kind: "single",
+    kind: "multi",
     id: "biggestStruggle",
     num: 4,
-    text: "What's your biggest struggle?",
+    text: "What are your biggest struggles?",
     options: [
-      { label: "Hunger / cravings",      value: "hunger-cravings" },
-      { label: "Lack of consistency",    value: "consistency" },
+      { label: "Hunger / cravings",       value: "hunger-cravings" },
+      { label: "Lack of consistency",     value: "consistency" },
       { label: "Low energy / motivation", value: "low-energy" },
-      { label: "Confusing info",         value: "confusing-info" },
-      { label: "Plateau",                value: "plateau" },
-      { label: "Time / busy schedule",   value: "time" },
+      { label: "Confusing info",          value: "confusing-info" },
+      { label: "Plateau",                 value: "plateau" },
+      { label: "Time / busy schedule",    value: "time" },
     ],
   },
   {
@@ -92,14 +105,14 @@ const QUESTIONS: Question[] = [
       { label: "3–4 days", value: "3-4" },
       { label: "5+ days",  value: "5+" },
     ],
-  } as unknown as Question,
+  },
   {
     kind: "single",
     id: "injuries",
     num: 7,
     text: "Any injuries or medical considerations?",
     options: [
-      { label: "None",               value: "none" },
+      { label: "None",                value: "none" },
       { label: "Yes (we'll discuss)", value: "yes" },
     ],
   },
@@ -109,10 +122,10 @@ const QUESTIONS: Question[] = [
     num: 8,
     text: "Interest in optimization tools (recovery, peptides, GLP-1s)?",
     options: [
-      { label: "Already using",     value: "already-using" },
-      { label: "Interested",        value: "interested" },
+      { label: "Already using",      value: "already-using" },
+      { label: "Interested",         value: "interested" },
       { label: "Curious but unsure", value: "curious" },
-      { label: "Not right now",     value: "not-now" },
+      { label: "Not right now",      value: "not-now" },
     ],
   },
   {
@@ -127,59 +140,65 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    kind: "single",
+    kind: "multi",
     id: "whyNow",
     num: 10,
     text: "Why now?",
     options: [
-      { label: "Health wake-up call",     value: "health-wakeup" },
-      { label: "Physical appearance",     value: "appearance" },
-      { label: "Energy / performance",    value: "energy-performance" },
-      { label: "Aging concerns",          value: "aging" },
-      { label: "Life event or deadline",  value: "life-event" },
+      { label: "Health wake-up call",    value: "health-wakeup" },
+      { label: "Physical appearance",    value: "appearance" },
+      { label: "Energy / performance",   value: "energy-performance" },
+      { label: "Aging concerns",         value: "aging" },
+      { label: "Life event or deadline", value: "life-event" },
     ],
   },
 ]
 
-// Build flat step list: each question is a step; Q6 injects a follow-up step if "yes"
-function buildSteps(answers: Record<string, string>): Array<{ questionIdx: number; isFollowUp?: boolean }> {
+const MULTI_IDS = new Set(QUESTIONS.filter(q => q.kind === "multi").map(q => q.id))
+
+// ─── State types ──────────────────────────────────────────────────────────────
+
+// single-select → string, multi-select → string[]
+type Answers = Record<string, string | string[]>
+
+function buildSteps(answers: Answers): Array<{ questionIdx: number; isFollowUp?: boolean }> {
   const steps: Array<{ questionIdx: number; isFollowUp?: boolean }> = []
   QUESTIONS.forEach((q, idx) => {
     steps.push({ questionIdx: idx })
-    if ((q as any).followUpId && answers[q.id] === (q as any).followUpTrigger) {
+    const cq = q as ConditionalQuestion
+    if (cq.followUpId && answers[q.id] === cq.followUpTrigger) {
       steps.push({ questionIdx: idx, isFollowUp: true })
     }
   })
-  // Contact info is the final step
   return steps
 }
 
-const CONTACT_STEP = "contact"
-
+const CONTACT_STEP = "contact" as const
 type StepDef = { questionIdx: number; isFollowUp?: boolean } | typeof CONTACT_STEP
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function IntakePage() {
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [answers, setAnswers] = useState<Answers>({})
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phone: "" })
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  // Steps = all questions + contact at end
   const quizSteps = buildSteps(answers)
   const allSteps: StepDef[] = [...quizSteps, CONTACT_STEP]
   const totalSteps = allSteps.length
   const currentStepDef = allSteps[step]
 
-  // Rebuild steps whenever answers change so Q6 follow-up appears/disappears
-  // (step index stays valid because we never remove a step the user is currently on)
+  const pickSingle = useCallback((id: string, value: string) => {
+    setAnswers(prev => ({ ...prev, [id]: value }))
+  }, [])
 
-  const pickAnswer = useCallback((id: string, value: string) => {
+  const toggleMulti = useCallback((id: string, value: string) => {
     setAnswers(prev => {
-      const next = { ...prev, [id]: value }
-      return next
+      const cur = (prev[id] as string[] | undefined) ?? []
+      const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value]
+      return { ...prev, [id]: next }
     })
   }, [])
 
@@ -189,15 +208,20 @@ export default function IntakePage() {
     }
     const { questionIdx, isFollowUp } = currentStepDef as { questionIdx: number; isFollowUp?: boolean }
     const q = QUESTIONS[questionIdx]
-    if (isFollowUp) return !!(answers[(q as any).followUpId])
-    return !!answers[q.id]
+    if (isFollowUp) {
+      const cq = q as ConditionalQuestion
+      return !!(answers[cq.followUpId] as string | undefined)
+    }
+    if (q.kind === "multi") {
+      const sel = (answers[q.id] as string[] | undefined) ?? []
+      return sel.length > 0
+    }
+    return !!(answers[q.id] as string | undefined)
   }
 
   const handleNext = () => {
     if (step < totalSteps - 1) {
-      // Recalculate steps with latest answers to handle conditional injection
       const freshSteps: StepDef[] = [...buildSteps(answers), CONTACT_STEP]
-      // If next step would be a follow-up but trigger no longer met, skip it
       const nextStep = step + 1
       if (nextStep < freshSteps.length) setStep(nextStep)
     }
@@ -207,7 +231,11 @@ export default function IntakePage() {
 
   const submit = async () => {
     setSaving(true)
-    const payload = { ...contact, answers, submittedAt: new Date().toISOString() }
+    // Flatten multi arrays to comma-joined strings for storage compatibility
+    const flatAnswers: Record<string, string> = {}
+    for (const [k, v] of Object.entries(answers)) {
+      flatAnswers[k] = Array.isArray(v) ? v.join(", ") : v
+    }
     await fetch("/api/intake", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -216,7 +244,7 @@ export default function IntakePage() {
         lastName: contact.lastName,
         email: contact.email,
         phone: contact.phone,
-        ...answers,
+        ...flatAnswers,
         rawAnswers: answers,
       }),
     })
@@ -224,7 +252,7 @@ export default function IntakePage() {
     setSubmitted(true)
   }
 
-  // ── Submitted screen ────────────────────────────────────────────────────────
+  // ── Submitted ───────────────────────────────────────────────────────────────
   if (submitted) return (
     <>
       <Nav />
@@ -253,10 +281,9 @@ export default function IntakePage() {
     </>
   )
 
-  // ── Progress bar ─────────────────────────────────────────────────────────────
   const progress = ((step + 1) / totalSteps) * 100
 
-  // ── Current question render ──────────────────────────────────────────────────
+  // ── Current question ────────────────────────────────────────────────────────
   function renderQuestion() {
     if (currentStepDef === CONTACT_STEP) {
       return (
@@ -282,35 +309,52 @@ export default function IntakePage() {
     const q = QUESTIONS[questionIdx]
 
     if (isFollowUp) {
-      const cq = q as any
+      const cq = q as ConditionalQuestion
       return (
         <OptionGrid
           options={cq.followUpOptions}
-          selected={answers[cq.followUpId]}
-          onSelect={v => pickAnswer(cq.followUpId, v)}
+          selected={answers[cq.followUpId] as string | undefined}
+          onSelect={v => pickSingle(cq.followUpId, v)}
+          multi={false}
         />
       )
     }
 
-    const cq = q as any
+    if (q.kind === "multi") {
+      return (
+        <OptionGrid
+          options={q.options}
+          selectedMany={(answers[q.id] as string[] | undefined) ?? []}
+          onToggle={v => toggleMulti(q.id, v)}
+          multi={true}
+        />
+      )
+    }
+
     return (
       <OptionGrid
         options={q.options}
-        selected={answers[q.id]}
-        onSelect={v => pickAnswer(q.id, v)}
+        selected={answers[q.id] as string | undefined}
+        onSelect={v => pickSingle(q.id, v)}
+        multi={false}
       />
     )
   }
 
   function renderQuestionLabel() {
     if (currentStepDef === CONTACT_STEP) {
-      return <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>Contact Info</span>
+      return (
+        <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Contact Info
+        </span>
+      )
     }
     const { questionIdx, isFollowUp } = currentStepDef as { questionIdx: number; isFollowUp?: boolean }
     const q = QUESTIONS[questionIdx]
-    const cq = q as any
+    const cq = q as ConditionalQuestion
     const num = isFollowUp ? `${q.num}b` : `${q.num}`
     const text = isFollowUp ? cq.followUpText : q.text
+    const isMulti = !isFollowUp && q.kind === "multi"
     return (
       <>
         <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -319,6 +363,11 @@ export default function IntakePage() {
         <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,3.5vw,1.6rem)", letterSpacing: "-0.02em", marginTop: "0.4rem", lineHeight: 1.25 }}>
           {text}
         </h2>
+        {isMulti && (
+          <p style={{ color: "var(--text-mute)", fontSize: "0.8rem", marginTop: "0.35rem" }}>
+            Select all that apply
+          </p>
+        )}
       </>
     )
   }
@@ -339,7 +388,6 @@ export default function IntakePage() {
           <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginTop: "0.4rem" }}>
             10 quick questions — takes under 2 minutes.
           </p>
-          {/* Progress bar */}
           <div style={{ height: 3, background: "var(--surface)", borderRadius: 2, margin: "1.25rem 0 0" }}>
             <div style={{ height: "100%", background: "var(--gold)", borderRadius: 2, width: `${progress}%`, transition: "width 0.35s ease" }} />
           </div>
@@ -410,12 +458,14 @@ export default function IntakePage() {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function OptionGrid({ options, selected, onSelect }: {
-  options: Option[]
-  selected: string | undefined
-  onSelect: (v: string) => void
-}) {
+type OptionGridProps =
+  | { multi: false; options: Option[]; selected: string | undefined; onSelect: (v: string) => void; selectedMany?: never; onToggle?: never }
+  | { multi: true;  options: Option[]; selectedMany: string[];        onToggle: (v: string) => void; selected?: never;  onSelect?: never }
+
+function OptionGrid(props: OptionGridProps) {
+  const { options, multi } = props
   const isTwoCol = options.length >= 4
+
   return (
     <div style={{
       display: "grid",
@@ -423,12 +473,15 @@ function OptionGrid({ options, selected, onSelect }: {
       gap: "0.6rem",
     }}>
       {options.map(opt => {
-        const active = selected === opt.value
+        const active = multi
+          ? props.selectedMany.includes(opt.value)
+          : props.selected === opt.value
+
         return (
           <button
             key={opt.value}
             type="button"
-            onClick={() => onSelect(opt.value)}
+            onClick={() => multi ? props.onToggle(opt.value) : props.onSelect(opt.value)}
             style={{
               padding: "0.75rem 1rem",
               borderRadius: "var(--radius)",
@@ -446,15 +499,32 @@ function OptionGrid({ options, selected, onSelect }: {
               width: "100%",
             }}
           >
-            <span style={{
-              width: 18, height: 18, borderRadius: "50%",
-              border: `2px solid ${active ? "var(--gold)" : "var(--border)"}`,
-              background: active ? "var(--gold)" : "transparent",
-              flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              {active && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#000" }} />}
-            </span>
+            {/* Radio circle for single, checkbox square for multi */}
+            {multi ? (
+              <span style={{
+                width: 18, height: 18, borderRadius: 4,
+                border: `2px solid ${active ? "var(--gold)" : "var(--border)"}`,
+                background: active ? "var(--gold)" : "transparent",
+                flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {active && (
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4l3 3 5-6" stroke="#000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </span>
+            ) : (
+              <span style={{
+                width: 18, height: 18, borderRadius: "50%",
+                border: `2px solid ${active ? "var(--gold)" : "var(--border)"}`,
+                background: active ? "var(--gold)" : "transparent",
+                flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {active && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#000" }} />}
+              </span>
+            )}
             {opt.label}
           </button>
         )
