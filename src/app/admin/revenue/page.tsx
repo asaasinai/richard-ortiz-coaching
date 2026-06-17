@@ -1,0 +1,252 @@
+"use client"
+import { useEffect, useState } from "react"
+import { DollarSign, TrendingUp, Users, Percent } from "lucide-react"
+
+interface ClientRevRow {
+  client_id: string; name: string; email: string
+  peptide: string; strength: string | null
+  monthly_rate: number; billing_status: string; billing_notes: string | null
+  assigned_at: string; fifo_cogs: number; gross_margin_pct: number | null
+}
+
+interface RevenueData {
+  mrr: number; arr: number; activeCount: number
+  byStatus: Record<string, number>
+  clients: ClientRevRow[]
+  trend: { month: string; revenue: string }[]
+}
+
+const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
+  active:        { bg: "rgba(74,222,128,0.15)",  color: "#4ade80" },
+  paused:        { bg: "rgba(251,191,36,0.12)",  color: "#fbbf24" },
+  churned:       { bg: "rgba(248,113,113,0.15)", color: "#f87171" },
+  complimentary: { bg: "rgba(96,165,250,0.12)",  color: "#60a5fa" },
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n)
+}
+
+// Inline bar chart for trend
+function TrendChart({ trend }: { trend: { month: string; revenue: string }[] }) {
+  if (!trend.length) return <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No trend data yet.</p>
+  const vals = trend.map(t => Number(t.revenue))
+  const max = Math.max(...vals, 1)
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: "0.35rem", height: 80 }}>
+      {trend.map((t, i) => (
+        <div key={t.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.35rem" }}>
+          <div style={{
+            width: "100%", background: i === trend.length - 1 ? "var(--gold)" : "var(--surface-2)",
+            borderRadius: "3px 3px 0 0",
+            height: `${Math.max((vals[i] / max) * 64, 4)}px`,
+            transition: "height 0.3s",
+          }} />
+          <span style={{ fontSize: "0.6rem", color: "var(--text-mute)", whiteSpace: "nowrap" }}>
+            {t.month.slice(5)}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function RevenuePage() {
+  const [data, setData] = useState<RevenueData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editRate, setEditRate] = useState("")
+  const [editStatus, setEditStatus] = useState("")
+  const [editNotes, setEditNotes] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/admin/revenue").then(r => r.json()).then(d => { setData(d); setLoading(false) })
+  }, [])
+
+  const startEdit = (c: ClientRevRow) => {
+    setEditing(c.client_id)
+    setEditRate(String(c.monthly_rate))
+    setEditStatus(c.billing_status)
+    setEditNotes(c.billing_notes ?? "")
+  }
+
+  const saveEdit = async (clientId: string) => {
+    setSaving(true)
+    await fetch("/api/admin/assign-protocol", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId, monthly_rate: Number(editRate), billing_status: editStatus, billing_notes: editNotes }),
+    })
+    setSaving(false)
+    setEditing(null)
+    // Refresh
+    const d = await fetch("/api/admin/revenue").then(r => r.json())
+    setData(d)
+  }
+
+  if (loading) return <div style={{ color: "var(--text-mute)", padding: "2rem" }}>Loading…</div>
+  if (!data) return null
+
+  const avgMargin = data.clients.filter(c => c.gross_margin_pct !== null && c.billing_status === "active")
+  const marginAvg = avgMargin.length ? avgMargin.reduce((s, c) => s + (c.gross_margin_pct ?? 0), 0) / avgMargin.length : null
+
+  return (
+    <div>
+      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.75rem)", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Revenue</h1>
+      <p style={{ color: "var(--text-mute)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>MRR, client billing, and FIFO margin</p>
+
+      {/* Top KPI cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+        {[
+          { icon: DollarSign, label: "MRR",           value: fmt(data.mrr),              color: "var(--gold)" },
+          { icon: TrendingUp, label: "ARR",            value: fmt(data.arr),              color: "#4ade80" },
+          { icon: Users,      label: "Active Clients", value: String(data.activeCount),   color: "#60a5fa" },
+          { icon: Percent,    label: "Avg Margin",     value: marginAvg !== null ? `${marginAvg.toFixed(1)}%` : "—", color: "#c084fc" },
+        ].map(card => (
+          <div key={card.label} className="card" style={{ padding: "1.1rem 1.25rem" }}>
+            <card.icon size={16} style={{ color: card.color, marginBottom: "0.5rem" }} />
+            <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--text)", lineHeight: 1 }}>{card.value}</div>
+            <div style={{ color: "var(--text-mute)", fontSize: "0.78rem", marginTop: "0.35rem", fontWeight: 600 }}>{card.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Status breakdown + Trend */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginBottom: "1.5rem" }}>
+        <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
+          <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>By Status</p>
+          {Object.entries(data.byStatus).map(([s, n]) => (
+            <div key={s} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+              <span style={{ ...(STATUS_COLOR[s] ?? {}), padding: "0.15rem 0.5rem", borderRadius: 3, fontSize: "0.72rem", fontWeight: 700 }}>{s}</span>
+              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>{n}</span>
+            </div>
+          ))}
+          {!Object.keys(data.byStatus).length && <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
+        </div>
+        <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
+          <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>Monthly Revenue Trend</p>
+          <TrendChart trend={data.trend} />
+        </div>
+      </div>
+
+      {/* Client billing table */}
+      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ fontWeight: 700, fontSize: "0.95rem" }}>Client Billing</h2>
+          <span style={{ fontSize: "0.78rem", color: "var(--text-mute)" }}>Click rate to edit</span>
+        </div>
+
+        {/* Desktop table */}
+        <div className="rev-table-wrap">
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                {["Client", "Protocol", "Rate/mo", "Status", "COGS/mo", "Margin", "Since", ""].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "0.6rem 0.875rem", color: "var(--text-mute)", fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.clients.map((c, i) => (
+                <tr key={c.client_id} style={{ borderBottom: "1px solid var(--border)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                  <td style={{ padding: "0.7rem 0.875rem" }}>
+                    <p style={{ fontWeight: 600, fontSize: "0.875rem" }}>{c.name || "—"}</p>
+                    <p style={{ color: "var(--text-mute)", fontSize: "0.75rem" }}>{c.email}</p>
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem", color: "var(--text-soft)" }}>
+                    {c.peptide}{c.strength ? ` ${c.strength}` : ""}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem" }}>
+                    {editing === c.client_id ? (
+                      <input type="number" value={editRate} onChange={e => setEditRate(e.target.value)}
+                        style={{ width: 80, padding: "0.25rem 0.4rem", fontSize: "0.85rem" }}/>
+                    ) : (
+                      <button onClick={() => startEdit(c)} style={{ background: "none", border: "none", color: c.monthly_rate ? "var(--gold)" : "var(--text-mute)", fontWeight: 700, cursor: "pointer", fontSize: "0.875rem", padding: 0 }}>
+                        {c.monthly_rate ? fmt(c.monthly_rate) : "Set rate"}
+                      </button>
+                    )}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem" }}>
+                    {editing === c.client_id ? (
+                      <select value={editStatus} onChange={e => setEditStatus(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.2rem 0.3rem" }}>
+                        {["active","paused","churned","complimentary"].map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    ) : (
+                      <span style={{ ...(STATUS_COLOR[c.billing_status] ?? {}), padding: "0.2rem 0.55rem", borderRadius: 3, fontSize: "0.72rem", fontWeight: 700 }}>
+                        {c.billing_status}
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem", color: "var(--text-mute)", fontSize: "0.82rem" }}>
+                    {c.fifo_cogs ? fmt(c.fifo_cogs) : "—"}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem" }}>
+                    {c.gross_margin_pct !== null ? (
+                      <span style={{ color: c.gross_margin_pct > 50 ? "#4ade80" : c.gross_margin_pct > 20 ? "var(--gold)" : "#f87171", fontWeight: 700, fontSize: "0.85rem" }}>
+                        {c.gross_margin_pct.toFixed(1)}%
+                      </span>
+                    ) : "—"}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem", color: "var(--text-mute)", fontSize: "0.78rem" }}>
+                    {new Date(c.assigned_at).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: "0.7rem 0.875rem" }}>
+                    {editing === c.client_id ? (
+                      <div style={{ display: "flex", gap: "0.35rem" }}>
+                        <button onClick={() => saveEdit(c.client_id)} disabled={saving}
+                          style={{ background: "var(--gold)", color: "#000", border: "none", borderRadius: "var(--radius)", padding: "0.3rem 0.65rem", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}>
+                          {saving ? "…" : "Save"}
+                        </button>
+                        <button onClick={() => setEditing(null)}
+                          style={{ background: "var(--surface-2)", color: "var(--text-mute)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0.3rem 0.65rem", fontSize: "0.78rem", cursor: "pointer" }}>
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => startEdit(c)} style={{ background: "none", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-mute)", fontSize: "0.75rem", padding: "0.25rem 0.6rem", cursor: "pointer" }}>
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {!data.clients.length && (
+                <tr><td colSpan={8} style={{ padding: "2rem", textAlign: "center", color: "var(--text-mute)" }}>No client protocols yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="rev-card-list" style={{ display: "none", flexDirection: "column" }}>
+          {data.clients.map(c => (
+            <div key={c.client_id} style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{c.name || "—"}</span>
+                <span style={{ ...(STATUS_COLOR[c.billing_status] ?? {}), padding: "0.15rem 0.5rem", borderRadius: 3, fontSize: "0.7rem", fontWeight: 700 }}>{c.billing_status}</span>
+              </div>
+              <p style={{ color: "var(--text-mute)", fontSize: "0.78rem" }}>{c.peptide}{c.strength ? ` ${c.strength}` : ""}</p>
+              <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem" }}>
+                <span style={{ color: "var(--gold)", fontWeight: 700, fontSize: "0.875rem" }}>{c.monthly_rate ? fmt(c.monthly_rate) : "—"}/mo</span>
+                {c.gross_margin_pct !== null && <span style={{ color: "var(--text-mute)", fontSize: "0.82rem" }}>Margin: {c.gross_margin_pct.toFixed(1)}%</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        .rev-table-wrap { overflow-x: auto; }
+        @media (max-width: 767px) {
+          .rev-table-wrap { display: none; }
+          .rev-card-list  { display: flex !important; }
+        }
+        @media (max-width: 900px) {
+          .rev-table-wrap table th:nth-child(5),
+          .rev-table-wrap table td:nth-child(5) { display: none; }
+        }
+      `}</style>
+    </div>
+  )
+}

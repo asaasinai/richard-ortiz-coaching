@@ -2,16 +2,25 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, BarChart2, Settings, Menu, X, Calculator } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, BarChart2, Settings, Menu, X, Calculator, DollarSign, Package, Zap } from "lucide-react"
 
 const nav = [
-  { href: "/admin",            label: "Overview",    icon: BarChart2 },
-  { href: "/admin/intakes",    label: "Intakes",     icon: ClipboardList },
-  { href: "/admin/checkins",   label: "Check-Ins",   icon: Activity },
-  { href: "/admin/clients",    label: "Clients",     icon: Users },
-  { href: "/admin/sms",        label: "SMS Builder", icon: MessageSquare },
-  { href: "/calculator",       label: "Calculator",  icon: Calculator },
-  { href: "/admin/settings",   label: "Settings",    icon: Settings },
+  { href: "/admin",            label: "Overview",    icon: BarChart2,      group: "main" },
+  { href: "/admin/ops",        label: "Ops Queue",   icon: Zap,            group: "main" },
+  { href: "/admin/revenue",    label: "Revenue",     icon: DollarSign,     group: "main" },
+  { href: "/admin/inventory",  label: "Inventory",   icon: Package,        group: "main" },
+  { href: "/admin/clients",    label: "Clients",     icon: Users,          group: "clients" },
+  { href: "/admin/intakes",    label: "Intakes",     icon: ClipboardList,  group: "clients" },
+  { href: "/admin/checkins",   label: "Check-Ins",   icon: Activity,       group: "clients" },
+  { href: "/admin/sms",        label: "SMS Builder", icon: MessageSquare,  group: "tools" },
+  { href: "/calculator",       label: "Calculator",  icon: Calculator,     group: "tools" },
+  { href: "/admin/settings",   label: "Settings",    icon: Settings,       group: "tools" },
+]
+
+const groups = [
+  { id: "main",    label: "Dashboard" },
+  { id: "clients", label: "Clients" },
+  { id: "tools",   label: "Tools" },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -19,23 +28,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
-    <nav style={{ marginTop:"1rem", display:"flex", flexDirection:"column", gap:"0.25rem", padding:"0 0.75rem" }}>
-      {nav.map(item => {
-        const active = path === item.href
-        return (
-          <Link key={item.href} href={item.href} onClick={onClick} style={{
-            display:"flex", alignItems:"center", gap:"0.6rem",
-            padding:"0.65rem 0.75rem", borderRadius:"var(--radius)",
-            fontSize:"0.9rem", fontWeight: active ? 700 : 500,
-            color: active ? "#000" : "var(--text-soft)",
-            background: active ? "var(--gold)" : "transparent",
-            textDecoration:"none", transition:"all 0.15s"
-          }}>
-            <item.icon size={16} />
-            {item.label}
-          </Link>
-        )
-      })}
+    <nav style={{ marginTop:"0.75rem", display:"flex", flexDirection:"column", gap:"0", padding:"0 0.75rem" }}>
+      {groups.map(group => (
+        <div key={group.id} style={{ marginBottom:"0.5rem" }}>
+          <div style={{ fontSize:"0.65rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", padding:"0.6rem 0.75rem 0.3rem" }}>
+            {group.label}
+          </div>
+          {nav.filter(n => n.group === group.id).map(item => {
+            const active = path === item.href
+            return (
+              <Link key={item.href} href={item.href} onClick={onClick} style={{
+                display:"flex", alignItems:"center", gap:"0.6rem",
+                padding:"0.6rem 0.75rem", borderRadius:"var(--radius)",
+                fontSize:"0.875rem", fontWeight: active ? 700 : 500,
+                color: active ? "#000" : "var(--text-soft)",
+                background: active ? "var(--gold)" : "transparent",
+                textDecoration:"none", transition:"all 0.15s"
+              }}>
+                <item.icon size={15} />
+                {item.label}
+              </Link>
+            )
+          })}
+        </div>
+      ))}
     </nav>
   )
 
