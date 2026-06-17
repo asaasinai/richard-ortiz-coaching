@@ -13,7 +13,7 @@ const tiers = [
   {
     num: "01",
     name: "Product + Protocol Support",
-    price: "Starting at $149/month",
+    price: "Starting at $199/month",
     tagline:
       "Perfect for individuals who want access to quality products with expert guidance.",
     features: [
@@ -50,7 +50,7 @@ const tiers = [
     name: "Full Transformation Coaching",
     price: "Starting at $599/month",
     tagline:
-      "Our highest level of support designed for maximum results.",
+      "Our highest level of support designed for maximum results. Custom protocols may include advanced optimization strategies based on your goals and starting point.",
     features: [
       "Product Included",
       "Weekly Check-Ins",
