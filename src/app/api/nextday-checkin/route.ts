@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   if (!result.rows.length) return NextResponse.json({ valid: false, alreadySubmitted: false })
 
   const row = result.rows[0]
+  // Link never expires — stays valid even after submission so client sees "already done" not "expired"
   return NextResponse.json({
     valid: true,
     alreadySubmitted: row.followup_sent === true,

@@ -37,7 +37,7 @@ function CheckInForm() {
     fetch(`/api/nextday-checkin?token=${encodeURIComponent(token)}`)
       .then(r => r.json())
       .then(d => {
-        if (d.alreadySubmitted) setAlreadyDone(true)
+        if (d.alreadySubmitted) { setAlreadyDone(true); return }
         if (!d.valid) setStatus("invalid")
       })
       .catch(() => setStatus("invalid"))
@@ -53,7 +53,9 @@ function CheckInForm() {
       body: JSON.stringify({ token, scores }),
     })
     const data = await res.json()
-    setStatus(data.ok ? "done" : "error")
+    if (data.ok) { setStatus("done"); return }
+    if (res.status === 409) { setAlreadyDone(true); return } // already submitted
+    setStatus("error")
   }
 
   if (status === "invalid") return (
