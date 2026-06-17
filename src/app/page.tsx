@@ -2,7 +2,8 @@ import Link from "next/link"
 import Image from "next/image"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
-import { Dumbbell, Moon, Target, ClipboardList, FileText, CalendarCheck, RefreshCw, ArrowRight } from "lucide-react"
+import { Dumbbell, Moon, Target, ClipboardList, FileText, CalendarCheck, RefreshCw, ArrowRight, Quote } from "lucide-react"
+import { successStories } from "@/lib/success-stories-data"
 
 const pillars = [
   {
@@ -140,6 +141,62 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* TESTIMONIALS */}
+      {successStories.length > 0 && (
+        <section style={{ background: "var(--bg)", padding: "5rem 1.5rem", overflow: "hidden" }}>
+          <div className="max-w-5xl mx-auto">
+            <span className="section-num">Client Stories</span>
+            <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
+              Real people. Real results.
+            </h2>
+
+            {/* Mobile: vertical stack / Desktop: 3-col grid showing first 3 */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+              gap: "1.25rem",
+            }}>
+              {successStories.slice(0, 3).map(s => (
+                <div key={s.slug} style={{
+                  background: "var(--bg-2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius)",
+                  padding: "1.5rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                }}>
+                  <Quote size={20} style={{ color: "var(--gold)", flexShrink: 0 }} />
+                  <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", lineHeight: 1.75, flex: 1 }}>
+                    &ldquo;{s.story.split("\n\n")[0]}&rdquo;
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    {s.metrics.slice(0, 2).map(m => (
+                      <span key={m} style={{
+                        background: "rgba(201,168,76,0.1)", color: "var(--gold)",
+                        fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.6rem",
+                        borderRadius: "var(--radius)", letterSpacing: "0.04em", textTransform: "uppercase",
+                      }}>{m}</span>
+                    ))}
+                  </div>
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
+                    <p style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>
+                      {s.name}{s.age ? `, ${s.age}` : ""}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: "2rem" }}>
+              <Link href="/success-stories" className="btn-outline" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                Read All Stories <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* SOCIAL PROOF / CTA */}
       <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem", textAlign: "center" }}>

@@ -60,15 +60,21 @@ export default function SuccessStoriesPage() {
               </div>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
               {successStories.map(s => (
-                <div key={s.slug} className="card">
+                <div key={s.slug} style={{
+                  background: "var(--bg)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius)",
+                  overflow: "hidden",
+                }}>
+                  {/* Photos row if present */}
                   {s.beforePhoto && s.afterPhoto && (
-                    <div className="grid grid-cols-2 gap-2" style={{ marginBottom: "1.25rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
                       {[[s.beforePhoto, "Before"], [s.afterPhoto, "After"]].map(([src, label]) => (
                         <div key={label} style={{ position: "relative" }}>
-                          <Image src={src} alt={`${s.name} — ${label}`} width={400} height={500}
-                            style={{ width: "100%", height: "auto", borderRadius: "var(--radius)" }} />
+                          <Image src={src} alt={`${s.name} — ${label}`} width={600} height={700}
+                            style={{ width: "100%", height: "auto", display: "block" }} />
                           <span style={{
                             position: "absolute", bottom: 8, left: 8, background: "rgba(0,0,0,0.75)",
                             color: "var(--gold)", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em",
@@ -78,17 +84,37 @@ export default function SuccessStoriesPage() {
                       ))}
                     </div>
                   )}
-                  <h3 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.2rem", marginBottom: "0.5rem" }}>{s.headline}</h3>
-                  <div className="flex flex-wrap gap-2" style={{ marginBottom: "0.9rem" }}>
-                    {s.metrics.map(m => (
-                      <span key={m} style={{
-                        background: "rgba(201,168,76,0.12)", color: "var(--gold)", fontSize: "0.75rem",
-                        fontWeight: 700, padding: "0.25rem 0.7rem", borderRadius: "var(--radius)",
-                      }}>{m}</span>
-                    ))}
+
+                  <div style={{ padding: "clamp(1.25rem, 4vw, 2rem)" }}>
+                    {/* Name + metrics row */}
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                      <h3 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
+                        {s.name}{s.age ? `, ${s.age}` : ""}
+                      </h3>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                        {s.metrics.map(m => (
+                          <span key={m} style={{
+                            background: "rgba(201,168,76,0.12)", color: "var(--gold)", fontSize: "0.72rem",
+                            fontWeight: 700, padding: "0.2rem 0.65rem", borderRadius: "var(--radius)",
+                            letterSpacing: "0.03em",
+                          }}>{m}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem", lineHeight: 1.3 }}>
+                      &ldquo;{s.headline}&rdquo;
+                    </p>
+
+                    {/* Full story — paragraphs split on double newline */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                      {s.story.split("\n\n").map((para, i) => (
+                        <p key={i} style={{ color: "var(--text-soft)", fontSize: "0.92rem", lineHeight: 1.8, margin: 0 }}>
+                          {para}
+                        </p>
+                      ))}
+                    </div>
                   </div>
-                  <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", lineHeight: 1.7 }}>{s.story}</p>
-                  <p style={{ color: "var(--text-mute)", fontSize: "0.85rem", marginTop: "0.9rem", fontWeight: 600 }}>— {s.name}</p>
                 </div>
               ))}
             </div>
