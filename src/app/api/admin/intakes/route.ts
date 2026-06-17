@@ -3,7 +3,7 @@ import { query } from "@/lib/db"
 
 export async function GET() {
   const result = await query(
-    "SELECT id, first_name, last_name, email, status, submitted_at, data FROM roc.intakes ORDER BY submitted_at DESC LIMIT 100"
+    "SELECT id, first_name, last_name, email, (data->>'phone') as phone, status, submitted_at, data FROM roc.intakes ORDER BY submitted_at DESC LIMIT 100"
   )
   return NextResponse.json({ intakes: result.rows })
 }

@@ -95,6 +95,64 @@ export async function sendAdminCheckinUrgent(adminEmail: string, clientEmail: st
   })
 }
 
+export async function sendNextDayTrigger(to: string, firstName: string, checkinUrl: string) {
+  await send({
+    to,
+    subject: "Day 1 Check-In — How Are You Feeling?",
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#0b0b0b;color:#fff;padding:2rem;border-radius:6px">
+        <h1 style="color:#C9A84C;font-size:1.4rem;margin-bottom:0.5rem">Day 1 Check-In ✓</h1>
+        <p style="color:#ccc;line-height:1.7">Hey ${firstName},</p>
+        <p style="color:#ccc;line-height:1.7">It's Day 1 of your new protocol. Your feedback today helps Richard make sure the dosing is dialed in perfectly for you.</p>
+        <p style="color:#ccc;line-height:1.7">Takes under 2 minutes — 10 quick questions.</p>
+        <p style="margin:1.75rem 0">
+          <a href="${checkinUrl}" style="background:#C9A84C;color:#000;padding:0.75rem 1.75rem;border-radius:4px;text-decoration:none;font-weight:700;font-size:1rem">Take Your Check-In →</a>
+        </p>
+        <p style="color:#666;font-size:0.8rem;margin-top:1.5rem">This link is unique to you and can only be used once.</p>
+        <hr style="border-color:rgba(201,168,76,0.15);margin:1.5rem 0"/>
+        <p style="color:#555;font-size:0.78rem">Richard Ortiz Coaching — for educational and coaching purposes only.</p>
+      </div>`,
+  })
+}
+
+export async function sendNextDayCheckinConfirmation(to: string, firstName: string) {
+  await send({
+    to,
+    subject: "Check-In Received — Thanks!",
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#0b0b0b;color:#fff;padding:2rem;border-radius:6px">
+        <h1 style="color:#C9A84C;font-size:1.4rem">Check-In Received ✓</h1>
+        <p style="color:#ccc;line-height:1.7">Hey ${firstName},</p>
+        <p style="color:#ccc;line-height:1.7">Your Day 1 check-in has been logged. Richard will review your responses and reach out if any adjustments to your protocol are needed.</p>
+        <hr style="border-color:rgba(201,168,76,0.15);margin:1.5rem 0"/>
+        <p style="color:#555;font-size:0.78rem">Richard Ortiz Coaching</p>
+      </div>`,
+  })
+}
+
+export async function sendAdminNextDayCheckin(
+  clientId: string,
+  firstName: string,
+  lastName: string,
+  email: string,
+  scores: Record<string, number>
+) {
+  const rows = Object.entries(scores)
+    .map(([k, v]) => `<tr><td style="padding:0.35rem 0;color:#888;text-transform:capitalize">${k.replace(/_/g," ")}</td><td style="font-weight:700;color:${v >= 8 ? "#C9A84C" : v <= 3 ? "#ff6b6b" : "#fff"}">${v}/10</td></tr>`)
+    .join("")
+  await send({
+    to: ADMIN,
+    subject: `Day-1 Check-In: ${firstName} ${lastName}`,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
+        <h2 style="color:#C9A84C">Next-Day Protocol Check-In</h2>
+        <p><strong>${firstName} ${lastName}</strong> (${email}) submitted their Day-1 check-in.</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:1rem">${rows}</table>
+        <p style="margin-top:1.5rem"><a href="https://richardortizcoaching.com/admin" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">View in Admin →</a></p>
+      </div>`,
+  })
+}
+
 export async function sendContactNotification(name: string, email: string, message: string) {
   await send({
     to: ADMIN,

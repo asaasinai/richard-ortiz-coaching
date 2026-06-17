@@ -9,7 +9,7 @@ const DOSE_UNITS = ["mg","mcg","IU","mL"]
 
 interface Client {
   id: string; first_name: string; last_name: string; email: string
-  status: string; submitted_at: string; data?: Record<string, unknown>
+  phone?: string; status: string; submitted_at: string; data?: Record<string, unknown>
 }
 interface CheckIn {
   id: string; submitted_at: string; urgent_flag: boolean; client_email: string
@@ -23,6 +23,7 @@ interface CheckIn {
 interface Protocol {
   peptide: string; dose_amount: string; dose_unit: string
   frequency_days: string; coach_notes: string; assigned_at: string
+  protocol_start_date?: string; followup_sent?: boolean
 }
 
 // ── SVG Line Chart ─────────────────────────────────────────────────────────
@@ -97,6 +98,11 @@ function ClientModal({ client, onClose, onStatusChange }: {
   const [pForm, setPForm] = useState({ peptide:"", doseAmount:"", doseUnit:"mg", frequencyDays:[] as string[], notes:"" })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [startDate, setStartDate] = useState("")
+  const [startSaving, setStartSaving] = useState(false)
+  const [startSaved, setStartSaved] = useState(false)
+  const [smsDraft, setSmsDraft] = useState("")
+  const [smsLink, setSmsLink] = useState("")
 
   useEffect(() => {
     setLoading(true)
@@ -110,6 +116,7 @@ function ClientModal({ client, onClose, onStatusChange }: {
         let days: string[] = []
         try { days = JSON.parse(pD.protocol.frequency_days) } catch { days = [] }
         setPForm({ peptide:pD.protocol.peptide, doseAmount:pD.protocol.dose_amount, doseUnit:pD.protocol.dose_unit||"mg", frequencyDays:days, notes:pD.protocol.coach_notes })
+        if (pD.protocol.protocol_start_date) setStartDate(pD.protocol.protocol_start_date.slice(0,10))
       }
       setLoading(false)
     })
@@ -307,6 +314,85 @@ function ClientModal({ client, onClose, onStatusChange }: {
               </button>
               {protocol && (
                 <p style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>Last saved: {new Date(protocol.assigned_at).toLocaleString()}</p>
+              )}
+
+              {/* ── Protocol Start Date + Day-1 Trigger ── */}
+              <hr style={{ border:"none", borderTop:"1px solid var(--border)", margin:"0.25rem 0" }}/>
+              <div>
+                <label style={{ fontWeight:700, fontSize:"0.85rem" }}>Protocol Start Date</label>
+                <p style={{ color:"var(--text-mute)", fontSize:"0.78rem", marginTop:"0.2rem", marginBottom:"0.6rem", lineHeight:1.5 }}>
+                  Setting this date triggers a next-day check-in email to the client on Day+1. Sent once per protocol start. Client can also reset this date themselves.
+                </p>
+                {protocol?.followup_sent && (
+                  <div style={{ background:"rgba(74,222,128,0.1)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:"var(--radius)", padding:"0.5rem 0.75rem", marginBottom:"0.75rem", fontSize:"0.8rem", color:"#4ade80" }}>
+                    ✓ Day-1 check-in trigger sent. Reset start date below to re-send for a new protocol.
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:"0.75rem", flexWrap:"wrap", alignItems:"flex-end" }}>
+                  <div style={{ flex:1, minWidth:160 }}>
+                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                      style={{ marginTop:"0.35rem" }}/>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!startDate) return
+                      setStartSaving(true); setStartSaved(false)
+                      const res = await fetch("/api/admin/set-protocol-start", {
+                        method:"POST", headers:{"Content-Type":"application/json"},
+                        body: JSON.stringify({ clientId: client.id, startDate })
+                      })
+                      const d = await res.json()
+                      if (d.ok) {
+                        const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://richardortizcoaching.com"
+                        const link = `${base}/next-day-checkin?token=${d.token}`
+                        setSmsLink(link)
+                        setSmsDraft(`Hi, it's Day 1 of your new protocol! How are you feeling? Take 2 min to fill out your check-in: ${link}`)
+                        setProtocol(p => p ? {...p, protocol_start_date: startDate, followup_sent: false} : p)
+                        setStartSaved(true)
+                        setTimeout(() => setStartSaved(false), 3000)
+                      }
+                      setStartSaving(false)
+                    }}
+                    disabled={!startDate || startSaving}
+                    className="btn-gold"
+                    style={{ whiteSpace:"nowrap", opacity: (!startDate || startSaving) ? 0.5 : 1 }}
+                  >
+                    {startSaving ? "Setting…" : startSaved ? "✓ Set" : "Set Start Date"}
+                  </button>
+                </div>
+              </div>
+
+              {/* SMS Draft */}
+              {smsDraft && (
+                <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}>
+                  <label style={{ fontWeight:700, fontSize:"0.85rem" }}>Draft SMS / Text Message</label>
+                  <p style={{ color:"var(--text-mute)", fontSize:"0.75rem", marginTop:"0.2rem", marginBottom:"0.6rem" }}>Copy and send via your phone or SMS platform. Link is unique and single-use.</p>
+                  <textarea
+                    readOnly
+                    rows={3}
+                    value={smsDraft}
+                    onClick={e => (e.target as HTMLTextAreaElement).select()}
+                    style={{ fontSize:"0.85rem", lineHeight:1.6, cursor:"text" }}
+                  />
+                  <div style={{ display:"flex", gap:"0.5rem", marginTop:"0.5rem", flexWrap:"wrap" }}>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(smsDraft)}
+                      className="btn-outline"
+                      style={{ fontSize:"0.8rem", padding:"0.35rem 0.75rem" }}
+                    >Copy Text</button>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(smsLink)}
+                      className="btn-outline"
+                      style={{ fontSize:"0.8rem", padding:"0.35rem 0.75rem" }}
+                    >Copy Link Only</button>
+                    {client.phone && (
+                      <a href={`sms:${client.phone}?&body=${encodeURIComponent(smsDraft)}`}
+                        className="btn-gold"
+                        style={{ fontSize:"0.8rem", padding:"0.35rem 0.75rem", textDecoration:"none" }}
+                      >Open in Messages</a>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}
