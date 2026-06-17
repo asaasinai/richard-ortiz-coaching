@@ -7,6 +7,7 @@ const links = [
   { href: "/coaching", label: "Program" },
   { href: "/meet-your-coach", label: "Meet Your Coach" },
   { href: "/success-stories", label: "Success Stories" },
+  { href: "/pricing", label: "Pricing" },
 ]
 
 const clientResources = [
@@ -82,6 +83,7 @@ export default function Nav() {
             )}
           </div>
           <Link href="/contact" style={linkStyle} className="hover:text-white transition-colors">Contact</Link>
+
           <Link href="/intake" className="btn-gold" style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}>Start Intake</Link>
         </div>
 
@@ -107,6 +109,7 @@ export default function Nav() {
               style={{ fontSize: "0.9rem", color: "var(--text-soft)", paddingLeft: "0.75rem" }}>{r.label}</Link>
           ))}
           <Link href="/contact" onClick={() => setOpen(false)} style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>Contact</Link>
+
           <Link href="/intake" className="btn-gold text-center" onClick={() => setOpen(false)}>Start Intake</Link>
         </div>
       )}
