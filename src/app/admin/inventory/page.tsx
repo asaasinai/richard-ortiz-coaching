@@ -62,7 +62,16 @@ export default function InventoryPage() {
   }
 
   const saveBulk = async () => {
-    const toSave = bulkEntries.filter(e => e.qty && e.cost)
+    // Cost defaults to the SKU's wholesale price when left blank, so a coach
+    // can receive a shipment by entering quantities only.
+    const costFor = (skuId: string) => {
+      const w = skus.find(s => s.id === skuId)?.wholesale_cost
+      return w != null ? String(w) : ""
+    }
+    const toSave = bulkEntries
+      .filter(e => e.qty)
+      .map(e => ({ ...e, cost: e.cost || costFor(e.skuId) }))
+      .filter(e => e.cost)
     if (!toSave.length) return
     setBulkSaving(true)
     await Promise.all(toSave.map(e =>
@@ -164,7 +173,7 @@ export default function InventoryPage() {
                             />
                             <input
                               type="number"
-                              placeholder="$"
+                              placeholder={sku.wholesale_cost != null ? `$${Number(sku.wholesale_cost).toFixed(2)}` : "$"}
                               value={entry?.cost ?? ""}
                               onChange={e => setBulkEntries(prev => prev.map(en => en.skuId === sku.id ? { ...en, cost: e.target.value } : en).concat(!prev.find(en => en.skuId === sku.id) ? [{ skuId: sku.id, qty: "", cost: e.target.value }] : []))}
                               style={{ fontSize:"0.75rem", padding:"0.3rem", textAlign:"center", marginTop:"0.2rem" }}
