@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
-import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 const DEFAULT_TOS = `COACHING SERVICES AGREEMENT
 
@@ -82,15 +81,30 @@ export async function GET(
       return NextResponse.json({ error: "ANTHROPIC_API_KEY not set" }, { status: 500 })
     }
 
+    // Build the available-products list from the live Elixsir catalog so the
+    // model can only recommend (peptide, vial size) pairs that resolve to a SKU.
+    const catalogRes = await query<{ peptide_name: string; strength: string; strength_unit: string }>(
+      `SELECT peptide_name, strength, strength_unit FROM roc.inventory_skus ORDER BY peptide_name, strength`
+    )
+    const sizesByPeptide = new Map<string, string[]>()
+    for (const r of catalogRes.rows) {
+      const arr = sizesByPeptide.get(r.peptide_name) ?? []
+      arr.push(`${r.strength}${r.strength_unit}`)
+      sizesByPeptide.set(r.peptide_name, arr)
+    }
+    const catalogLines = Array.from(sizesByPeptide.entries())
+      .map(([name, sizes]) => `- ${name}: ${sizes.join(", ")}`)
+      .join("\n")
+
     const systemPrompt = `You are an expert peptide optimization consultant for Elixsir, a peptide manufacturer.
 Based on the client intake below, recommend an optimal protocol from the Elixsir catalog.
-Available peptides: ${PEPTIDE_NAMES.join(", ")}.
-Available vial sizes: 5mg, 10mg, 20mg, 30mg.
+You MUST only choose a peptide + vial size that appears in this exact catalog (use the peptide name verbatim):
+${catalogLines}
 
 Respond ONLY with valid JSON matching this exact schema:
 {
-  "primary_peptide": "string (exact name from catalog)",
-  "primary_vial_size_mg": number (5|10|20|30),
+  "primary_peptide": "string (exact name from the catalog above)",
+  "primary_vial_size_mg": number (the numeric mg of a vial size offered for that peptide),
   "primary_dose_amount": "string",
   "primary_dose_unit": "string (mg|mcg|IU|mL)",
   "primary_frequency": ["Mon","Wed","Fri"],

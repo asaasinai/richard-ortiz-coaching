@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Package, AlertTriangle, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
-import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 interface Batch {
   id: string; qty_received: string; qty_remaining: string; unit_cost: string
@@ -11,6 +10,7 @@ interface Batch {
 interface SKU {
   id: string; peptide_name: string; strength: string; strength_unit: string
   units_in_stock: string; reorder_qty: string; reorder_point: number
+  wholesale_cost: number | null
   fifo_cost: number | null; fifo_supplier: string | null
   weekly_burn: number; active_clients: number
   weeks_of_stock: number | null; stock_status: "ok" | "warning" | "critical" | "unknown"
@@ -24,7 +24,10 @@ const STATUS = {
   unknown:  { bg: "rgba(255,255,255,0.04)", border: "var(--border)",          color: "var(--text-mute)", label: "No Data" },
 }
 
-const SIZES = [5, 10, 20, 30]
+// Vial sizes are sourced from the live catalog per peptide (Elixsir sells
+// different sizes per compound — e.g. NAD+ 500mg, GHK-Cu 50mg, IGF-LR3 1mg).
+const sizesOf = (group: Record<number, SKU>) =>
+  Object.keys(group).map(Number).sort((a, b) => a - b)
 
 export default function InventoryPage() {
   const [skus, setSkus] = useState<SKU[]>([])
@@ -78,14 +81,13 @@ export default function InventoryPage() {
     skuByPeptide[sku.peptide_name][Number(sku.strength)] = sku
   }
 
-  // Apply filters
-  const peptideNames = PEPTIDE_NAMES.filter(name => {
+  // Peptide list comes from the actual catalog, not a static name list
+  const peptideNames = Object.keys(skuByPeptide).sort((a, b) => a.localeCompare(b)).filter(name => {
     if (search && !name.toLowerCase().includes(search.toLowerCase())) return false
-    const group = skuByPeptide[name]
-    if (!group) return false
-    if (stockFilter === "in_stock") return SIZES.some(mg => group[mg] && Number(group[mg].units_in_stock) > 0)
-    if (stockFilter === "order_soon") return SIZES.some(mg => group[mg] && (group[mg].stock_status === "warning" || group[mg].stock_status === "critical"))
-    if (stockFilter === "out_of_stock") return SIZES.some(mg => group[mg] && Number(group[mg].units_in_stock) === 0)
+    const skusInGroup = Object.values(skuByPeptide[name])
+    if (stockFilter === "in_stock") return skusInGroup.some(s => Number(s.units_in_stock) > 0)
+    if (stockFilter === "order_soon") return skusInGroup.some(s => s.stock_status === "warning" || s.stock_status === "critical")
+    if (stockFilter === "out_of_stock") return skusInGroup.some(s => Number(s.units_in_stock) === 0)
     return true
   })
 
@@ -104,10 +106,9 @@ export default function InventoryPage() {
         </div>
         <div style={{ display:"flex", gap:"0.5rem" }}>
           <button onClick={() => {
-            const entries = PEPTIDE_NAMES.flatMap(name => SIZES.map(mg => {
-              const sku = skuByPeptide[name]?.[mg]
-              return sku ? { skuId: sku.id, qty: "", cost: "" } : null
-            }).filter(Boolean) as { skuId: string; qty: string; cost: string }[])
+            const entries = Object.values(skuByPeptide).flatMap(group =>
+              Object.values(group).map(sku => ({ skuId: sku.id, qty: "", cost: "" }))
+            )
             setBulkEntries(entries.slice(0, 40))
             setShowBulkReceive(true)
           }} className="btn-outline" style={{ fontSize:"0.875rem" }}>
@@ -141,16 +142,15 @@ export default function InventoryPage() {
             </div>
             <p style={{ color:"var(--text-mute)", fontSize:"0.82rem", marginBottom:"1rem" }}>Enter quantity and cost for each SKU received. Leave blank to skip.</p>
             <div style={{ maxHeight:420, overflowY:"auto", display:"flex", flexDirection:"column", gap:"0.5rem" }}>
-              {PEPTIDE_NAMES.map(name => {
+              {peptideNames.map(name => {
                 const group = skuByPeptide[name]
                 if (!group) return null
                 return (
                   <div key={name} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.75rem" }}>
                     <p style={{ fontWeight:700, fontSize:"0.85rem", marginBottom:"0.5rem" }}>{name}</p>
                     <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"0.4rem" }}>
-                      {SIZES.map(mg => {
+                      {sizesOf(group).map(mg => {
                         const sku = group[mg]
-                        if (!sku) return <div key={mg} style={{ fontSize:"0.72rem", color:"var(--text-mute)", padding:"0.3rem" }}>{mg}mg N/A</div>
                         const entry = bulkEntries.find(e => e.skuId === sku.id)
                         return (
                           <div key={mg} style={{ textAlign:"center" }}>
@@ -200,7 +200,8 @@ export default function InventoryPage() {
           const group = skuByPeptide[name] ?? {}
           const isOpen = expanded === name
           // Overall group status
-          const allStatuses = SIZES.map(mg => group[mg]?.stock_status).filter(Boolean)
+          const groupSizes = sizesOf(group)
+          const allStatuses = groupSizes.map(mg => group[mg]?.stock_status).filter(Boolean)
           const hasCritical = allStatuses.includes("critical")
           const hasWarning = allStatuses.includes("warning")
           const groupBorderColor = hasCritical ? "rgba(248,113,113,0.35)" : hasWarning ? "rgba(251,191,36,0.3)" : "var(--border)"
@@ -215,13 +216,12 @@ export default function InventoryPage() {
                 <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
                   {/* Quick size tiles in header */}
                   <div style={{ display:"flex", gap:"0.3rem" }}>
-                    {SIZES.map(mg => {
+                    {groupSizes.map(mg => {
                       const sku = group[mg]
-                      if (!sku) return <span key={mg} style={{ padding:"0.15rem 0.4rem", borderRadius:3, fontSize:"0.68rem", background:"rgba(255,255,255,0.05)", color:"var(--text-mute)" }}>{mg}mg —</span>
                       const st = STATUS[sku.stock_status]
                       return (
                         <span key={mg} style={{ padding:"0.15rem 0.4rem", borderRadius:3, fontSize:"0.68rem", fontWeight:700, background:st.bg, color:st.color, border:`1px solid ${st.border}` }}>
-                          {mg}mg · {sku.units_in_stock}
+                          {mg}{sku.strength_unit} · {sku.units_in_stock}
                         </span>
                       )
                     })}
@@ -234,25 +234,20 @@ export default function InventoryPage() {
               {isOpen && (
                 <div style={{ borderTop:"1px solid var(--border)", padding:"1rem 1.25rem" }}>
                   <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
-                    {SIZES.map(mg => {
+                    {groupSizes.map(mg => {
                       const sku = group[mg]
-                      if (!sku) return (
-                        <div key={mg} style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.6rem 0.875rem", background:"rgba(255,255,255,0.02)", borderRadius:"var(--radius)", fontSize:"0.82rem", color:"var(--text-mute)" }}>
-                          <span style={{ fontWeight:700, width:50 }}>{mg}mg</span>
-                          <span>Not in catalog</span>
-                        </div>
-                      )
                       const st = STATUS[sku.stock_status]
                       const isBatchOpen = expandedSku === sku.id
                       return (
                         <div key={mg} style={{ border:`1px solid ${st.border}`, borderRadius:"var(--radius)", overflow:"hidden" }}>
                           <div style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.75rem 1rem", background:st.bg, flexWrap:"wrap" }}>
-                            <span style={{ fontWeight:700, fontSize:"0.875rem", width:50 }}>{mg}mg</span>
+                            <span style={{ fontWeight:700, fontSize:"0.875rem", width:50 }}>{mg}{sku.strength_unit}</span>
                             <div style={{ display:"flex", alignItems:"center", gap:"0.4rem", flex:1 }}>
                               <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:st.color }}>{sku.units_in_stock}</span>
                               <span style={{ fontSize:"0.72rem", color:"var(--text-mute)" }}>in stock</span>
                               <span style={{ padding:"0.1rem 0.4rem", borderRadius:3, fontSize:"0.65rem", fontWeight:700, background:st.color, color:"#000" }}>{st.label}</span>
                             </div>
+                            {sku.wholesale_cost !== null && <span style={{ color:"var(--text-mute)", fontSize:"0.78rem" }}>COGS ${Number(sku.wholesale_cost).toFixed(2)}</span>}
                             {sku.fifo_cost !== null && <span style={{ color:"var(--gold)", fontWeight:700, fontSize:"0.82rem" }}>${Number(sku.fifo_cost).toFixed(2)}/vial</span>}
                             {sku.active_clients > 0 && (
                               <span style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>{sku.active_clients} client{sku.active_clients !== 1 ? "s" : ""}</span>

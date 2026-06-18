@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const strengthFilter = url.searchParams.get('strength')
   if (peptideFilter && strengthFilter) {
     const result = await query(
-      `SELECT id, peptide_name, strength, strength_unit, units_in_stock, notes,
+      `SELECT id, peptide_name, strength, strength_unit, units_in_stock, notes, wholesale_cost,
               (SELECT unit_cost FROM roc.inventory_batches WHERE sku_id = s.id AND qty_remaining > 0 ORDER BY received_at ASC LIMIT 1) as fifo_cost
        FROM roc.inventory_skus s
        WHERE peptide_name = $1 AND strength = $2::numeric`,
@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
     // SKUs with stock summary
     const skus = await query<{
       id: string; peptide_name: string; strength: string; strength_unit: string
-      units_in_stock: string; reorder_qty: string; reorder_point: string | null; notes: string | null
+      units_in_stock: string; reorder_qty: string; reorder_point: string | null
+      wholesale_cost: string | null; notes: string | null
     }>(`SELECT * FROM roc.inventory_skus ORDER BY peptide_name, strength`)
 
     // Oldest unexhausted batch per SKU (FIFO current cost)

@@ -2,11 +2,9 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
-import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 const DOSE_UNITS = ["mg","mcg","IU","mL"]
-const SIZES = [5, 10, 20, 30]
 
 interface Intake {
   id: string; first_name: string; last_name: string; email: string; phone?: string
@@ -119,6 +117,10 @@ export default function IntakeDetailPage() {
   })
   const [skuInfo, setSkuInfo] = useState<SkuInfo | null>(null)
   const [secondarySkuInfo, setSecondarySkuInfo] = useState<SkuInfo | null>(null)
+
+  // Live Elixsir catalog: peptide name -> sorted vial sizes (drives picker)
+  const [catalog, setCatalog] = useState<Record<string, number[]>>({})
+  const peptideList = Object.keys(catalog).sort((a, b) => a.localeCompare(b))
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -157,6 +159,21 @@ export default function IntakeDetailPage() {
   }, [id])
 
   useEffect(() => { load() }, [load])
+
+  // Load the live catalog once so peptide + vial-size pickers match real SKUs
+  useEffect(() => {
+    fetch(`/api/admin/inventory`)
+      .then(r => r.json())
+      .then(d => {
+        const map: Record<string, number[]> = {}
+        for (const s of (d.skus ?? []) as { peptide_name: string; strength: string }[]) {
+          (map[s.peptide_name] ??= []).push(Number(s.strength))
+        }
+        for (const k in map) map[k].sort((a, b) => a - b)
+        setCatalog(map)
+      })
+      .catch(() => {})
+  }, [])
 
   // Load AI rec from cache on mount
   useEffect(() => {
@@ -505,17 +522,17 @@ export default function IntakeDetailPage() {
             <label style={{ display: "block", marginBottom: "0.35rem" }}>Primary Peptide</label>
             <select value={pForm.peptide} onChange={e => setPForm(p => ({ ...p, peptide: e.target.value, vialSize: 0, skuId: "" }))}>
               <option value="">— Select peptide —</option>
-              {PEPTIDE_NAMES.map(p => <option key={p}>{p}</option>)}
+              {peptideList.map(p => <option key={p}>{p}</option>)}
             </select>
           </div>
 
           {pForm.peptide && (
             <div>
               <label style={{ display: "block", marginBottom: "0.5rem" }}>Vial Size (Elixsir)</label>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                {SIZES.map(mg => (
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {(catalog[pForm.peptide] ?? []).map(mg => (
                   <button key={mg} type="button" onClick={() => setPForm(p => ({ ...p, vialSize: mg }))} style={{
-                    flex: 1, padding: "0.6rem", borderRadius: "var(--radius)", fontWeight: 700, cursor: "pointer", fontSize: "0.875rem",
+                    flex: "1 0 auto", minWidth: "3.5rem", padding: "0.6rem", borderRadius: "var(--radius)", fontWeight: 700, cursor: "pointer", fontSize: "0.875rem",
                     background: pForm.vialSize === mg ? "var(--gold)" : "var(--surface-2)",
                     color: pForm.vialSize === mg ? "#000" : "var(--text-mute)",
                     border: `1px solid ${pForm.vialSize === mg ? "var(--gold)" : "var(--border)"}`,
@@ -573,17 +590,17 @@ export default function IntakeDetailPage() {
             <label style={{ display: "block", marginBottom: "0.35rem" }}>Secondary Peptide (optional)</label>
             <select value={pForm.secondaryPeptide} onChange={e => setPForm(p => ({ ...p, secondaryPeptide: e.target.value, secondaryVialSize: 0, secondarySkuId: "" }))}>
               <option value="">None</option>
-              {PEPTIDE_NAMES.map(p => <option key={p}>{p}</option>)}
+              {peptideList.map(p => <option key={p}>{p}</option>)}
             </select>
           </div>
 
           {pForm.secondaryPeptide && (
             <div>
               <label style={{ display: "block", marginBottom: "0.5rem" }}>Secondary Vial Size</label>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                {SIZES.map(mg => (
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {(catalog[pForm.secondaryPeptide] ?? []).map(mg => (
                   <button key={mg} type="button" onClick={() => setPForm(p => ({ ...p, secondaryVialSize: mg }))} style={{
-                    flex: 1, padding: "0.6rem", borderRadius: "var(--radius)", fontWeight: 700, cursor: "pointer", fontSize: "0.875rem",
+                    flex: "1 0 auto", minWidth: "3.5rem", padding: "0.6rem", borderRadius: "var(--radius)", fontWeight: 700, cursor: "pointer", fontSize: "0.875rem",
                     background: pForm.secondaryVialSize === mg ? "var(--gold)" : "var(--surface-2)",
                     color: pForm.secondaryVialSize === mg ? "#000" : "var(--text-mute)",
                     border: `1px solid ${pForm.secondaryVialSize === mg ? "var(--gold)" : "var(--border)"}`,
