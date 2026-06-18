@@ -135,36 +135,36 @@ export default function ProposalPage() {
           <div style={{ marginBottom: "1rem" }}>
             <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Primary</p>
             <p style={{ fontWeight: 700, fontSize: "1rem" }}>
-              {snap.peptide as string} ({snap.sku_strength ?? snap.vialSize}mg vial · Elixsir)
+              {String(snap.peptide ?? "")} ({String(snap.sku_strength ?? snap.vialSize ?? "")}mg vial · Elixsir)
             </p>
             {snap.dose_amount && (
               <p style={{ color: "#ccc", fontSize: "0.875rem", marginTop: "0.2rem" }}>
-                Dose: {snap.dose_amount as string} {snap.dose_unit as string}
+                Dose: {String(snap.dose_amount)} {String(snap.dose_unit ?? "")}
               </p>
             )}
             {snap.frequency_days && (() => {
               try {
-                const days = typeof snap.frequency_days === "string" ? JSON.parse(snap.frequency_days as string) : snap.frequency_days
+                const days = typeof snap.frequency_days === "string" ? JSON.parse(snap.frequency_days) : snap.frequency_days
                 return <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Frequency: {(days as string[]).join(" / ")}</p>
               } catch { return null }
             })()}
-            {snap.duration_weeks && <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Duration: {snap.duration_weeks as number} weeks</p>}
+            {snap.duration_weeks && <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Duration: {String(snap.duration_weeks)} weeks</p>}
             {snap.monthly_rate && (
-              <p style={{ color: "#C9A84C", fontWeight: 700, marginTop: "0.4rem" }}>Monthly Investment: ${snap.monthly_rate as string}/month</p>
+              <p style={{ color: "#C9A84C", fontWeight: 700, marginTop: "0.4rem" }}>Monthly Investment: ${String(snap.monthly_rate)}/month</p>
             )}
           </div>
 
           {snap.secondary_peptide && (
             <div style={{ marginBottom: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Secondary (optional)</p>
-              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{snap.secondary_peptide as string} (Elixsir)</p>
+              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{String(snap.secondary_peptide)} (Elixsir)</p>
             </div>
           )}
 
           {snap.coach_notes && (
             <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.4rem" }}>Coach Notes</p>
-              <p style={{ color: "#ccc", fontSize: "0.875rem", lineHeight: 1.6 }}>{snap.coach_notes as string}</p>
+              <p style={{ color: "#ccc", fontSize: "0.875rem", lineHeight: 1.6 }}>{String(snap.coach_notes)}</p>
             </div>
           )}
         </div>

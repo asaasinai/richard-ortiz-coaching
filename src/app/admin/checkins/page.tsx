@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, X } from "lucide-react"
 
@@ -22,7 +22,7 @@ interface CheckIn {
   }
 }
 
-export default function AdminCheckInsPage() {
+function CheckInsInner() {
   const [checkins, setCheckins] = useState<CheckIn[]>([])
   const [selected, setSelected] = useState<CheckIn | null>(null)
   const [loading, setLoading] = useState(true)
@@ -211,5 +211,13 @@ export default function AdminCheckInsPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function AdminCheckInsPage() {
+  return (
+    <Suspense fallback={<p style={{ color: "var(--text-mute)" }}>Loading…</p>}>
+      <CheckInsInner />
+    </Suspense>
   )
 }

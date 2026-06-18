@@ -1,6 +1,7 @@
 import { query } from "@/lib/db"
 import { Users, ClipboardList, Activity, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+// Note: server component — no browser event handlers
 
 async function getStats() {
   const [intakes, checkins, urgent, activeClients, pendingList] = await Promise.all([
@@ -39,9 +40,7 @@ export default async function AdminOverview() {
       <div className="admin-stat-grid" style={{ display:"grid", gap:"1rem", marginBottom:"2rem" }}>
         {cards.map(c => (
           <Link key={c.label} href={c.href} style={{ textDecoration:"none" }}>
-            <div className="card" style={{ cursor:"pointer", transition:"border-color 0.15s" }}
-              onMouseOver={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = c.color }}
-              onMouseOut={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--border)" }}>
+            <div className="card stat-card" style={{ cursor:"pointer" }}>
               <c.icon size={18} style={{ color:c.color, marginBottom:"0.6rem" }} />
               <div style={{ fontSize:"2rem",fontWeight:900,fontFamily:"Inter Tight,sans-serif",color:"var(--text)",lineHeight:1 }}>{c.value}</div>
               <div style={{ fontWeight:600,fontSize:"0.875rem",marginTop:"0.4rem" }}>{c.label}</div>
