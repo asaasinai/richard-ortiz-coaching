@@ -1,11 +1,16 @@
 "use client"
 import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, X } from "lucide-react"
 
 interface CheckIn {
   id: string
   submitted_at: string
   urgent_flag: boolean
+  client_email: string
+  first_name?: string
+  last_name?: string
+  client_intake_id?: string
   data: {
     weight?: string
     progressScore?: number
@@ -22,13 +27,21 @@ export default function AdminCheckInsPage() {
   const [selected, setSelected] = useState<CheckIn | null>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all"|"urgent">("all")
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    fetch("/api/admin/checkins").then(r => r.json()).then(d => {
+    const urlFilter = searchParams.get("filter")
+    if (urlFilter === "urgent") setFilter("urgent")
+  }, [searchParams])
+
+  useEffect(() => {
+    const url = filter === "urgent" ? "/api/admin/checkins?filter=urgent" : "/api/admin/checkins"
+    fetch(url).then(r => r.json()).then(d => {
       setCheckins(d.checkins ?? [])
       setLoading(false)
     })
-  }, [])
+  }, [filter])
 
   const filtered = filter === "urgent" ? checkins.filter(c => c.urgent_flag) : checkins
 
@@ -46,8 +59,24 @@ export default function AdminCheckInsPage() {
 
   const DetailPanel = () => !selected ? null : (
     <div className="card">
-      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"1.25rem" }}>
-        <h2 style={{ fontWeight:700, fontSize:"0.95rem" }}>{new Date(selected.submitted_at).toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</h2>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.75rem" }}>
+        <div>
+          {selected.first_name && (
+            <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"0.4rem" }}>
+              <span style={{ fontWeight:700, fontSize:"0.95rem" }}>{selected.first_name} {selected.last_name}</span>
+              {selected.client_intake_id && (
+                <button
+                  onClick={() => router.push(`/admin/clients/${selected.client_intake_id}`)}
+                  style={{ fontSize:"0.72rem", color:"var(--gold)", background:"none", border:"1px solid var(--gold)", borderRadius:3, padding:"0.15rem 0.5rem", cursor:"pointer", fontWeight:600 }}>
+                  View Client →
+                </button>
+              )}
+            </div>
+          )}
+          <h2 style={{ fontWeight:600, fontSize:"0.85rem", color:"var(--text-mute)" }}>
+            {new Date(selected.submitted_at).toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}
+          </h2>
+        </div>
         <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", color:"var(--text-mute)", cursor:"pointer", display:"flex", alignItems:"center", padding:"0.25rem" }}>
           <X size={18}/>
         </button>
@@ -124,15 +153,19 @@ export default function AdminCheckInsPage() {
                   <div style={{ display:"flex", alignItems:"flex-start", gap:"0.6rem", flex:1, minWidth:0 }}>
                     {c.urgent_flag && <AlertTriangle size={14} style={{ color:"#f87171", flexShrink:0, marginTop:2 }} />}
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontWeight:600, fontSize:"0.85rem", flexWrap:"wrap", display:"flex", gap:"0.5rem" }}>
-                        <span>Progress: {c.data.progressScore}/10</span>
-                        <span>·</span>
-                        <span>Energy: {c.data.energyScore}/10</span>
-                        <span>·</span>
-                        <span>Mood: {c.data.moodScore}/10</span>
-                      </div>
-                      <div style={{ color:"var(--text-mute)", fontSize:"0.78rem", marginTop:"0.2rem", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {c.data.sideEffects?.join(", ") || "No side effects"} · Missed: {c.data.missedDoses ?? 0} doses
+                      {c.first_name && (
+                        <div style={{ fontWeight:700, fontSize:"0.875rem", marginBottom:"0.2rem" }}>
+                          {c.first_name} {c.last_name}
+                          <span style={{ color:"var(--text-mute)", fontWeight:400, fontSize:"0.78rem", marginLeft:"0.5rem" }}>{c.client_email}</span>
+                        </div>
+                      )}
+                      {!c.first_name && (
+                        <div style={{ fontWeight:600, fontSize:"0.85rem", marginBottom:"0.2rem", color:"var(--text-mute)" }}>{c.client_email}</div>
+                      )}
+                      <div style={{ display:"flex", gap:"0.75rem", flexWrap:"wrap", fontSize:"0.8rem", color:"var(--text-mute)" }}>
+                        {c.data.progressScore !== undefined && <span>Progress: {c.data.progressScore}/10</span>}
+                        {c.data.energyScore !== undefined && <span>Energy: {c.data.energyScore}/10</span>}
+                        {c.data.moodScore !== undefined && <span>Mood: {c.data.moodScore}/10</span>}
                       </div>
                     </div>
                   </div>

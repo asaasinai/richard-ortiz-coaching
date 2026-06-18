@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Package, AlertTriangle, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
+import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 interface Batch {
   id: string; qty_received: string; qty_remaining: string; unit_cost: string
@@ -20,21 +21,26 @@ const STATUS = {
   ok:       { bg: "rgba(74,222,128,0.12)",  border: "rgba(74,222,128,0.3)",  color: "#4ade80", label: "In Stock" },
   warning:  { bg: "rgba(251,191,36,0.1)",   border: "rgba(251,191,36,0.3)",  color: "#fbbf24", label: "Order Soon" },
   critical: { bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.35)",color: "#f87171", label: "Order Now" },
-  unknown:  { bg: "rgba(255,255,255,0.04)", border: "var(--border)",          color: "var(--text-mute)", label: "No Usage Data" },
+  unknown:  { bg: "rgba(255,255,255,0.04)", border: "var(--border)",          color: "var(--text-mute)", label: "No Data" },
 }
+
+const SIZES = [5, 10, 20, 30]
 
 export default function InventoryPage() {
   const [skus, setSkus] = useState<SKU[]>([])
   const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState<string | null>(null)
-  const [showAddSKU, setShowAddSKU] = useState(false)
-  const [showAddBatch, setShowAddBatch] = useState<string | null>(null) // sku_id
+  const [expanded, setExpanded] = useState<string | null>(null) // peptide name
+  const [expandedSku, setExpandedSku] = useState<string | null>(null) // sku id for batch history
+  const [stockFilter, setStockFilter] = useState<"all"|"in_stock"|"order_soon"|"out_of_stock">("all")
+  const [search, setSearch] = useState("")
+  const [showAddBatch, setShowAddBatch] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "" })
 
-  // New SKU form
-  const [newSKU, setNewSKU] = useState({ peptide_name: "", strength: "", strength_unit: "mg", reorder_qty: "10", notes: "" })
-  // New batch form
-  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "", ordered_at: "", received_at: "", notes: "" })
+  // Bulk receive modal
+  const [showBulkReceive, setShowBulkReceive] = useState(false)
+  const [bulkEntries, setBulkEntries] = useState<{ skuId: string; qty: string; cost: string }[]>([])
+  const [bulkSaving, setBulkSaving] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -42,217 +48,276 @@ export default function InventoryPage() {
   }
   useEffect(load, [])
 
-  const addSKU = async () => {
-    if (!newSKU.peptide_name || !newSKU.strength) return
-    setSaving(true)
-    await fetch("/api/admin/inventory", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newSKU) })
-    setSaving(false)
-    setShowAddSKU(false)
-    setNewSKU({ peptide_name: "", strength: "", strength_unit: "mg", reorder_qty: "10", notes: "" })
-    load()
-  }
-
   const addBatch = async (skuId: string) => {
     if (!newBatch.qty_received || !newBatch.unit_cost) return
     setSaving(true)
     await fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: skuId, ...newBatch }) })
     setSaving(false)
     setShowAddBatch(null)
-    setNewBatch({ qty_received: "", unit_cost: "", supplier: "", ordered_at: "", received_at: "", notes: "" })
+    setNewBatch({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "" })
     load()
   }
 
+  const saveBulk = async () => {
+    const toSave = bulkEntries.filter(e => e.qty && e.cost)
+    if (!toSave.length) return
+    setBulkSaving(true)
+    await Promise.all(toSave.map(e =>
+      fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: e.skuId, qty_received: e.qty, unit_cost: e.cost, supplier: "Elixsir", received_at: new Date().toISOString().slice(0,10) }) })
+    ))
+    setBulkSaving(false)
+    setShowBulkReceive(false)
+    setBulkEntries([])
+    load()
+  }
+
+  // Group SKUs by peptide name
+  const skuByPeptide: Record<string, Record<number, SKU>> = {}
+  for (const sku of skus) {
+    if (!skuByPeptide[sku.peptide_name]) skuByPeptide[sku.peptide_name] = {}
+    skuByPeptide[sku.peptide_name][Number(sku.strength)] = sku
+  }
+
+  // Apply filters
+  const peptideNames = PEPTIDE_NAMES.filter(name => {
+    if (search && !name.toLowerCase().includes(search.toLowerCase())) return false
+    const group = skuByPeptide[name]
+    if (!group) return false
+    if (stockFilter === "in_stock") return SIZES.some(mg => group[mg] && Number(group[mg].units_in_stock) > 0)
+    if (stockFilter === "order_soon") return SIZES.some(mg => group[mg] && (group[mg].stock_status === "warning" || group[mg].stock_status === "critical"))
+    if (stockFilter === "out_of_stock") return SIZES.some(mg => group[mg] && Number(group[mg].units_in_stock) === 0)
+    return true
+  })
+
+  const totalSkus = skus.length
   const criticalCount = skus.filter(s => s.stock_status === "critical").length
   const warningCount = skus.filter(s => s.stock_status === "warning").length
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.75rem" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem", flexWrap:"wrap", gap:"0.75rem" }}>
         <div>
-          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.75rem)", letterSpacing: "-0.02em", marginBottom: "0.2rem" }}>Inventory</h1>
-          <p style={{ color: "var(--text-mute)", fontSize: "0.875rem" }}>
-            {loading ? "Loading…" : `${skus.length} SKUs · ${criticalCount} critical · ${warningCount} need ordering`}
+          <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.25rem,4vw,1.75rem)", letterSpacing:"-0.02em", marginBottom:"0.2rem" }}>Inventory</h1>
+          <p style={{ color:"var(--text-mute)", fontSize:"0.875rem" }}>
+            {loading ? "Loading…" : `${totalSkus} SKUs · ${criticalCount} critical · ${warningCount} need ordering`}
           </p>
         </div>
-        <button onClick={() => setShowAddSKU(true)} className="btn-gold" style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.875rem" }}>
-          <Plus size={15} /> Add SKU
-        </button>
+        <div style={{ display:"flex", gap:"0.5rem" }}>
+          <button onClick={() => {
+            const entries = PEPTIDE_NAMES.flatMap(name => SIZES.map(mg => {
+              const sku = skuByPeptide[name]?.[mg]
+              return sku ? { skuId: sku.id, qty: "", cost: "" } : null
+            }).filter(Boolean) as { skuId: string; qty: string; cost: string }[])
+            setBulkEntries(entries.slice(0, 40))
+            setShowBulkReceive(true)
+          }} className="btn-outline" style={{ fontSize:"0.875rem" }}>
+            📦 Receive Elixsir Order
+          </button>
+        </div>
       </div>
 
-      {/* Add SKU modal */}
-      {showAddSKU && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-          <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "1.5rem", width: "100%", maxWidth: 440 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-              <h2 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.1rem" }}>New SKU</h2>
-              <button onClick={() => setShowAddSKU(false)} style={{ background: "none", border: "none", color: "var(--text-mute)", cursor: "pointer" }}><X size={18}/></button>
+      {/* Filter bar */}
+      <div style={{ display:"flex", gap:"0.75rem", marginBottom:"1rem", flexWrap:"wrap", alignItems:"center" }}>
+        <input placeholder="Search peptide…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex:1, minWidth:160, maxWidth:280 }}/>
+        <div style={{ display:"flex", gap:"0.4rem", flexWrap:"wrap" }}>
+          {([["all","All"],["in_stock","In Stock"],["order_soon","Order Soon"],["out_of_stock","Out of Stock"]] as const).map(([val, label]) => (
+            <button key={val} onClick={() => setStockFilter(val)} style={{
+              padding:"0.35rem 0.75rem", borderRadius:"var(--radius)", fontSize:"0.78rem", fontWeight:600, cursor:"pointer",
+              background: stockFilter === val ? "var(--gold)" : "var(--surface-2)",
+              color: stockFilter === val ? "#000" : "var(--text-mute)",
+              border:`1px solid ${stockFilter === val ? "var(--gold)" : "var(--border)"}`,
+            }}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Bulk receive modal */}
+      {showBulkReceive && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:400, display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"2rem 1rem", overflowY:"auto" }}>
+          <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1.5rem", width:"100%", maxWidth:660 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"1.25rem" }}>
+              <h2 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem" }}>📦 Receive Elixsir Order</h2>
+              <button onClick={() => setShowBulkReceive(false)} style={{ background:"none", border:"none", color:"var(--text-mute)", cursor:"pointer" }}><X size={18}/></button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <div><label>Peptide Name</label><input placeholder="BPC-157" value={newSKU.peptide_name} onChange={e => setNewSKU(p => ({ ...p, peptide_name: e.target.value }))} style={{ marginTop: "0.3rem" }}/></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-                <div><label>Strength</label><input type="number" placeholder="5" value={newSKU.strength} onChange={e => setNewSKU(p => ({ ...p, strength: e.target.value }))} style={{ marginTop: "0.3rem" }}/></div>
-                <div><label>Unit</label>
-                  <select value={newSKU.strength_unit} onChange={e => setNewSKU(p => ({ ...p, strength_unit: e.target.value }))} style={{ marginTop: "0.3rem" }}>
-                    {["mg","mcg","IU","mL"].map(u => <option key={u}>{u}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div><label>Default Reorder Qty</label><input type="number" value={newSKU.reorder_qty} onChange={e => setNewSKU(p => ({ ...p, reorder_qty: e.target.value }))} style={{ marginTop: "0.3rem" }}/></div>
-              <div><label>Notes</label><textarea rows={2} value={newSKU.notes} onChange={e => setNewSKU(p => ({ ...p, notes: e.target.value }))} style={{ marginTop: "0.3rem" }}/></div>
+            <p style={{ color:"var(--text-mute)", fontSize:"0.82rem", marginBottom:"1rem" }}>Enter quantity and cost for each SKU received. Leave blank to skip.</p>
+            <div style={{ maxHeight:420, overflowY:"auto", display:"flex", flexDirection:"column", gap:"0.5rem" }}>
+              {PEPTIDE_NAMES.map(name => {
+                const group = skuByPeptide[name]
+                if (!group) return null
+                return (
+                  <div key={name} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.75rem" }}>
+                    <p style={{ fontWeight:700, fontSize:"0.85rem", marginBottom:"0.5rem" }}>{name}</p>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"0.4rem" }}>
+                      {SIZES.map(mg => {
+                        const sku = group[mg]
+                        if (!sku) return <div key={mg} style={{ fontSize:"0.72rem", color:"var(--text-mute)", padding:"0.3rem" }}>{mg}mg N/A</div>
+                        const entry = bulkEntries.find(e => e.skuId === sku.id)
+                        return (
+                          <div key={mg} style={{ textAlign:"center" }}>
+                            <div style={{ fontSize:"0.72rem", color:"var(--text-mute)", marginBottom:"0.2rem" }}>{mg}mg</div>
+                            <input
+                              type="number"
+                              placeholder="Qty"
+                              value={entry?.qty ?? ""}
+                              onChange={e => setBulkEntries(prev => prev.map(en => en.skuId === sku.id ? { ...en, qty: e.target.value } : en).concat(!prev.find(en => en.skuId === sku.id) ? [{ skuId: sku.id, qty: e.target.value, cost: "" }] : []))}
+                              style={{ fontSize:"0.75rem", padding:"0.3rem", textAlign:"center" }}
+                            />
+                            <input
+                              type="number"
+                              placeholder="$"
+                              value={entry?.cost ?? ""}
+                              onChange={e => setBulkEntries(prev => prev.map(en => en.skuId === sku.id ? { ...en, cost: e.target.value } : en).concat(!prev.find(en => en.skuId === sku.id) ? [{ skuId: sku.id, qty: "", cost: e.target.value }] : []))}
+                              style={{ fontSize:"0.75rem", padding:"0.3rem", textAlign:"center", marginTop:"0.2rem" }}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1.25rem" }}>
-              <button onClick={addSKU} disabled={saving || !newSKU.peptide_name || !newSKU.strength} className="btn-gold">{saving ? "Saving…" : "Add SKU"}</button>
-              <button onClick={() => setShowAddSKU(false)} className="btn-outline">Cancel</button>
+            <div style={{ display:"flex", gap:"0.5rem", marginTop:"1.25rem" }}>
+              <button onClick={saveBulk} disabled={bulkSaving} className="btn-gold">{bulkSaving ? "Saving…" : "Save Order"}</button>
+              <button onClick={() => setShowBulkReceive(false)} className="btn-outline">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {loading && <div style={{ color: "var(--text-mute)", padding: "2rem", textAlign: "center" }}>Loading…</div>}
+      {loading && <div style={{ color:"var(--text-mute)", padding:"2rem", textAlign:"center" }}>Loading…</div>}
 
-      {!loading && skus.length === 0 && (
-        <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
-          <Package size={36} style={{ color: "var(--gold)", margin: "0 auto 1rem" }}/>
-          <p style={{ color: "var(--text-soft)" }}>No SKUs yet. Add your first peptide SKU to start tracking inventory.</p>
+      {!loading && peptideNames.length === 0 && (
+        <div className="card" style={{ textAlign:"center", padding:"3rem" }}>
+          <Package size={36} style={{ color:"var(--gold)", margin:"0 auto 1rem" }}/>
+          <p style={{ color:"var(--text-mute)" }}>No SKUs match your filter.</p>
         </div>
       )}
 
-      {/* SKU cards */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {skus.map(sku => {
-          const st = STATUS[sku.stock_status]
-          const isOpen = expanded === sku.id
+      {/* Grouped peptide accordion */}
+      <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
+        {peptideNames.map(name => {
+          const group = skuByPeptide[name] ?? {}
+          const isOpen = expanded === name
+          // Overall group status
+          const allStatuses = SIZES.map(mg => group[mg]?.stock_status).filter(Boolean)
+          const hasCritical = allStatuses.includes("critical")
+          const hasWarning = allStatuses.includes("warning")
+          const groupBorderColor = hasCritical ? "rgba(248,113,113,0.35)" : hasWarning ? "rgba(251,191,36,0.3)" : "var(--border)"
+
           return (
-            <div key={sku.id} style={{ border: `1px solid ${st.border}`, borderRadius: "var(--radius)", overflow: "hidden" }}>
-              {/* Header row */}
-              <div style={{ background: st.bg, padding: "1rem 1.25rem", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                  <div>
-                    <span style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1rem", color: "var(--text)" }}>
-                      {sku.peptide_name}
-                    </span>
-                    <span style={{ color: st.color, fontWeight: 700, fontSize: "0.85rem", marginLeft: "0.4rem" }}>
-                      {sku.strength}{sku.strength_unit}
-                    </span>
+            <div key={name} style={{ border:`1px solid ${groupBorderColor}`, borderRadius:"var(--radius)", overflow:"hidden" }}>
+              {/* Accordion header */}
+              <button
+                onClick={() => setExpanded(isOpen ? null : name)}
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.875rem 1.25rem", background:"var(--surface)", border:"none", cursor:"pointer", gap:"0.75rem" }}>
+                <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:700, fontSize:"0.95rem", textAlign:"left" }}>{name}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
+                  {/* Quick size tiles in header */}
+                  <div style={{ display:"flex", gap:"0.3rem" }}>
+                    {SIZES.map(mg => {
+                      const sku = group[mg]
+                      if (!sku) return <span key={mg} style={{ padding:"0.15rem 0.4rem", borderRadius:3, fontSize:"0.68rem", background:"rgba(255,255,255,0.05)", color:"var(--text-mute)" }}>{mg}mg —</span>
+                      const st = STATUS[sku.stock_status]
+                      return (
+                        <span key={mg} style={{ padding:"0.15rem 0.4rem", borderRadius:3, fontSize:"0.68rem", fontWeight:700, background:st.bg, color:st.color, border:`1px solid ${st.border}` }}>
+                          {mg}mg · {sku.units_in_stock}
+                        </span>
+                      )
+                    })}
                   </div>
-                  <span style={{ background: st.color, color: "#000", padding: "0.15rem 0.55rem", borderRadius: "999px", fontSize: "0.7rem", fontWeight: 900 }}>
-                    {st.label}
-                  </span>
+                  {isOpen ? <ChevronUp size={14} style={{ color:"var(--text-mute)", flexShrink:0 }}/> : <ChevronDown size={14} style={{ color:"var(--text-mute)", flexShrink:0 }}/>}
                 </div>
+              </button>
 
-                {/* Stock stats */}
-                <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap", alignItems: "center" }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.3rem", color: st.color, lineHeight: 1 }}>{Number(sku.units_in_stock)}</div>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>In Stock</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "var(--text)", lineHeight: 1 }}>
-                      {sku.weeks_of_stock !== null ? `${sku.weeks_of_stock.toFixed(1)}w` : "—"}
-                    </div>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Runway</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "var(--text)", lineHeight: 1 }}>
-                      {sku.active_clients}
-                    </div>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Clients</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.1rem", color: "var(--gold)", lineHeight: 1 }}>
-                      {sku.fifo_cost !== null ? `$${sku.fifo_cost}` : "—"}
-                    </div>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>FIFO Cost</div>
-                  </div>
-                  <button onClick={() => setExpanded(isOpen ? null : sku.id)}
-                    style={{ background: "none", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-soft)", cursor: "pointer", padding: "0.35rem 0.6rem", display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.8rem" }}>
-                    {isOpen ? <ChevronUp size={14}/> : <ChevronDown size={14}/>} {isOpen ? "Close" : "Detail"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Reorder warning banner */}
-              {(sku.stock_status === "warning" || sku.stock_status === "critical") && (
-                <div style={{ background: st.bg, borderTop: `1px solid ${st.border}`, padding: "0.5rem 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <AlertTriangle size={14} style={{ color: st.color, flexShrink: 0 }}/>
-                  <span style={{ fontSize: "0.8rem", color: st.color, fontWeight: 600 }}>
-                    {sku.stock_status === "critical"
-                      ? `Order now — only ${sku.weeks_of_stock?.toFixed(1) ?? "< 1"} weeks of stock remaining. Reorder qty: ${sku.reorder_qty} units.`
-                      : `Order this week — ${sku.weeks_of_stock?.toFixed(1)} weeks of stock. Target: reorder at 5 weeks. Reorder qty: ${sku.reorder_qty} units.`}
-                  </span>
-                </div>
-              )}
-
-              {/* Expanded detail */}
+              {/* Expanded size details */}
               {isOpen && (
-                <div style={{ borderTop: "1px solid var(--border)", padding: "1.25rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.875rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                    <h3 style={{ fontWeight: 700, fontSize: "0.9rem" }}>Batch History (FIFO)</h3>
-                    <button onClick={() => setShowAddBatch(sku.id)} className="btn-gold" style={{ fontSize: "0.8rem", padding: "0.4rem 0.875rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Plus size={13}/> Receive Batch
-                    </button>
-                  </div>
+                <div style={{ borderTop:"1px solid var(--border)", padding:"1rem 1.25rem" }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
+                    {SIZES.map(mg => {
+                      const sku = group[mg]
+                      if (!sku) return (
+                        <div key={mg} style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.6rem 0.875rem", background:"rgba(255,255,255,0.02)", borderRadius:"var(--radius)", fontSize:"0.82rem", color:"var(--text-mute)" }}>
+                          <span style={{ fontWeight:700, width:50 }}>{mg}mg</span>
+                          <span>Not in catalog</span>
+                        </div>
+                      )
+                      const st = STATUS[sku.stock_status]
+                      const isBatchOpen = expandedSku === sku.id
+                      return (
+                        <div key={mg} style={{ border:`1px solid ${st.border}`, borderRadius:"var(--radius)", overflow:"hidden" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.75rem 1rem", background:st.bg, flexWrap:"wrap" }}>
+                            <span style={{ fontWeight:700, fontSize:"0.875rem", width:50 }}>{mg}mg</span>
+                            <div style={{ display:"flex", alignItems:"center", gap:"0.4rem", flex:1 }}>
+                              <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:st.color }}>{sku.units_in_stock}</span>
+                              <span style={{ fontSize:"0.72rem", color:"var(--text-mute)" }}>in stock</span>
+                              <span style={{ padding:"0.1rem 0.4rem", borderRadius:3, fontSize:"0.65rem", fontWeight:700, background:st.color, color:"#000" }}>{st.label}</span>
+                            </div>
+                            {sku.fifo_cost !== null && <span style={{ color:"var(--gold)", fontWeight:700, fontSize:"0.82rem" }}>${Number(sku.fifo_cost).toFixed(2)}/vial</span>}
+                            {sku.active_clients > 0 && (
+                              <span style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>{sku.active_clients} client{sku.active_clients !== 1 ? "s" : ""}</span>
+                            )}
+                            <div style={{ display:"flex", gap:"0.4rem", marginLeft:"auto" }}>
+                              <button onClick={() => { setShowAddBatch(sku.id); setExpandedSku(sku.id) }} style={{ fontSize:"0.72rem", padding:"0.25rem 0.5rem", background:"none", border:"1px solid var(--border)", borderRadius:3, color:"var(--text-mute)", cursor:"pointer", display:"flex", alignItems:"center", gap:"0.25rem" }}>
+                                <Plus size={11}/> Receive
+                              </button>
+                              <button onClick={() => setExpandedSku(isBatchOpen ? null : sku.id)} style={{ fontSize:"0.72rem", padding:"0.25rem 0.5rem", background:"none", border:"1px solid var(--border)", borderRadius:3, color:"var(--text-mute)", cursor:"pointer" }}>
+                                {isBatchOpen ? "Hide" : "Batches"}
+                              </button>
+                            </div>
+                          </div>
 
-                  {/* Add batch inline form */}
-                  {showAddBatch === sku.id && (
-                    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "1rem", marginBottom: "1rem" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                        <div><label style={{ fontSize: "0.72rem" }}>Qty Received *</label><input type="number" placeholder="10" value={newBatch.qty_received} onChange={e => setNewBatch(p => ({ ...p, qty_received: e.target.value }))} style={{ marginTop: "0.2rem" }}/></div>
-                        <div><label style={{ fontSize: "0.72rem" }}>Unit Cost ($) *</label><input type="number" step="0.01" placeholder="45.00" value={newBatch.unit_cost} onChange={e => setNewBatch(p => ({ ...p, unit_cost: e.target.value }))} style={{ marginTop: "0.2rem" }}/></div>
-                        <div><label style={{ fontSize: "0.72rem" }}>Supplier</label><input placeholder="Supplier name" value={newBatch.supplier} onChange={e => setNewBatch(p => ({ ...p, supplier: e.target.value }))} style={{ marginTop: "0.2rem" }}/></div>
-                        <div><label style={{ fontSize: "0.72rem" }}>Ordered</label><input type="date" value={newBatch.ordered_at} onChange={e => setNewBatch(p => ({ ...p, ordered_at: e.target.value }))} style={{ marginTop: "0.2rem" }}/></div>
-                        <div><label style={{ fontSize: "0.72rem" }}>Received</label><input type="date" value={newBatch.received_at} onChange={e => setNewBatch(p => ({ ...p, received_at: e.target.value }))} style={{ marginTop: "0.2rem" }}/></div>
-                      </div>
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button onClick={() => addBatch(sku.id)} disabled={saving || !newBatch.qty_received || !newBatch.unit_cost} className="btn-gold" style={{ fontSize: "0.8rem" }}>
-                          {saving ? "Saving…" : "Add Batch"}
-                        </button>
-                        <button onClick={() => setShowAddBatch(null)} className="btn-outline" style={{ fontSize: "0.8rem" }}>Cancel</button>
-                      </div>
-                    </div>
-                  )}
+                          {/* Batch history */}
+                          {isBatchOpen && (
+                            <div style={{ padding:"0.875rem 1rem", borderTop:"1px solid var(--border)" }}>
+                              {/* Add batch form */}
+                              {showAddBatch === sku.id && (
+                                <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.875rem", marginBottom:"0.875rem" }}>
+                                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(110px, 1fr))", gap:"0.5rem", marginBottom:"0.5rem" }}>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Qty *</label><input type="number" placeholder="10" value={newBatch.qty_received} onChange={e => setNewBatch(p => ({ ...p, qty_received: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Unit Cost ($) *</label><input type="number" step="0.01" placeholder="45.00" value={newBatch.unit_cost} onChange={e => setNewBatch(p => ({ ...p, unit_cost: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Supplier</label><input placeholder="Elixsir" value={newBatch.supplier} onChange={e => setNewBatch(p => ({ ...p, supplier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Received</label><input type="date" value={newBatch.received_at} onChange={e => setNewBatch(p => ({ ...p, received_at: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                  </div>
+                                  <div style={{ display:"flex", gap:"0.4rem" }}>
+                                    <button onClick={() => addBatch(sku.id)} disabled={saving || !newBatch.qty_received || !newBatch.unit_cost} className="btn-gold" style={{ fontSize:"0.78rem", padding:"0.35rem 0.75rem" }}>{saving ? "Saving…" : "Add Batch"}</button>
+                                    <button onClick={() => setShowAddBatch(null)} className="btn-outline" style={{ fontSize:"0.78rem", padding:"0.35rem 0.75rem" }}>Cancel</button>
+                                  </div>
+                                </div>
+                              )}
 
-                  {/* Batch table */}
-                  {sku.batches.length === 0 ? (
-                    <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No batches received yet.</p>
-                  ) : (
-                    <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-                        <thead>
-                          <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                            {["Received", "Qty In", "Remaining", "Unit Cost", "Supplier", "Notes"].map(h => (
-                              <th key={h} style={{ textAlign: "left", padding: "0.4rem 0.6rem", color: "var(--text-mute)", fontWeight: 600, fontSize: "0.7rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {sku.batches.map((b, i) => {
-                            const isActive = Number(b.qty_remaining) > 0
-                            const isFirst = i === 0 && isActive
-                            return (
-                              <tr key={b.id} style={{ borderBottom: "1px solid var(--border)", opacity: isActive ? 1 : 0.45 }}>
-                                <td style={{ padding: "0.5rem 0.6rem", whiteSpace: "nowrap" }}>
-                                  {b.received_at ? new Date(b.received_at).toLocaleDateString() : "—"}
-                                  {isFirst && <span style={{ marginLeft: "0.4rem", background: "var(--gold)", color: "#000", borderRadius: "3px", padding: "0.1rem 0.35rem", fontSize: "0.65rem", fontWeight: 700 }}>FIFO</span>}
-                                </td>
-                                <td style={{ padding: "0.5rem 0.6rem" }}>{b.qty_received}</td>
-                                <td style={{ padding: "0.5rem 0.6rem", fontWeight: isActive ? 700 : 400, color: isActive ? "var(--text)" : "var(--text-mute)" }}>{b.qty_remaining}</td>
-                                <td style={{ padding: "0.5rem 0.6rem", color: "var(--gold)", fontWeight: 700 }}>${Number(b.unit_cost).toFixed(2)}</td>
-                                <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-mute)" }}>{b.supplier ?? "—"}</td>
-                                <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-mute)" }}>{b.notes ?? "—"}</td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* Stats footer */}
-                  <div style={{ display: "flex", gap: "1.5rem", marginTop: "1rem", flexWrap: "wrap", fontSize: "0.82rem", color: "var(--text-mute)" }}>
-                    <span>Weekly burn: <strong style={{ color: "var(--text)" }}>{sku.weekly_burn.toFixed(2)} {sku.strength_unit}</strong></span>
-                    <span>Reorder at: <strong style={{ color: "var(--text)" }}>{sku.reorder_point.toFixed(0)} units (~5 weeks)</strong></span>
-                    <span>Reorder qty: <strong style={{ color: "var(--text)" }}>{sku.reorder_qty} units</strong></span>
+                              {sku.batches.length === 0 ? (
+                                <p style={{ color:"var(--text-mute)", fontSize:"0.82rem" }}>No batches yet.</p>
+                              ) : (
+                                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"0.78rem" }}>
+                                  <thead>
+                                    <tr style={{ borderBottom:"1px solid var(--border)" }}>
+                                      {["Received","Qty In","Remaining","Unit Cost","Supplier"].map(h => (
+                                        <th key={h} style={{ textAlign:"left", padding:"0.3rem 0.5rem", color:"var(--text-mute)", fontWeight:600, fontSize:"0.65rem", textTransform:"uppercase" }}>{h}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {sku.batches.map((b, i) => {
+                                      const isActive = Number(b.qty_remaining) > 0
+                                      return (
+                                        <tr key={b.id} style={{ borderBottom:"1px solid var(--border)", opacity: isActive ? 1 : 0.4 }}>
+                                          <td style={{ padding:"0.4rem 0.5rem" }}>{b.received_at ? new Date(b.received_at).toLocaleDateString() : "—"}{i===0&&isActive && <span style={{ marginLeft:"0.3rem", background:"var(--gold)", color:"#000", borderRadius:2, padding:"0.1rem 0.3rem", fontSize:"0.6rem", fontWeight:700 }}>FIFO</span>}</td>
+                                          <td style={{ padding:"0.4rem 0.5rem" }}>{b.qty_received}</td>
+                                          <td style={{ padding:"0.4rem 0.5rem", fontWeight: isActive ? 700 : 400 }}>{b.qty_remaining}</td>
+                                          <td style={{ padding:"0.4rem 0.5rem", color:"var(--gold)", fontWeight:700 }}>${Number(b.unit_cost).toFixed(2)}</td>
+                                          <td style={{ padding:"0.4rem 0.5rem", color:"var(--text-mute)" }}>{b.supplier ?? "—"}</td>
+                                        </tr>
+                                      )
+                                    })}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}

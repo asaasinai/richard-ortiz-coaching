@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
 // GET /api/admin/inventory — all SKUs with FIFO cost + burn rate
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Support ?peptide=&strength= for single-SKU lookup (used by protocol form)
+  const url = new URL(req.url)
+  const peptideFilter = url.searchParams.get('peptide')
+  const strengthFilter = url.searchParams.get('strength')
+  if (peptideFilter && strengthFilter) {
+    const result = await query(
+      `SELECT id, peptide_name, strength, strength_unit, units_in_stock, notes,
+              (SELECT unit_cost FROM roc.inventory_batches WHERE sku_id = s.id AND qty_remaining > 0 ORDER BY received_at ASC LIMIT 1) as fifo_cost
+       FROM roc.inventory_skus s
+       WHERE peptide_name = $1 AND strength = $2::numeric`,
+      [peptideFilter, strengthFilter]
+    )
+    return NextResponse.json({ ok: true, skus: result.rows })
+  }
   try {
     // SKUs with stock summary
     const skus = await query<{
