@@ -43,22 +43,29 @@ export async function GET(req: NextRequest) {
       received_at: string | null; notes: string | null; created_at: string
     }>(`SELECT * FROM roc.inventory_batches ORDER BY sku_id, received_at ASC, created_at ASC`)
 
-    // Active client count + weekly consumption per SKU
-    const usage = await query<{ sku_id: string; active_clients: string; weekly_units: string }>(`
+    // Active client count + weekly VIAL consumption per SKU.
+    // Converts dose (mcg->mg) and divides by vial strength so burn is in vials,
+    // not raw dose units. IU/mL can't be vial-converted, so they fall back to
+    // dose-per-vial as a rough proxy.
+    const usage = await query<{ sku_id: string; active_clients: string; weekly_vials: string }>(`
       SELECT
-        sku_id,
+        cp.sku_id,
         COUNT(*) AS active_clients,
-        SUM(dose_amount::numeric *
-          CASE
-            WHEN frequency_days IS NOT NULL AND frequency_days != '[]'
-            THEN jsonb_array_length(frequency_days::jsonb)::numeric / 7.0
-            ELSE 1.0
-          END
-        ) AS weekly_units
-      FROM roc.client_protocols
-      WHERE billing_status = 'active'
-        AND sku_id IS NOT NULL
-      GROUP BY sku_id
+        SUM(
+          (CASE
+             WHEN cp.frequency_days IS NOT NULL AND cp.frequency_days != '[]'
+             THEN jsonb_array_length(cp.frequency_days::jsonb)::numeric
+             ELSE 7
+           END)
+          * COALESCE(NULLIF(cp.dose_amount, '')::numeric, 0)
+          * (CASE WHEN lower(cp.dose_unit) = 'mcg' THEN 0.001 ELSE 1 END)
+          / NULLIF(s.strength::numeric, 0)
+        ) AS weekly_vials
+      FROM roc.client_protocols cp
+      JOIN roc.inventory_skus s ON s.id = cp.sku_id
+      WHERE cp.billing_status = 'active'
+        AND cp.sku_id IS NOT NULL
+      GROUP BY cp.sku_id
     `)
 
     const batchMap = Object.fromEntries(batches.rows.map(b => [b.sku_id, b]))
@@ -72,17 +79,23 @@ export async function GET(req: NextRequest) {
     const result = skus.rows.map(sku => {
       const fifo = batchMap[sku.id]
       const u = usageMap[sku.id]
-      const weeklyBurn = u ? Number(u.weekly_units) : 0
+      const weeklyBurn = u ? Number(u.weekly_vials) : 0
       const stock = Number(sku.units_in_stock)
       const weeksOfStock = weeklyBurn > 0 ? stock / weeklyBurn : null
       // Auto reorder point: 5 weeks of stock (4 buffer + 1 lead)
       const reorderPoint = sku.reorder_point ? Number(sku.reorder_point) : weeklyBurn * 5
 
+      // Out of stock is always critical. With an active burn rate, grade by
+      // weeks of cover. Otherwise any positive stock is simply "in stock".
       let stockStatus: "ok" | "warning" | "critical" | "unknown" = "unknown"
-      if (weeksOfStock !== null) {
+      if (stock <= 0) {
+        stockStatus = "critical"
+      } else if (weeksOfStock !== null) {
         if (weeksOfStock < 2) stockStatus = "critical"
         else if (weeksOfStock < 5) stockStatus = "warning"
         else stockStatus = "ok"
+      } else {
+        stockStatus = "ok"
       }
 
       return {
