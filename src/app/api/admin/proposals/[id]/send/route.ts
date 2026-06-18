@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 async function sendEmail(payload: { to: string; subject: string; html: string }) {
   const RESEND_KEY = process.env.RESEND_API_KEY
   if (!RESEND_KEY) { console.warn("[email] RESEND_API_KEY not set"); return }

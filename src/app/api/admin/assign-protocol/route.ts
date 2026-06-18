@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 export async function POST(req: NextRequest) {
   try {
     const { clientId, peptide, doseAmount, doseUnit, frequencyDays, notes, skuId, monthlyRate, billingStatus, billingNotes, secondaryPeptide, secondarySkuId, durationWeeks, internalNotes } = await req.json()

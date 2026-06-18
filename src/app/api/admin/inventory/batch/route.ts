@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 // POST — receive a new inventory batch (adds stock, logs FIFO entry)
 export async function POST(req: NextRequest) {
   try {

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 // GET /api/admin/inventory — all SKUs with FIFO cost + burn rate
 export async function GET(req: NextRequest) {
   // Support ?peptide=&strength= for single-SKU lookup (used by protocol form)

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 const DEFAULT_TOS = `COACHING SERVICES AGREEMENT
 
 This agreement is between Richard Ortiz Coaching ("Coach") and the client named above ("Client").

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 interface Client {
   id: string; first_name: string; last_name: string; email: string
   phone?: string; status: string; submitted_at: string; data?: Record<string, unknown>
+  has_protocol?: boolean; protocol_peptide?: string | null
+  protocol_billing_status?: string | null; protocol_monthly_rate?: string | null
 }
 
 const statusColor = (s: string) => ({
@@ -43,7 +45,7 @@ export default function AdminClientsPage() {
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:"0.875rem"}}>
               <thead>
                 <tr style={{borderBottom:"1px solid var(--border)",background:"var(--surface-2)"}}>
-                  {["Name","Email","Status","Intake Date","Action"].map(h=>(
+                  {["Name","Email","Status","Protocol","Intake Date","Action"].map(h=>(
                     <th key={h} style={{textAlign:"left",padding:"0.75rem 1rem",color:"var(--text-mute)",fontWeight:600,fontSize:"0.75rem",textTransform:"uppercase",letterSpacing:"0.06em"}}>{h}</th>
                   ))}
                 </tr>
@@ -58,6 +60,18 @@ export default function AdminClientsPage() {
                     <td style={{padding:"0.75rem 1rem"}}>
                       <span style={{padding:"0.2rem 0.6rem",borderRadius:3,fontSize:"0.7rem",fontWeight:700,...statusColor(c.status)}}>{c.status}</span>
                     </td>
+                    <td style={{padding:"0.75rem 1rem",fontSize:"0.8rem"}}>
+                      {c.has_protocol ? (
+                        <span style={{display:"inline-flex",alignItems:"center",gap:"0.35rem"}}>
+                          <span style={{padding:"0.15rem 0.5rem",borderRadius:3,fontSize:"0.68rem",fontWeight:700,background:"rgba(74,222,128,0.15)",color:"#4ade80"}}>
+                            {c.protocol_billing_status === "active" ? "● Active" : (c.protocol_billing_status ?? "Assigned")}
+                          </span>
+                          <span style={{color:"var(--text-mute)",fontSize:"0.78rem"}}>{c.protocol_peptide || "—"}</span>
+                        </span>
+                      ) : (
+                        <span style={{color:"var(--text-mute)",fontSize:"0.75rem"}}>No protocol</span>
+                      )}
+                    </td>
                     <td style={{padding:"0.75rem 1rem",color:"var(--text-mute)",fontSize:"0.82rem"}}>{new Date(c.submitted_at).toLocaleDateString()}</td>
                     <td style={{padding:"0.75rem 1rem"}}>
                       <button onClick={e=>{e.stopPropagation();router.push(`/admin/clients/${c.id}`)}}
@@ -68,7 +82,7 @@ export default function AdminClientsPage() {
                   </tr>
                 ))}
                 {filtered.length===0 && (
-                  <tr><td colSpan={5} style={{padding:"2rem",textAlign:"center",color:"var(--text-mute)"}}>No clients found.</td></tr>
+                  <tr><td colSpan={6} style={{padding:"2rem",textAlign:"center",color:"var(--text-mute)"}}>No clients found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -90,6 +104,11 @@ export default function AdminClientsPage() {
                 </div>
                 <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"0.4rem",flexShrink:0}}>
                   <span style={{padding:"0.2rem 0.55rem",borderRadius:3,fontSize:"0.7rem",fontWeight:700,...statusColor(c.status)}}>{c.status}</span>
+                  {c.has_protocol && (
+                    <span style={{padding:"0.15rem 0.5rem",borderRadius:3,fontSize:"0.65rem",fontWeight:700,background:"rgba(74,222,128,0.15)",color:"#4ade80"}}>
+                      {c.protocol_billing_status === "active" ? "● Active" : "Assigned"}
+                    </span>
+                  )}
                   <span style={{fontSize:"0.75rem",color:"var(--gold)",fontWeight:600}}>Open →</span>
                 </div>
               </div>
