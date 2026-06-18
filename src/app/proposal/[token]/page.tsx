@@ -96,6 +96,12 @@ export default function ProposalPage() {
   )
 
   const snap = proposal.protocol_snapshot ?? {}
+  // Helper to safely extract string values from JSONB snapshot
+  const ss = (key: string): string | null => {
+    const val = snap[key]
+    if (val == null || val === "") return null
+    return String(val)
+  }
 
   return (
     <div style={{ background: "#000", minHeight: "100vh", color: "#fff", fontFamily: "Inter,sans-serif" }}>
@@ -135,36 +141,37 @@ export default function ProposalPage() {
           <div style={{ marginBottom: "1rem" }}>
             <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Primary</p>
             <p style={{ fontWeight: 700, fontSize: "1rem" }}>
-              {String(snap.peptide ?? "")} ({String(snap.sku_strength ?? snap.vialSize ?? "")}mg vial · Elixsir)
+              {ss("peptide")} ({ss("sku_strength") ?? ss("vialSize")}mg vial · Elixsir)
             </p>
-            {snap.dose_amount && (
+            {ss("dose_amount") && (
               <p style={{ color: "#ccc", fontSize: "0.875rem", marginTop: "0.2rem" }}>
-                Dose: {String(snap.dose_amount)} {String(snap.dose_unit ?? "")}
+                Dose: {ss("dose_amount")} {ss("dose_unit")}
               </p>
             )}
-            {snap.frequency_days && (() => {
+            {ss("frequency_days") && (() => {
               try {
-                const days = typeof snap.frequency_days === "string" ? JSON.parse(snap.frequency_days) : snap.frequency_days
+                const fd = ss("frequency_days")!
+                const days = fd.startsWith("[") ? JSON.parse(fd) : [fd]
                 return <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Frequency: {(days as string[]).join(" / ")}</p>
               } catch { return null }
             })()}
-            {snap.duration_weeks && <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Duration: {String(snap.duration_weeks)} weeks</p>}
-            {snap.monthly_rate && (
-              <p style={{ color: "#C9A84C", fontWeight: 700, marginTop: "0.4rem" }}>Monthly Investment: ${String(snap.monthly_rate)}/month</p>
+            {ss("duration_weeks") && <p style={{ color: "#ccc", fontSize: "0.875rem" }}>Duration: {ss("duration_weeks")} weeks</p>}
+            {ss("monthly_rate") && (
+              <p style={{ color: "#C9A84C", fontWeight: 700, marginTop: "0.4rem" }}>Monthly Investment: ${ss("monthly_rate")}/month</p>
             )}
           </div>
 
-          {snap.secondary_peptide && (
+          {ss("secondary_peptide") && (
             <div style={{ marginBottom: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Secondary (optional)</p>
-              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{String(snap.secondary_peptide)} (Elixsir)</p>
+              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{ss("secondary_peptide")} (Elixsir)</p>
             </div>
           )}
 
-          {snap.coach_notes && (
+          {ss("coach_notes") && (
             <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.4rem" }}>Coach Notes</p>
-              <p style={{ color: "#ccc", fontSize: "0.875rem", lineHeight: 1.6 }}>{String(snap.coach_notes)}</p>
+              <p style={{ color: "#ccc", fontSize: "0.875rem", lineHeight: 1.6 }}>{ss("coach_notes")}</p>
             </div>
           )}
         </div>
