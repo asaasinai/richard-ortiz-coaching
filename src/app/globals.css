@@ -1,98 +1,152 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@600;700;800;900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg: #000000;
-  --bg-2: #0a0a0a;
-  --surface: #111111;
-  --surface-2: #1a1a1a;
+  /* ── Modern dark palette (warmer black, layered surfaces) ── */
+  --bg: #0A0A0B;
+  --bg-2: #0F0F11;
+  --surface: #141417;        /* cards */
+  --surface-1: #141417;
+  --surface-2: #1C1C21;      /* raised / inputs / hover */
+  --surface-3: #26262D;      /* popovers / active */
   --gold: #C9A84C;
   --gold-light: #E8C96A;
-  --text: #ffffff;
-  --text-mute: #888888;
-  --text-soft: #cccccc;
-  --border: rgba(201,168,76,0.2);
-  --radius: 4px;
+  --gold-dim: rgba(201,168,76,0.12);
+  --text: #F5F5F4;
+  --text-soft: #B4B4B8;
+  --text-mute: #76767E;
+  /* Neutral hairline borders by default — gold is reserved for accent/focus */
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --good: #34D399;
+  --warn: #FBBF24;
+  --bad: #F87171;
+  --info: #60A5FA;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.22);
+  --shadow-pop: 0 12px 40px rgba(0,0,0,.55);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
-
+html { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 body { min-height: 100vh; background: var(--bg); }
+
+::selection { background: var(--gold-dim); }
 
 .gold { color: var(--gold); }
 .gold-border { border: 1px solid var(--border); }
 
-.btn-gold {
+/* ── Buttons ── */
+.btn-gold, .btn {
   background: var(--gold);
-  color: #000;
+  color: #161200;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.75rem 2rem;
-  border-radius: var(--radius);
-  transition: background 0.15s;
+  letter-spacing: 0.01em;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: transform .12s ease, background .15s, box-shadow .15s;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.9rem;
 }
-.btn-gold:hover { background: var(--gold-light); }
+.btn-gold:hover, .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-gold:active, .btn:active { transform: translateY(0); }
 
-.btn-outline {
-  background: transparent;
-  color: var(--gold);
-  border: 1px solid var(--gold);
+.btn-outline, .btn-ghost {
+  background: var(--surface-2);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.75rem 2rem;
-  border-radius: var(--radius);
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius-sm);
   transition: all 0.15s;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
-.btn-outline:hover { background: var(--gold); color: #000; }
+.btn-outline:hover, .btn-ghost:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-strong); }
 
+/* ── Cards ── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.5rem;
+  box-shadow: var(--shadow-card);
 }
+
+/* ── Pills / chips ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.75rem; border-radius: var(--radius-pill);
+  font-size: 0.78rem; font-weight: 600; line-height: 1;
+  background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border);
+  cursor: pointer; transition: all .12s;
+}
+.pill:hover { background: var(--surface-3); color: var(--text); }
+.pill[data-active="true"] { background: var(--gold-dim); color: var(--gold-light); border-color: rgba(201,168,76,0.35); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.6rem; border-radius: var(--radius-pill);
+  font-size: 0.72rem; font-weight: 600; line-height: 1;
+  background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border);
+}
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .section-num {
   font-family: "Inter Tight", sans-serif;
-  font-weight: 900;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   color: var(--gold);
   text-transform: uppercase;
   display: block;
   margin-bottom: 0.5rem;
 }
 
+/* ── Forms ── */
 input, textarea, select {
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: var(--radius);
-  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
   width: 100%;
-  font-size: 1rem;
-  transition: border-color 0.15s;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-dim);
 }
-/* visible focus ring for keyboard users (WCAG 2.4.7) */
 input:focus-visible, textarea:focus-visible, select:focus-visible,
 button:focus-visible, a:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
+label { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); display: block; margin-bottom: 0.4rem; }
 
-label { font-size: 0.875rem; font-weight: 600; color: var(--text-soft); display: block; margin-bottom: 0.4rem; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 8px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #34343c; }
