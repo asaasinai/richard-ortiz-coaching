@@ -1,22 +1,101 @@
+"use client"
+import { useEffect, useState } from "react"
+import { Check } from "lucide-react"
+
+type Settings = Record<string, string>
+
+const TOGGLES: { key: string; label: string }[] = [
+  { key: "notify_email_urgent_checkin", label: "Email me on urgent check-ins" },
+  { key: "notify_sms_urgent_checkin",   label: "SMS me on urgent check-ins" },
+  { key: "notify_email_new_intake",     label: "Email me on new intakes" },
+  { key: "notify_email_low_stock",      label: "Email me on low stock" },
+  { key: "notify_email_ops_overdue",    label: "Email me on overdue ops cards" },
+]
+
 export default function AdminSettingsPage() {
+  const [s, setS] = useState<Settings>({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => { fetch("/api/admin/settings").then(r => r.json()).then(d => { setS(d.settings ?? {}); setLoading(false) }) }, [])
+  const set = (k: string, v: string) => setS(p => ({ ...p, [k]: v }))
+  const bool = (k: string) => s[k] === "true"
+
+  const save = () => {
+    setSaving(true); setSaved(false)
+    fetch("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settings: s }) })
+      .then(() => { setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2500) })
+  }
+
+  if (loading) return <p style={{ color: "var(--text-mute)" }}>Loading…</p>
+
+  const Toggle = ({ k, label }: { k: string; label: string }) => (
+    <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0", cursor: "pointer" }}>
+      <span style={{ fontSize: "0.875rem" }}>{label}</span>
+      <button type="button" onClick={() => set(k, bool(k) ? "false" : "true")} style={{
+        width: 42, height: 24, borderRadius: 12, border: "none", cursor: "pointer", position: "relative",
+        background: bool(k) ? "var(--gold)" : "var(--surface-2)", transition: "background 0.15s",
+      }}>
+        <span style={{ position: "absolute", top: 3, left: bool(k) ? 21 : 3, width: 18, height: 18, borderRadius: "50%", background: bool(k) ? "#000" : "var(--text-mute)", transition: "left 0.15s" }} />
+      </button>
+    </label>
+  )
+
+  const num = (k: string, label: string, hint?: string) => (
+    <div>
+      <label style={lbl}>{label}</label>
+      <input type="number" value={s[k] ?? ""} onChange={e => set(k, e.target.value)} style={inp} />
+      {hint && <p style={{ fontSize: "0.72rem", color: "var(--text-mute)", marginTop: "0.2rem" }}>{hint}</p>}
+    </div>
+  )
+  const text = (k: string, label: string, type = "text") => (
+    <div><label style={lbl}>{label}</label><input type={type} value={s[k] ?? ""} onChange={e => set(k, e.target.value)} style={inp} /></div>
+  )
+
   return (
-    <div style={{ maxWidth:600 }}>
-      <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"1.5rem",marginBottom:"1.5rem" }}>Settings</h1>
-      <div className="card" style={{ display:"flex",flexDirection:"column",gap:"1.25rem" }}>
-        {[
-          ["Coach Name","Richard Ortiz"],
-          ["Admin Email","richard@richardortizcoaching.com"],
-          ["Site URL","https://richardortizcoaching.com"],
-          ["Resend From","noreply@richardortizcoaching.com"],
-        ].map(([label,val]) => (
-          <div key={label}>
-            <label>{label}</label>
-            <input defaultValue={val} />
-          </div>
-        ))}
-        <button className="btn-gold" style={{ alignSelf:"flex-start" }}>Save Settings</button>
-        <p style={{ fontSize:"0.78rem",color:"var(--text-mute)" }}>Settings are managed via Vercel environment variables. Contact your developer to update API keys.</p>
+    <div style={{ maxWidth: 620 }}>
+      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", marginBottom: "1.5rem" }}>Settings</h1>
+
+      <Section title="Alerts">{TOGGLES.map(t => <Toggle key={t.key} k={t.key} label={t.label} />)}</Section>
+
+      <Section title="Check-In Rules">
+        {num("urgent_threshold", "Flag check-ins with any score at or below", "1–10. Lower = fewer urgent flags.")}
+      </Section>
+
+      <Section title="Inventory">
+        {num("default_reorder_threshold", "Default units before Order Soon alert")}
+      </Section>
+
+      <Section title="Ops Queue">
+        <Toggle k="auto_generate_ops_cards" label="Auto-generate ops cards on protocol assignment" />
+        {num("billing_cycle_day", "Day of month to generate ops cards", "1–28")}
+      </Section>
+
+      <Section title="Admin Profile">
+        {text("admin_name", "Admin / Coach Name")}
+        {text("admin_email", "Admin Email", "email")}
+        {text("admin_phone", "Admin Phone (for SMS alerts)", "tel")}
+      </Section>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <button onClick={save} disabled={saving} className="btn-gold" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+          {saved ? <><Check size={15} /> Saved</> : saving ? "Saving…" : "Save Settings"}
+        </button>
+        <p style={{ fontSize: "0.74rem", color: "var(--text-mute)" }}>API keys (Resend, Twilio, Anthropic) are managed via Vercel env vars.</p>
       </div>
     </div>
   )
 }
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="card" style={{ marginBottom: "1.25rem" }}>
+      <h2 style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.75rem", color: "var(--gold)" }}>{title}</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>{children}</div>
+    </div>
+  )
+}
+
+const lbl: React.CSSProperties = { fontSize: "0.78rem", color: "var(--text-soft)", display: "block", marginBottom: "0.3rem", fontWeight: 500 }
+const inp: React.CSSProperties = { width: "100%", padding: "0.55rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "0.875rem" }

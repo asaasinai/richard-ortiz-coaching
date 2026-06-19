@@ -2,8 +2,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, Package, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, Package, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search } from "lucide-react"
 import NotificationBell from "@/components/admin/NotificationBell"
+import CommandPalette from "@/components/admin/CommandPalette"
 
 type BadgeKey = "pending_ops" | "unread_checkins" | "pending_intakes" | "low_stock"
 interface NavItem { href: string; label: string; icon: typeof Users; badge?: BadgeKey; badgeColor?: string }
@@ -119,14 +120,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Main content ── */}
       <main className="admin-main" style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
-        <header className="admin-header-desktop" style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.75rem", padding: "0.6rem 2rem", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "var(--bg)", zIndex: 100, minHeight: 52 }}>
+        <header className="admin-header-desktop" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.6rem 2rem", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "var(--bg)", zIndex: 100, minHeight: 52 }}>
+          <button onClick={() => window.dispatchEvent(new Event("roc:cmdk"))} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-mute)", fontSize: "0.8rem", padding: "0.4rem 0.75rem", cursor: "pointer", minWidth: 220 }}>
+            <Search size={14} /> <span style={{ flex: 1, textAlign: "left" }}>Search…</span>
+            <kbd style={{ fontSize: "0.66rem", border: "1px solid var(--border)", borderRadius: 4, padding: "0.05rem 0.3rem" }}>⌘K</kbd>
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <NotificationBell />
           <Link href="/admin/settings" aria-label="Admin" style={{ textDecoration: "none" }}>
             <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--gold)", color: "#000", fontWeight: 800, fontSize: "0.72rem", display: "flex", alignItems: "center", justifyContent: "center" }}>RO</div>
           </Link>
+          </div>
         </header>
         <div style={{ padding: "2rem", flex: 1 }}>{children}</div>
       </main>
+      <CommandPalette />
 
       <style>{`
         @media (max-width: 767px) {
