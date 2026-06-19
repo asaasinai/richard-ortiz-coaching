@@ -21,3 +21,13 @@
 - tsc clean.
 
 **NEXT** — Sprint 2: Ops Queue page (`/admin/ops-queue` Kanban+List+detail, `ops_cards`), FIFO lot creation on receive + FIFO deduction on pack (`lot_transactions`), inventory lot ledger `/admin/inventory/[id]`, notification bell in header.
+
+## Iteration 3 (2026-06-19)
+**DONE** — Sprint 2 rows 2.5, 2.1, 2.3:
+- 2.5 Notification bell: `/api/admin/notifications` GET+POST, `components/admin/NotificationBell.tsx` (30s poll, unread badge, type-icon rows, deeplinks, caught-up empty), header bar in layout (desktop) + bell in mobile topbar, avatar→settings stub.
+- 2.1 Ops Queue: `/api/admin/ops-cards` (list w/ status+search filters, create w/ FIFO-costed lines) + `/[id]` (get+previews, PATCH advance/ship/deliver/update/cancel). `/admin/ops-queue` Kanban(default)+List toggle, filter pills, create modal (approved-client + SKU picker), overdue flag, empty state. `/admin/ops-queue/[id]` stepper, line items w/ FIFO preview or committed lots, total COGS, tracking+notes (blur-save), advance/cancel/shipment-SMS. Sidebar repointed to /admin/ops-queue.
+- 2.3 FIFO: `lib/fifo.ts` previewFifo + commitFifo (oldest-lot-first, split across lots, GREATEST(0,...) stock floor, lot_transactions log). Advance pending→packed runs an all-or-nothing precheck across every line item before any deduction (409 + block on insufficient).
+- Note: cross-call atomicity limited by Neon HTTP (no multi-statement txn); single-admin tool + pre-check makes partial-write risk minimal. Documented in fifo.ts.
+- DnD between Kanban columns deferred to polish (advance-by-button is the functional path). tsc clean throughout.
+
+**NEXT** — Sprint 2 finish: 2.2 (receive-order lot_identifier+cost), 2.4 (inventory lot ledger page `/admin/inventory/[id]`). Then Sprint 3.
