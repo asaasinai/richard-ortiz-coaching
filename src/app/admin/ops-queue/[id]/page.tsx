@@ -40,7 +40,12 @@ export default function OpsCardDetail() {
     if (!card) return
     setBusy(true); setErr("")
     fetch(`/api/admin/ops-cards/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "advance", tracking_number: tracking || null }) })
-      .then(r => r.json()).then(d => { setBusy(false); if (!d.ok) setErr(d.error || "Failed"); else load() })
+      .then(r => r.json()).then(d => { setBusy(false); if (!d.ok) setErr(d.error || "Failed"); else { if (d.warnings?.length) setErr("Packed with low stock: " + d.warnings.join("; ")); load() } })
+  }
+  const setStatus = (status: string) => {
+    setBusy(true); setErr("")
+    fetch(`/api/admin/ops-cards/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set_status", status, tracking_number: tracking || null }) })
+      .then(r => r.json()).then(d => { setBusy(false); if (!d.ok) setErr(d.error || "Failed"); else { if (d.warnings?.length) setErr("Packed with low stock: " + d.warnings.join("; ")); load() } })
   }
   const cancel = () => { setBusy(true); fetch(`/api/admin/ops-cards/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "cancel" }) }).then(() => load()).finally(() => setBusy(false)) }
   const saveMeta = () => { fetch(`/api/admin/ops-cards/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", tracking_number: tracking, notes }) }) }
@@ -127,12 +132,31 @@ export default function OpsCardDetail() {
 
       {err && <div style={{ background: "#2d1111", border: "1px solid #ef4444", color: "#ef4444", borderRadius: "var(--radius)", padding: "0.6rem 0.85rem", marginBottom: "1rem", fontSize: "0.82rem", fontWeight: 600 }}>{err}</div>}
 
-      {/* Actions */}
+      {/* Manual status control — set any stage directly */}
+      {card.status !== "cancelled" && (
+        <div style={{ marginBottom: "1rem" }}>
+          <label style={{ ...lbl, marginTop: 0 }}>Set status</label>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            {STEPS.map(s => {
+              const active = card.status === s
+              return (
+                <button key={s} onClick={() => !active && setStatus(s)} disabled={busy || active}
+                  style={{ flex: 1, minWidth: 90, padding: "0.6rem 0.5rem", borderRadius: "var(--radius)", fontWeight: 700, fontSize: "0.8rem", textTransform: "capitalize", cursor: active ? "default" : "pointer",
+                    background: active ? (STEP_COLOR[s] ?? "var(--gold)") : "var(--surface)", color: active ? "#000" : "var(--text-soft)",
+                    border: `1px solid ${active ? (STEP_COLOR[s] ?? "var(--gold)") : "var(--border)"}`, opacity: busy && !active ? 0.6 : 1 }}>
+                  {s === "packed" && card.status === "pending" ? "Pack (FIFO)" : s}
+                </button>
+              )
+            })}
+          </div>
+          {card.status === "pending" && <p style={{ fontSize: "0.72rem", color: "var(--text-mute)", marginTop: "0.4rem" }}>Marking “Packed” deducts FIFO lots (best-effort; low stock warns but won’t block).</p>}
+        </div>
+      )}
+
+      {/* Quick actions */}
       <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-        {canAdvance && (
-          <button onClick={advance} disabled={busy} style={{ flex: 1, minWidth: 180, padding: "0.7rem", background: "var(--gold)", color: "#000", border: "none", borderRadius: "var(--radius)", fontWeight: 700, cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 }}>
-            {NEXT_LABEL[card.status] ?? "Advance"}
-          </button>
+        {card.status !== "delivered" && card.status !== "cancelled" && (
+          <button onClick={() => setStatus("delivered")} disabled={busy} style={{ flex: 1, minWidth: 160, padding: "0.7rem", background: "#22c55e", color: "#000", border: "none", borderRadius: "var(--radius)", fontWeight: 700, cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}><Check size={15} /> Mark Delivered</button>
         )}
         {card.client_email && (
           <button onClick={() => router.push(`/admin/sms?to=${encodeURIComponent(card.client_email!)}`)} style={{ padding: "0.7rem 1rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem" }}><Truck size={15} /> Shipment SMS</button>

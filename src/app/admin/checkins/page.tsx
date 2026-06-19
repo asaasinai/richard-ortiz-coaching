@@ -110,6 +110,16 @@ function CheckInsInner() {
     a.href = url; a.download = `roc-checkins-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url)
   }
 
+  // Inline row actions — manage the queue without opening the detail
+  const rowMarkSeen = (c: CheckIn) => {
+    fetch(`/api/admin/checkins/${c.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "mark_read", read: true }) })
+      .then(() => { setCheckins(cs => cs.map(x => x.id === c.id ? { ...x, read: true } : x)); setCounts(p => ({ ...p, unread: String(Math.max(0, Number(p.unread ?? 0) - 1)) })) })
+  }
+  const rowResolve = (c: CheckIn) => {
+    fetch(`/api/admin/checkins/${c.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "follow_up", follow_up_action: "No Action Needed", resolved: true }) })
+      .then(() => load(filter))
+  }
+
   const markAllRead = () => {
     fetch("/api/admin/checkins", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -155,6 +165,12 @@ function CheckInsInner() {
                   View Client →
                 </button>
               )}
+            </div>
+          )}
+          {!selected.first_name && (
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>
+              {selected.client_email || "Unlinked check-in"}
+              {!selected.client_email && <span style={{ display: "block", fontWeight: 400, fontSize: "0.74rem", color: "var(--text-mute)", marginTop: "0.15rem" }}>No client record matched this submission (anonymous / email missing).</span>}
             </div>
           )}
           <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text-mute)" }}>
@@ -302,22 +318,27 @@ function CheckInsInner() {
                       {initials(c)}
                     </div>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontWeight: unread ? 800 : 600, fontSize: "0.875rem", marginBottom: "0.2rem" }}>
-                        {c.first_name ? `${c.first_name} ${c.last_name ?? ""}` : c.client_email}
-                        {c.first_name && <span style={{ color: "var(--text-mute)", fontWeight: 400, fontSize: "0.78rem", marginLeft: "0.5rem" }}>{c.client_email}</span>}
+                      <div style={{ fontWeight: unread ? 800 : 600, fontSize: "0.875rem", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                        <span>{c.first_name ? `${c.first_name} ${c.last_name ?? ""}` : (c.client_email || "Unlinked check-in")}</span>
+                        {c.first_name && c.client_email && <span style={{ color: "var(--text-mute)", fontWeight: 400, fontSize: "0.78rem" }}>{c.client_email}</span>}
+                        <span style={{ fontSize: "0.64rem", fontWeight: 700, padding: "0.05rem 0.4rem", borderRadius: 4, background: unread ? "rgba(201,168,76,0.18)" : "var(--surface-2)", color: unread ? "var(--gold)" : "var(--text-mute)" }}>{unread ? "NEW" : "SEEN"}</span>
                       </div>
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", fontSize: "0.76rem" }}>
-                        {c.data.progressScore !== undefined && <span style={chip(c.data.progressScore)}>P {c.data.progressScore}</span>}
-                        {c.data.energyScore !== undefined && <span style={chip(c.data.energyScore)}>E {c.data.energyScore}</span>}
-                        {c.data.moodScore !== undefined && <span style={chip(c.data.moodScore)}>M {c.data.moodScore}</span>}
+                      <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", fontSize: "0.76rem", color: "var(--text-mute)" }}>
+                        {c.data.progressScore !== undefined && <span>Progress <b style={scoreColor(c.data.progressScore)}>{c.data.progressScore}/10</b></span>}
+                        {c.data.energyScore !== undefined && <span>Energy <b style={scoreColor(c.data.energyScore)}>{c.data.energyScore}/10</b></span>}
+                        {c.data.moodScore !== undefined && <span>Mood <b style={scoreColor(c.data.moodScore)}>{c.data.moodScore}/10</b></span>}
                       </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem", flexShrink: 0 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.35rem", flexShrink: 0 }}>
                       <span style={{ color: "var(--text-mute)", fontSize: "0.74rem" }}>{new Date(c.submitted_at).toLocaleDateString()}</span>
                       <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
-                        {c.resolved && <CheckCircle size={13} style={{ color: "#4ade80" }} />}
+                        {c.resolved && <span style={{ fontSize: "0.64rem", fontWeight: 700, color: "#22c55e" }}>RESOLVED</span>}
                         {c.urgent_flag && !c.resolved && <span style={{ fontSize: "0.66rem", fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.15)", padding: "0.1rem 0.4rem", borderRadius: 4 }}>URGENT</span>}
-                        {unread && <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--gold)" }} />}
+                      </div>
+                      {/* inline row actions — manage queue without opening */}
+                      <div style={{ display: "flex", gap: "0.3rem" }} onClick={e => e.stopPropagation()}>
+                        {unread && <button onClick={() => rowMarkSeen(c)} title="Mark seen" style={rowBtn}>✓ Seen</button>}
+                        {c.urgent_flag && !c.resolved && <button onClick={() => rowResolve(c)} title="Resolve urgent" style={{ ...rowBtn, color: "#22c55e", borderColor: "#22c55e" }}>Resolve</button>}
                       </div>
                     </div>
                   </div>
@@ -351,10 +372,10 @@ function CheckInsInner() {
   )
 }
 
-function chip(val: number): React.CSSProperties {
-  const color = val >= 7 ? "#4ade80" : val >= 4 ? "var(--gold)" : "#f87171"
-  return { color, background: "var(--surface-2)", padding: "0.1rem 0.4rem", borderRadius: 4, fontWeight: 700 }
+function scoreColor(val: number): React.CSSProperties {
+  return { color: val >= 7 ? "#4ade80" : val >= 4 ? "var(--gold)" : "#f87171" }
 }
+const rowBtn: React.CSSProperties = { fontSize: "0.66rem", fontWeight: 700, padding: "0.12rem 0.45rem", borderRadius: 4, background: "transparent", border: "1px solid var(--border)", color: "var(--text-mute)", cursor: "pointer" }
 
 export default function AdminCheckInsPage() {
   return (

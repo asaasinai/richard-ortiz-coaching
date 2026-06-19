@@ -55,46 +55,48 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ ok: true })
     }
 
-    if (action === "advance") {
-      const next = NEXT[card.status]
-      if (!next) return NextResponse.json({ ok: false, error: `cannot advance from ${card.status}` }, { status: 400 })
+    // advance = move to the next stage; set_status = jump directly to any stage
+    if (action === "advance" || action === "set_status") {
+      const target = action === "advance" ? NEXT[card.status] : (b.status as string)
+      if (!target || !["pending", "packed", "shipped", "delivered", "cancelled"].includes(target)) {
+        return NextResponse.json({ ok: false, error: `invalid target status` }, { status: 400 })
+      }
 
-      // FIFO deduction happens on pending → packed
-      if (next === "packed") {
-        // Pre-check ALL line items so we never partially deduct.
-        for (const li of card.line_items ?? []) {
-          if (!li.sku_id) continue
-          const p = await previewFifo(String(li.sku_id), Number(li.qty) || 0)
-          if (!p.sufficient) {
-            return NextResponse.json({ ok: false, error: `Insufficient inventory for ${li.peptide} (need ${li.qty}, have ${p.available})` }, { status: 409 })
-          }
-        }
+      // FIFO deduction happens the first time a card reaches "packed" (only if
+      // it hasn't already deducted). Best-effort: deduct what's available, never
+      // block the status change — short stock is surfaced as a warning.
+      const alreadyPacked = (card.line_items ?? []).some(li => (li.lot_ids?.length ?? 0) > 0)
+      const warnings: string[] = []
+      if (target === "packed" && card.status === "pending" && !alreadyPacked) {
         let total = 0
         const items = card.line_items ?? []
         for (const li of items) {
           if (!li.sku_id) continue
-          const res = await commitFifo(String(li.sku_id), Number(li.qty) || 0, { opsCardId: id, clientId: card.client_id })
-          li.lot_ids = res.allocations.map(a => a.lot_id)
-          li.cost_per_unit = res.allocations[0]?.unit_cost ?? li.cost_per_unit
-          li.line_total = res.total_cost
-          total += res.total_cost
+          const p = await previewFifo(String(li.sku_id), Number(li.qty) || 0)
+          if (!p.sufficient) warnings.push(`${li.peptide}: only ${p.available} of ${li.qty} in stock`)
+          // deduct whatever is available (qty capped to available)
+          const take = Math.min(Number(li.qty) || 0, p.available)
+          if (take > 0) {
+            const res = await commitFifo(String(li.sku_id), take, { opsCardId: id, clientId: card.client_id })
+            li.lot_ids = res.allocations.map(a => a.lot_id)
+            li.cost_per_unit = res.allocations[0]?.unit_cost ?? li.cost_per_unit
+            li.line_total = res.total_cost
+            total += res.total_cost
+          }
         }
         await query(`UPDATE roc.ops_cards SET status = 'packed', line_items = $1, total_cogs = $2, updated_at = NOW() WHERE id = $3`,
           [JSON.stringify(items), String(+total.toFixed(2)), id])
-        return NextResponse.json({ ok: true, status: "packed" })
+        return NextResponse.json({ ok: true, status: "packed", warnings })
       }
 
-      if (next === "shipped") {
-        await query(`UPDATE roc.ops_cards SET status = 'shipped', shipped_at = NOW(), tracking_number = COALESCE($1, tracking_number), updated_at = NOW() WHERE id = $2`,
-          [b.tracking_number ?? null, id])
-        return NextResponse.json({ ok: true, status: "shipped" })
-      }
-
-      if (next === "delivered") {
-        await query(`UPDATE roc.ops_cards SET status = 'delivered', delivered_at = NOW(), updated_at = NOW() WHERE id = $1`, [id])
-        await resolveNotifications("ops_overdue", id)
-        return NextResponse.json({ ok: true, status: "delivered" })
-      }
+      // All other transitions are pure status changes (incl. manual Mark Delivered)
+      const setShipped = target === "shipped" ? ", shipped_at = COALESCE(shipped_at, NOW())" : ""
+      const setDelivered = target === "delivered" ? ", delivered_at = COALESCE(delivered_at, NOW())" : ""
+      await query(
+        `UPDATE roc.ops_cards SET status = $1, tracking_number = COALESCE($2, tracking_number)${setShipped}${setDelivered}, updated_at = NOW() WHERE id = $3`,
+        [target, b.tracking_number ?? null, id])
+      if (target === "delivered") await resolveNotifications("ops_overdue", id)
+      return NextResponse.json({ ok: true, status: target })
     }
 
     return NextResponse.json({ ok: false, error: "unknown action" }, { status: 400 })
