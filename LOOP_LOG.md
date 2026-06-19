@@ -12,3 +12,12 @@
 **DONE** — Row 0: wrote `sql/2026-06-19-admin-ux-upgrade.sql` (checkins state cols, notifications, ops_cards, inventory_batches lot cols, lot_transactions, admin_settings — all idempotent). Wrote ROADMAP.md.
 
 **NEXT** — Sprint 1: Overview rebuild (1.1), check-in read/unread + follow-up/resolve (1.2–1.5). All consume the new schema; built forward against it, verified via `npx tsc --noEmit`.
+
+## Iteration 2 (2026-06-19)
+**DONE** — Sprint 1 COMPLETE.
+- 1.2/1.3/1.4 (iter 1) checkin read/unread/filters/follow-up.
+- 1.5: `/api/checkin` submit now derives urgency from `urgent_threshold` (admin_settings, default 5) across progress/energy/mood scores, and writes an in-app notification (`urgent_checkin` or `checkin_submitted`). Pre-existing Resend email path left as-is (not my outbound action). Added `lib/settings.ts` (get/set, degrade-safe).
+- 1.1: Overview rebuilt — 7 hover-scale clickable stat cards (Total Intakes, Pending, Check-Ins, Urgent, Active Clients, Ops Pending, Low Stock), week-over-week delta on intakes+checkins, 3 persistent alert banners (urgent/pending/low-stock), 3 recent sections (Check-Ins w/ unread dot + urgent badge, Intakes w/ status badge, Ops Queue next actions), icon empty states. All new-table queries wrapped degrade-safe (`safe()` helper) so a pre-migration/partial deploy renders zeros, never 500s.
+- tsc clean.
+
+**NEXT** — Sprint 2: Ops Queue page (`/admin/ops-queue` Kanban+List+detail, `ops_cards`), FIFO lot creation on receive + FIFO deduction on pack (`lot_transactions`), inventory lot ledger `/admin/inventory/[id]`, notification bell in header.
