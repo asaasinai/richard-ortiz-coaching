@@ -72,6 +72,34 @@ export async function GET() {
       }
     })
 
+    // Orders this month per client (FIFO fulfillment volume) — degrade-safe
+    let ordersByClient: Record<string, number> = {}
+    try {
+      const o = await query<{ client_id: string; n: string }>(`
+        SELECT client_id, COUNT(*) n FROM roc.ops_cards
+        WHERE created_at >= DATE_TRUNC('month', NOW()) AND status != 'cancelled'
+        GROUP BY client_id`)
+      ordersByClient = Object.fromEntries(o.rows.map(r => [String(r.client_id), Number(r.n)]))
+    } catch { ordersByClient = {} }
+    for (const c of clientRows) (c as Record<string, unknown>).orders_this_month = ordersByClient[String(c.client_id)] ?? 0
+
+    // Revenue by protocol — avg gross margin % per peptide (active billing)
+    const protoAgg: Record<string, { marginSum: number; cnt: number; mrr: number }> = {}
+    for (const c of clientRows) {
+      if (c.billing_status !== "active" || c.gross_margin_pct === null) continue
+      const k = c.peptide || "—"
+      if (!protoAgg[k]) protoAgg[k] = { marginSum: 0, cnt: 0, mrr: 0 }
+      protoAgg[k].marginSum += c.gross_margin_pct
+      protoAgg[k].cnt += 1
+      protoAgg[k].mrr += c.monthly_rate
+    }
+    const byProtocol = Object.entries(protoAgg)
+      .map(([peptide, v]) => ({ peptide, avg_margin: Math.round((v.marginSum / v.cnt) * 10) / 10, clients: v.cnt, mrr: Math.round(v.mrr * 100) / 100 }))
+      .sort((a, b) => b.avg_margin - a.avg_margin)
+
+    const avgMargin = clientRows.filter(c => c.billing_status === "active" && c.gross_margin_pct !== null)
+      .reduce((s, c, _i, arr) => s + (c.gross_margin_pct as number) / arr.length, 0)
+
     // Monthly revenue trend — group by month from assigned_at (active only)
     const trend = await query<{ month: string; revenue: string }>(`
       SELECT
@@ -90,7 +118,9 @@ export async function GET() {
       arr,
       byStatus,
       activeCount: byStatus["active"] ?? 0,
+      avgMargin: Math.round(avgMargin * 10) / 10,
       clients: clientRows,
+      byProtocol,
       trend: trend.rows.reverse(),
     })
   } catch (err) {
