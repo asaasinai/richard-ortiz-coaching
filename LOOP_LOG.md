@@ -39,3 +39,13 @@
 - tsc clean.
 
 **NEXT** — Sprint 3: client profile tabs (3.1), intake detail + approval + auto-create client (3.2), sidebar nav badges/reorder/utility-strip (3.3), revenue FIFO COGS + by-protocol chart (3.4).
+
+## Iteration 5 (2026-06-19)
+**DONE** — Sprint 3 COMPLETE (3.1–3.4):
+- 3.3 Sidebar: `/api/admin/badges` (live counts), nav redesigned to spec order w/ colored badges (60s poll), bottom utility strip, collapse toggle (220↔56 icon rail), left-gold-border active style.
+- 3.4 Revenue: route adds by-protocol avg-margin + orders-this-month + server avgMargin; page adds Revenue-by-Protocol bar chart, clickable KPI cards (anchors/deeplinks), date-range trend selector, Export CSV, client→/clients/[id]?tab=billing links.
+- 3.1 Client profile: added Orders tab (ops_cards history w/ lots+COGS+ship dates; client filter added to ops-cards GET) + Billing tab (rate/status/lifetime-COGS/est-margin + inline rate save); ?tab= deep-link via window.location.
+- 3.2 Intake: v2 AI-rec→approve→proposal flow already existed. Added: new_intake notification on submit (bell+banner), resolve on approve/flag, ?status= filter on intakes GET. NOTE: in this schema an APPROVED intake IS the client (client_protocols.client_id = intakes.id) — no separate clients table to auto-create.
+- tsc clean throughout.
+
+**NEXT** — Sprint 4: cmd+k global search (4.1), SMS triggers from checkin/ops (4.2, draft-only), Settings module persisted to admin_settings (4.3), CSV exports (4.4 — revenue done; add clients/checkins), alert toggles wired (4.5), mobile sidebar polish (4.6). Then 360 review + HANDOFF.md.

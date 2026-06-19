@@ -24,10 +24,10 @@ Branch: `loop/roc-admin-ux` · DB schema: `roc` (Neon, live prod)
 | 2.3 | 2 | FIFO deduction on ops card → packed (oldest lot first, split, block if no stock) | ✅ | `lib/fifo.ts` preview+commit; all-or-nothing precheck; writes `lot_transactions` |
 | 2.4 | 2 | Inventory lot ledger page per SKU (`/admin/inventory/[id]`) | ✅ | overview stats + Lot Ledger + Usage History (COGS) + Reorder History; editable reorder_point; row 'Ledger →' link |
 | 2.5 | 2 | Notification bell + dropdown in header | ✅ | `/api/admin/notifications` + NotificationBell (30s poll, deeplinks) + header bar |
-| 3.1 | 3 | Client profile page tabs (Profile/Protocol/Check-Ins/Intakes/Orders/Billing) | ⬜ | extend `clients/[id]` |
-| 3.2 | 3 | Intake detail page + approval flow + auto-create client | ⬜ | extend `intakes/[id]` |
-| 3.3 | 3 | Sidebar nav badges (live counts) + reorder + utility strip + collapse | ⬜ | layout.tsx |
-| 3.4 | 3 | Revenue FIFO COGS tie-in + Revenue-by-Protocol chart + date filter | ⬜ | revenue route + page |
+| 3.1 | 3 | Client profile page tabs (Profile/Protocol/Check-Ins/Intakes/Orders/Billing) | ✅ | added Orders + Billing tabs to existing 5-tab page; ?tab= deep-link |
+| 3.2 | 3 | Intake detail page + approval flow + auto-create client | ✅ | v2 AI-rec/approve/proposal flow pre-existing; added new_intake notification on submit + resolve on approve/flag + ?status= filter. (Approved intake IS the client in this schema — no separate table) |
+| 3.3 | 3 | Sidebar nav badges (live counts) + reorder + utility strip + collapse | ✅ | /api/admin/badges + nav redesign (60s poll, colored badges, utility strip, collapse rail, left-border active) |
+| 3.4 | 3 | Revenue FIFO COGS tie-in + Revenue-by-Protocol chart + date filter | ✅ | by-protocol margin chart, orders-this-month, clickable cards, date range, CSV export, client→billing deep-link |
 | 4.1 | 4 | Global cmd+k search (clients/intakes/checkins/peptides) | ⬜ | search API + modal |
 | 4.2 | 4 | SMS triggers from check-in + ops card (draft only, no real send) | ⬜ | |
 | 4.3 | 4 | Settings module (all sections, persisted to admin_settings) | ⬜ | settings route + page |
