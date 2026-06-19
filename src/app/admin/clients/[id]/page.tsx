@@ -1,11 +1,17 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, AlertTriangle, Mail, Trash2 } from "lucide-react"
+import { ChevronLeft, AlertTriangle, Mail, Trash2 } from "lucide-react"
 import { PEPTIDE_NAMES } from "@/lib/peptides-data"
+import { Ring } from "@/components/admin/Charts"
 
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 const DOSE_UNITS = ["mg","mcg","IU","mL"]
+
+const initials = (f: string, l: string) => `${(f||"?")[0] ?? ""}${(l||"")[0] ?? ""}`.toUpperCase()
+const AV = ["#60A5FA","#34D399","#F472B6","#FBBF24","#A78BFA","#C9A84C"]
+const avColor = (s: string) => AV[[...(s||"x")].reduce((a,c)=>a+c.charCodeAt(0),0)%AV.length]
+const prettyGoal = (g: string) => g.replace(/-/g," ").replace(/\b\w/g,c=>c.toUpperCase())
 
 interface Client {
   id: string; first_name: string; last_name: string; email: string
@@ -59,12 +65,6 @@ function LineChart({ points, color, label, unit }: { points: { date: string; val
     </div>
   )
 }
-
-const statusColor = (s: string) => ({
-  APPROVED:{ bg:"rgba(74,222,128,0.15)", color:"#4ade80" },
-  FLAGGED: { bg:"rgba(248,113,113,0.15)", color:"#f87171" },
-  PENDING: { bg:"rgba(201,168,76,0.15)",  color:"var(--gold)" },
-}[s] ?? { bg:"transparent", color:"var(--text-mute)" })
 
 const proposalStatusColor = (s: string) => ({
   draft:  { bg:"rgba(255,255,255,0.08)", color:"var(--text-mute)" },
@@ -191,31 +191,57 @@ export default function ClientDetailPage() {
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
-      {/* Header */}
-      <button onClick={() => router.push("/admin/clients")} style={{ background:"none", border:"none", color:"var(--text-mute)", cursor:"pointer", padding:"0.25rem", display:"flex", alignItems:"center", gap:"0.3rem", fontSize:"0.85rem", marginBottom:"1rem" }}>
-        <ArrowLeft size={16}/> Back to Clients
+      {/* Back */}
+      <button onClick={() => router.push("/admin/clients")} style={{ display:"inline-flex", alignItems:"center", gap:"0.2rem", background:"transparent", border:"1px solid var(--border)", borderRadius:"var(--radius-pill)", color:"var(--text-mute)", fontSize:"0.82rem", fontWeight:600, padding:"0.35rem 0.85rem 0.35rem 0.6rem", cursor:"pointer", marginBottom:"1rem" }}>
+        <ChevronLeft size={16}/> Clients
       </button>
 
-      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", marginBottom:"1.5rem" }}>
-        <div style={{ padding:"1.25rem 1.25rem 0.875rem", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:"0.75rem" }}>
-          <div style={{ minWidth:0 }}>
-            <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.1rem,4vw,1.4rem)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-              {client.first_name} {client.last_name}
-            </h1>
-            <p style={{ color:"var(--text-mute)", fontSize:"0.82rem", marginTop:"0.2rem" }}>{client.email}</p>
-            <div style={{ display:"flex", gap:"0.4rem", marginTop:"0.6rem", flexWrap:"wrap" }}>
-              {["APPROVED","PENDING","FLAGGED"].map(s=>(
-                <button key={s} onClick={()=>updateStatus(s)} style={{
-                  padding:"0.2rem 0.65rem", borderRadius:3, fontSize:"0.7rem", fontWeight:700, cursor:"pointer",
-                  ...statusColor(s), border:`1px solid ${statusColor(s).color}`,
-                  opacity: client.status===s ? 1 : 0.4
-                }}>{s}</button>
-              ))}
+      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", marginBottom:"1.5rem", boxShadow:"var(--shadow-card)" }}>
+        <div style={{ padding:"1.5rem", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:"1rem", flexWrap:"wrap" }}>
+          <div style={{ display:"flex", gap:"1rem", minWidth:0, flex:1 }}>
+            {/* Avatar */}
+            <div style={{ width:56, height:56, borderRadius:"50%", flexShrink:0, background:avColor(client.email||client.id), color:"#0A0A0B", fontWeight:800, fontSize:"1.3rem", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              {initials(client.first_name, client.last_name)}
+            </div>
+            <div style={{ minWidth:0 }}>
+              <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:800, fontSize:"clamp(1.2rem,4vw,1.5rem)", letterSpacing:"-0.01em" }}>
+                {client.first_name} {client.last_name}
+              </h1>
+              <p style={{ color:"var(--text-mute)", fontSize:"0.85rem", marginTop:"0.15rem" }}>{client.email}{client.phone ? ` · ${client.phone}` : ""}</p>
+              {/* Goal chips */}
+              {typeof intake?.primaryGoal === "string" && (
+                <div style={{ display:"flex", gap:"0.35rem", marginTop:"0.65rem", flexWrap:"wrap" }}>
+                  {(intake.primaryGoal as string).split(",").map(g=>g.trim()).filter(Boolean).map(g=>(
+                    <span key={g} className="chip" style={{ background:"var(--gold-dim)", color:"var(--gold-light)", border:"none" }}>{prettyGoal(g)}</span>
+                  ))}
+                </div>
+              )}
+              {/* Status pills */}
+              <div style={{ display:"flex", gap:"0.4rem", marginTop:"0.65rem", flexWrap:"wrap" }}>
+                {["APPROVED","PENDING","FLAGGED"].map(s=>(
+                  <button key={s} onClick={()=>updateStatus(s)} className="pill" data-active={client.status===s} style={{ fontSize:"0.7rem" }}>
+                    {s==="APPROVED"?"Active":s==="PENDING"?"Pending":"Flagged"}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <button onClick={()=>setShowDelete(true)} title="Delete client" style={{ flexShrink:0, display:"flex", alignItems:"center", gap:"0.3rem", background:"none", border:"1px solid rgba(239,68,68,0.5)", color:"#ef4444", borderRadius:"var(--radius)", padding:"0.35rem 0.7rem", fontSize:"0.76rem", fontWeight:600, cursor:"pointer" }}>
-            <Trash2 size={13}/> Delete
-          </button>
+          <div style={{ display:"flex", alignItems:"center", gap:"1rem", flexShrink:0 }}>
+            {/* Protocol progress ring */}
+            {protocol && startDate && protocol.duration_weeks ? (() => {
+              const start = new Date(startDate).getTime()
+              const wk = Math.min(Math.max(Math.floor((Date.now()-start)/(7*864e5))+1, 1), protocol.duration_weeks!)
+              return (
+                <div style={{ textAlign:"center" }}>
+                  <Ring value={wk} max={protocol.duration_weeks!} size={70} color="var(--gold)" label={`${wk}/${protocol.duration_weeks}`} />
+                  <div style={{ fontSize:"0.66rem", color:"var(--text-mute)", marginTop:"0.3rem" }}>weeks in</div>
+                </div>
+              )
+            })() : null}
+            <button onClick={()=>setShowDelete(true)} title="Delete client" className="btn-ghost" style={{ color:"#F87171", borderColor:"rgba(248,113,113,0.4)", fontSize:"0.78rem", padding:"0.45rem 0.75rem" }}>
+              <Trash2 size={13}/> Delete
+            </button>
+          </div>
         </div>
 
         {showDelete && (
@@ -325,7 +351,24 @@ export default function ClientDetailPage() {
           {/* CHECK-INS */}
           {tab==="checkins" && (
             <div style={{ display:"flex", flexDirection:"column", gap:"0.75rem" }}>
-              {checkins.length === 0 && <p style={{color:"var(--text-mute)"}}>No check-ins yet.</p>}
+              {/* Progress charts */}
+              {(weightPts.length>=2 || bfPts.length>=2 || energyPts.length>=2 || moodPts.length>=2) && (
+                <div style={{ marginBottom:"0.5rem" }}>
+                  <p style={{ fontSize:"0.8rem", color:"var(--text-mute)", marginBottom:"0.75rem" }}>How {client.first_name} is trending over their check-ins.</p>
+                  <div className="client-charts-grid">
+                    {weightPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={weightPts} color="var(--gold)" label="Weight" unit=" lbs"/></div>}
+                    {bfPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={bfPts} color="#F87171" label="Body Fat" unit="%"/></div>}
+                    {energyPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={energyPts} color="#60A5FA" label="Energy" unit="/10"/></div>}
+                    {moodPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={moodPts} color="#34D399" label="Mood" unit="/10"/></div>}
+                  </div>
+                </div>
+              )}
+              {checkins.length === 0 && (
+                <div style={{ textAlign:"center", padding:"2.5rem 1rem", color:"var(--text-mute)" }}>
+                  <p style={{ fontSize:"0.95rem" }}>No check-ins yet.</p>
+                  <p style={{ fontSize:"0.82rem", marginTop:"0.35rem" }}>They’ll appear here as {client.first_name} submits weekly updates.</p>
+                </div>
+              )}
               {checkins.slice().reverse().map(c=>(
                 <div key={c.id} style={{ background:"var(--surface)", border:`1px solid ${c.urgent_flag?"rgba(248,113,113,0.4)":"var(--border)"}`, borderRadius:"var(--radius)", padding:"1rem" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.5rem", flexWrap:"wrap", gap:"0.3rem" }}>

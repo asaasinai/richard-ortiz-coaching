@@ -25,8 +25,8 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | 1.2 | 1 | Overview rebuild: Welcome Richard + 4 hero tiles + sparklines + "Today" list + revenue/status/protocol charts | ✅ | new page.tsx; tsc clean |
 | 1.3 | 1 | OverviewActivity component restyle to charts + plain language | ✅ | AreaChart trends, modern rows/pills, Recent Applicants rename |
 | 2.1 | 2 | Clients list: card/table hybrid, avatars, chips, filter pills + back header | ✅ | colored avatars, pill filters w/ counts, status chips, skeleton loader, mobile-clean |
-| 2.2 | 2 | Client profile: header card + progress ring + chip goals + modern tabs | ⬜ | |
-| 2.3 | 2 | Client Check-Ins tab: weight/energy/mood progress charts | ⬜ | |
+| 2.2 | 2 | Client profile: header card + progress ring + chip goals + modern tabs | ✅ | avatar + goal chips + week progress ring + pill status + soft tabs |
+| 2.3 | 2 | Client Check-Ins tab: weight/energy/mood progress charts | ✅ | trend charts atop check-ins tab + friendly empty state |
 | 3.1 | 3 | Check-Ins queue: friendly review cards, trend arrows, slide-over, pills | ⬜ | |
 | 3.2 | 3 | Intakes: "applicants" framing, AI-rec card, approve flow, back header | ⬜ | |
 | 4.1 | 4 | Fulfillment (Ops Queue rename): modern Kanban+list, plain cost | ⬜ | |
