@@ -7,7 +7,7 @@ import NotificationBell from "@/components/admin/NotificationBell"
 
 const nav = [
   { href: "/admin",            label: "Overview",    icon: BarChart2,      group: "main" },
-  { href: "/admin/ops",        label: "Ops Queue",   icon: Zap,            group: "main" },
+  { href: "/admin/ops-queue",  label: "Ops Queue",   icon: Zap,            group: "main" },
   { href: "/admin/revenue",    label: "Revenue",     icon: DollarSign,     group: "main" },
   { href: "/admin/inventory",  label: "Inventory",   icon: Package,        group: "main" },
   { href: "/admin/clients",    label: "Clients",     icon: Users,          group: "clients" },
