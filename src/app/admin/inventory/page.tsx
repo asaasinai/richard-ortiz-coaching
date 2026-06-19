@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Package, AlertTriangle, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
 
 interface Batch {
@@ -38,7 +39,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState("")
   const [showAddBatch, setShowAddBatch] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "" })
+  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
 
   // Bulk receive modal
   const [showBulkReceive, setShowBulkReceive] = useState(false)
@@ -57,7 +58,7 @@ export default function InventoryPage() {
     await fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: skuId, ...newBatch }) })
     setSaving(false)
     setShowAddBatch(null)
-    setNewBatch({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "" })
+    setNewBatch({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
     load()
   }
 
@@ -268,6 +269,9 @@ export default function InventoryPage() {
                               <button onClick={() => setExpandedSku(isBatchOpen ? null : sku.id)} style={{ fontSize:"0.72rem", padding:"0.25rem 0.5rem", background:"none", border:"1px solid var(--border)", borderRadius:3, color:"var(--text-mute)", cursor:"pointer" }}>
                                 {isBatchOpen ? "Hide" : "Batches"}
                               </button>
+                              <Link href={`/admin/inventory/${sku.id}`} style={{ fontSize:"0.72rem", padding:"0.25rem 0.5rem", border:"1px solid var(--gold)", borderRadius:3, color:"var(--gold)", cursor:"pointer", textDecoration:"none", fontWeight:600 }}>
+                                Ledger →
+                              </Link>
                             </div>
                           </div>
 
@@ -282,6 +286,7 @@ export default function InventoryPage() {
                                     <div><label style={{ fontSize:"0.72rem" }}>Unit Cost ($) *</label><input type="number" step="0.01" placeholder="45.00" value={newBatch.unit_cost} onChange={e => setNewBatch(p => ({ ...p, unit_cost: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                     <div><label style={{ fontSize:"0.72rem" }}>Supplier</label><input placeholder="Elixsir" value={newBatch.supplier} onChange={e => setNewBatch(p => ({ ...p, supplier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                     <div><label style={{ fontSize:"0.72rem" }}>Received</label><input type="date" value={newBatch.received_at} onChange={e => setNewBatch(p => ({ ...p, received_at: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Lot # <span style={{ color:"var(--text-mute)" }}>(auto)</span></label><input placeholder="auto-generate" value={newBatch.lot_identifier} onChange={e => setNewBatch(p => ({ ...p, lot_identifier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                   </div>
                                   <div style={{ display:"flex", gap:"0.4rem" }}>
                                     <button onClick={() => addBatch(sku.id)} disabled={saving || !newBatch.qty_received || !newBatch.unit_cost} className="btn-gold" style={{ fontSize:"0.78rem", padding:"0.35rem 0.75rem" }}>{saving ? "Saving…" : "Add Batch"}</button>

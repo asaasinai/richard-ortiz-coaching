@@ -141,16 +141,17 @@ export async function POST(req: NextRequest) {
 // PATCH — update SKU fields
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, reorder_qty, notes, units_in_stock } = await req.json()
+    const { id, reorder_qty, notes, units_in_stock, reorder_point } = await req.json()
     if (!id) return NextResponse.json({ ok: false, error: "id required" }, { status: 400 })
     await query(
       `UPDATE roc.inventory_skus SET
         reorder_qty = COALESCE($1, reorder_qty),
         notes = COALESCE($2, notes),
         units_in_stock = COALESCE($3, units_in_stock),
+        reorder_point = COALESCE($4, reorder_point),
         updated_at = NOW()
-       WHERE id = $4`,
-      [reorder_qty != null ? String(reorder_qty) : null, notes ?? null, units_in_stock != null ? String(units_in_stock) : null, id]
+       WHERE id = $5`,
+      [reorder_qty != null ? String(reorder_qty) : null, notes ?? null, units_in_stock != null ? String(units_in_stock) : null, reorder_point != null ? String(reorder_point) : null, id]
     )
     return NextResponse.json({ ok: true })
   } catch (err) {
