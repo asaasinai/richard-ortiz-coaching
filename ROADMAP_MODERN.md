@@ -23,7 +23,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | D.3 | data | Verify seeded counts + every Overview stat query returns believable values | ✅ | 5 clients/5 protocols/15 checkins/5 proposals/5 ops/1 urgent — all stats non-zero |
 | 1.1 | 1 | Modernize sidebar + topbar (grouped nav, soft active, pill search, badges) | ✅ | Daily/Catalog/Tools groups, gold-dim soft active, Ops Queue→Fulfillment, Intakes→Applicants |
 | 1.2 | 1 | Overview rebuild: Welcome Richard + 4 hero tiles + sparklines + "Today" list + revenue/status/protocol charts | ✅ | new page.tsx; tsc clean |
-| 1.3 | 1 | OverviewActivity component restyle to charts + plain language | ⬜ | |
+| 1.3 | 1 | OverviewActivity component restyle to charts + plain language | ✅ | AreaChart trends, modern rows/pills, Recent Applicants rename |
 | 2.1 | 2 | Clients list: card/table hybrid, avatars, chips, filter pills + back header | ⬜ | |
 | 2.2 | 2 | Client profile: header card + progress ring + chip goals + modern tabs | ⬜ | |
 | 2.3 | 2 | Client Check-Ins tab: weight/energy/mood progress charts | ⬜ | |

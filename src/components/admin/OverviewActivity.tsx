@@ -2,7 +2,8 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, CheckCircle, Check, X } from "lucide-react"
+import { AlertTriangle, CheckCircle, Check } from "lucide-react"
+import { AreaChart } from "@/components/admin/Charts"
 
 interface CheckIn {
   id: string; client_email: string | null; submitted_at: string; urgent_flag: boolean
@@ -14,32 +15,27 @@ interface Intake { id: string; first_name: string; last_name: string; email: str
 const sc = (v?: number): React.CSSProperties => ({ color: v === undefined ? "var(--text-mute)" : v >= 7 ? "#22c55e" : v >= 4 ? "var(--gold)" : "#ef4444", fontWeight: 700 })
 const name = (c: CheckIn) => c.first_name ? `${c.first_name} ${c.last_name ?? ""}`.trim() : (c.client_email || "Unlinked check-in")
 
-// Bar chart: count per ISO week for the last `weeks` weeks
-function WeeklyChart({ dates, label }: { dates: string[]; label: string }) {
+// Modern area chart: count per week for the last `weeks` weeks
+function WeeklyChart({ dates, label, color = "var(--gold)" }: { dates: string[]; label: string; color?: string }) {
   const weeks = 8
   const now = Date.now(), wk = 7 * 864e5
   const buckets = Array.from({ length: weeks }, (_, i) => {
     const end = now - (weeks - 1 - i) * wk
-    return { end, n: 0 }
+    return { end, value: 0 }
   })
   for (const d of dates) {
     const t = new Date(d).getTime()
     const idx = Math.floor((now - t) / wk)
-    if (idx >= 0 && idx < weeks) buckets[weeks - 1 - idx].n++
+    if (idx >= 0 && idx < weeks) buckets[weeks - 1 - idx].value++
   }
-  const max = Math.max(...buckets.map(b => b.n), 1)
+  const total = buckets.reduce((s, b) => s + b.value, 0)
   return (
     <div className="card">
-      <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>{label} <span style={{ color: "var(--text-mute)", fontWeight: 400, fontSize: "0.74rem" }}>· last {weeks} weeks</span></p>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: "0.35rem", height: 90 }}>
-        {buckets.map((b, i) => (
-          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ fontSize: "0.66rem", color: "var(--text-mute)" }}>{b.n || ""}</span>
-            <div title={`${b.n}`} style={{ width: "100%", background: i === weeks - 1 ? "var(--gold)" : "var(--surface-2)", borderRadius: "3px 3px 0 0", height: `${Math.max((b.n / max) * 64, 3)}px`, transition: "height .3s" }} />
-            <span style={{ fontSize: "0.58rem", color: "var(--text-mute)" }}>{new Date(b.end).toLocaleDateString("en-US", { month: "numeric", day: "numeric" })}</span>
-          </div>
-        ))}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.85rem" }}>
+        <p style={{ fontWeight: 700, fontSize: "0.92rem" }}>{label}</p>
+        <span style={{ color: "var(--text-mute)", fontSize: "0.74rem" }}>{total} in 8 weeks</span>
       </div>
+      <AreaChart data={buckets.map(b => ({ value: b.value }))} color={color} height={110} label={label} />
     </div>
   )
 }
@@ -75,8 +71,8 @@ export default function OverviewActivity() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <div className="ov-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-        <WeeklyChart dates={checkins.map(c => c.submitted_at)} label="Check-ins per week" />
-        <WeeklyChart dates={intakes.map(i => i.submitted_at)} label="New intakes per week" />
+        <WeeklyChart dates={checkins.map(c => c.submitted_at)} label="Check-ins per week" color="#34D399" />
+        <WeeklyChart dates={intakes.map(i => i.submitted_at)} label="New applicants per week" color="var(--gold)" />
       </div>
 
       {/* Urgent check-ins — clickable to the exact record + resolve */}
@@ -116,7 +112,7 @@ export default function OverviewActivity() {
 
         {/* Recent intakes */}
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          <Head title="Recent Intakes" href="/admin/intakes" />
+          <Head title="Recent Applicants" href="/admin/intakes" />
           {recentIntakes.length === 0 ? <Empty text="No intakes yet" /> : recentIntakes.map(i => (
             <div key={i.id} style={rowS}>
               <Link href={`/admin/intakes/${i.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
@@ -137,10 +133,10 @@ export default function OverviewActivity() {
   )
 }
 
-const rowS: React.CSSProperties = { display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)" }
-const btn: React.CSSProperties = { fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: 5, background: "transparent", border: "1px solid var(--border)", color: "var(--text-mute)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", flexShrink: 0 }
-const tag = (color: string): React.CSSProperties => ({ fontSize: "0.6rem", fontWeight: 700, padding: "0.05rem 0.35rem", borderRadius: 4, color, background: "var(--surface-2)", marginLeft: "0.35rem" })
-const statusColor = (s: string) => s === "APPROVED" ? "#22c55e" : s === "FLAGGED" ? "#ef4444" : "var(--gold)"
+const rowS: React.CSSProperties = { display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.1rem", borderBottom: "1px solid var(--border)" }
+const btn: React.CSSProperties = { fontSize: "0.72rem", fontWeight: 700, padding: "0.3rem 0.65rem", borderRadius: "var(--radius-pill)", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-soft)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", flexShrink: 0 }
+const tag = (color: string): React.CSSProperties => ({ fontSize: "0.6rem", fontWeight: 700, padding: "0.1rem 0.4rem", borderRadius: "var(--radius-pill)", color, background: "var(--surface-2)", marginLeft: "0.4rem", textTransform: "uppercase", letterSpacing: "0.03em" })
+const statusColor = (s: string) => s === "APPROVED" ? "#34D399" : s === "FLAGGED" ? "#F87171" : "var(--gold)"
 
 function Head({ title, href }: { title: string; href: string }) {
   return <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 1rem", borderBottom: "1px solid var(--border)" }}>
