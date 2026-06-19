@@ -96,6 +96,20 @@ function CheckInsInner() {
     }
   }
 
+  const exportCsv = () => {
+    const cols = ["Date", "Client", "Email", "Progress", "Energy", "Mood", "Urgent", "Resolved", "Notes"]
+    const lines = [cols.join(",")]
+    for (const c of checkins) lines.push([
+      new Date(c.submitted_at).toISOString().slice(0, 10),
+      `"${c.first_name ? `${c.first_name} ${c.last_name ?? ""}` : ""}"`, `"${c.client_email}"`,
+      c.data.progressScore ?? "", c.data.energyScore ?? "", c.data.moodScore ?? "",
+      c.urgent_flag ? "yes" : "no", c.resolved ? "yes" : "no", `"${(c.data.notes ?? "").replace(/"/g, "'")}"`,
+    ].join(","))
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" })
+    const url = URL.createObjectURL(blob); const a = document.createElement("a")
+    a.href = url; a.download = `roc-checkins-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url)
+  }
+
   const markAllRead = () => {
     fetch("/api/admin/checkins", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -227,10 +241,16 @@ function CheckInsInner() {
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
         <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.5rem)" }}>Check-Ins</h1>
-        <button onClick={markAllRead}
-          style={{ padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: "var(--surface)", color: "var(--text-mute)", border: "1px solid var(--border)" }}>
-          Mark All Read
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button onClick={exportCsv}
+            style={{ padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: "var(--surface)", color: "var(--text-mute)", border: "1px solid var(--border)" }}>
+            Export CSV
+          </button>
+          <button onClick={markAllRead}
+            style={{ padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: "var(--surface)", color: "var(--text-mute)", border: "1px solid var(--border)" }}>
+            Mark All Read
+          </button>
+        </div>
       </div>
 
       {/* Filter pill tabs with counts */}
