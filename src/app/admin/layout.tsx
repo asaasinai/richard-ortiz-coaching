@@ -3,6 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Users, ClipboardList, Activity, MessageSquare, BarChart2, Settings, Menu, X, Calculator, DollarSign, Package, Zap } from "lucide-react"
+import NotificationBell from "@/components/admin/NotificationBell"
 
 const nav = [
   { href: "/admin",            label: "Overview",    icon: BarChart2,      group: "main" },
@@ -83,9 +84,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         padding:"0 1rem", height:52
       }}>
         <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"0.85rem", letterSpacing:"0.05em", color:"var(--gold)" }}>ROC ADMIN</span>
-        <button onClick={() => setMobileOpen(o => !o)} style={{ background:"none", border:"none", color:"var(--text)", cursor:"pointer", padding:"0.25rem", display:"flex", alignItems:"center" }}>
-          {mobileOpen ? <X size={22}/> : <Menu size={22}/>}
-        </button>
+        <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
+          <NotificationBell />
+          <button onClick={() => setMobileOpen(o => !o)} style={{ background:"none", border:"none", color:"var(--text)", cursor:"pointer", padding:"0.25rem", display:"flex", alignItems:"center" }}>
+            {mobileOpen ? <X size={22}/> : <Menu size={22}/>}
+          </button>
+        </div>
       </div>
 
       {/* ── Mobile drawer overlay ── */}
@@ -111,8 +115,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* ── Main content ── */}
-      <main className="admin-main" style={{ flex:1, overflow:"auto", padding:"2rem" }}>
-        {children}
+      <main className="admin-main" style={{ flex:1, overflow:"auto", display:"flex", flexDirection:"column" }}>
+        {/* Desktop header bar */}
+        <header className="admin-header-desktop" style={{
+          display:"flex", alignItems:"center", justifyContent:"flex-end", gap:"0.75rem",
+          padding:"0.6rem 2rem", borderBottom:"1px solid var(--border)",
+          position:"sticky", top:0, background:"var(--bg)", zIndex:100, minHeight:52
+        }}>
+          <NotificationBell />
+          <Link href="/admin/settings" aria-label="Admin" style={{ textDecoration:"none" }}>
+            <div style={{ width:32, height:32, borderRadius:"50%", background:"var(--gold)", color:"#000", fontWeight:800, fontSize:"0.72rem", display:"flex", alignItems:"center", justifyContent:"center" }}>RO</div>
+          </Link>
+        </header>
+        <div style={{ padding:"2rem", flex:1 }}>
+          {children}
+        </div>
       </main>
 
       <style>{`
@@ -120,7 +137,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .admin-sidebar-desktop { display: none !important; }
           .admin-topbar-mobile   { display: flex !important; }
           .admin-drawer-mobile   { display: flex !important; }
-          .admin-main            { padding: 1rem; margin-top: 52px; }
+          .admin-header-desktop  { display: none !important; }
+          .admin-main            { margin-top: 52px; }
+          .admin-main > div      { padding: 1rem !important; }
         }
       `}</style>
     </div>
