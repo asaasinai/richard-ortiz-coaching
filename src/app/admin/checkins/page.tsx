@@ -79,6 +79,15 @@ function CheckInsInner() {
 
   useEffect(() => { load(filter) }, [filter, load])
 
+  // Deep-link from Overview: ?focus=<id> auto-opens that check-in's detail
+  const focusId = searchParams.get("focus")
+  useEffect(() => {
+    if (!focusId || loading) return
+    const c = checkins.find(x => x.id === focusId)
+    if (c && selected?.id !== c.id) openCard(c)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId, loading, checkins])
+
   const openCard = (c: CheckIn) => {
     setSelected(c)
     setShowFollowUp(c.urgent_flag && !c.resolved)
