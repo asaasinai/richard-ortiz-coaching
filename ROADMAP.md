@@ -15,10 +15,10 @@ Branch: `loop/roc-admin-ux` · DB schema: `roc` (Neon, live prod)
 |---|--------|-----|--------|-------|
 | 0 | — | Migration SQL (all new schema) | ✅ | `sql/2026-06-19-admin-ux-upgrade.sql`, idempotent |
 | 1.1 | 1 | Overview: 7 clickable stat cards + delta + alert banners + 3 recent sections + empty states | ⬜ | server comp; defensive queries for ops/lot tables |
-| 1.2 | 1 | Check-in read/unread state (column + mark-read API + UI indicator) | ⬜ | needs migration cols |
-| 1.3 | 1 | Check-in detail slide-over for ALL cards (already partial) + filter pills (All/Unread/Urgent/Resolved/This Week) | ⬜ | extend `checkins/page.tsx` |
-| 1.4 | 1 | Follow-up action panel + resolve flow (action_taken/notes/resolved → clears urgent, logs) | ⬜ | PATCH `/api/admin/checkins/[id]` |
-| 1.5 | 1 | Urgent check-in admin alert (in-app notification row; email gated/stubbed — no real send) | ⬜ | create notification on urgent; email = Resend draft only |
+| 1.2 | 1 | Check-in read/unread state (column + mark-read API + UI indicator) | ✅ | checkins GET cols, `[id]` PATCH mark_read, auto-read on open, gold-border + dot |
+| 1.3 | 1 | Check-in detail slide-over for ALL cards (already partial) + filter pills (All/Unread/Urgent/Resolved/This Week) | ✅ | pills w/ live counts, initials, score chips, empty state |
+| 1.4 | 1 | Follow-up action panel + resolve flow (action_taken/notes/resolved → clears urgent, logs) | ✅ | `[id]` PATCH follow_up; resolves notification |
+| 1.5 | 1 | Urgent check-in admin alert (in-app notification row; email gated/stubbed — no real send) | 🔵 | helper `lib/notifications.ts` done; need to call createNotification at urgent check-in submit |
 | 2.1 | 2 | Ops Queue page — Kanban + List + card detail slide-over | ⬜ | new `/admin/ops-queue`; `ops_cards` table |
 | 2.2 | 2 | FIFO lot creation on Receive Order (lot_identifier, cost) | ⬜ | extend inventory batch flow |
 | 2.3 | 2 | FIFO deduction on ops card → packed (oldest lot first, split, block if no stock) | ⬜ | writes `lot_transactions` |
