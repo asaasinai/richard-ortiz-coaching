@@ -8,20 +8,25 @@ import CommandPalette from "@/components/admin/CommandPalette"
 
 type BadgeKey = "pending_ops" | "unread_checkins" | "pending_intakes" | "low_stock"
 interface NavItem { href: string; label: string; icon: typeof Users; badge?: BadgeKey; badgeColor?: string }
+interface NavGroup { title: string; items: NavItem[] }
 
-const PRIMARY: NavItem[] = [
-  { href: "/admin",           label: "Overview",  icon: LayoutDashboard },
-  { href: "/admin/ops-queue", label: "Ops Queue", icon: ListChecks,     badge: "pending_ops",     badgeColor: "#f59e0b" },
-  { href: "/admin/checkins",  label: "Check-Ins", icon: Activity,       badge: "unread_checkins", badgeColor: "#ef4444" },
-  { href: "/admin/clients",   label: "Clients",   icon: Users },
-  { href: "/admin/intakes",   label: "Intakes",   icon: ClipboardList,  badge: "pending_intakes", badgeColor: "var(--gold)" },
-  { href: "/admin/inventory", label: "Inventory", icon: Package,        badge: "low_stock",       badgeColor: "#ef4444" },
-  { href: "/admin/revenue",   label: "Revenue",   icon: DollarSign },
-]
-const UTILITY: NavItem[] = [
-  { href: "/admin/sms",      label: "SMS Builder", icon: MessageSquare },
-  { href: "/calculator",     label: "Calculator",  icon: Calculator },
-  { href: "/admin/settings", label: "Settings",    icon: Settings },
+const GROUPS: NavGroup[] = [
+  { title: "Daily", items: [
+    { href: "/admin",           label: "Overview",    icon: LayoutDashboard },
+    { href: "/admin/checkins",  label: "Check-Ins",   icon: Activity,       badge: "unread_checkins", badgeColor: "#34D399" },
+    { href: "/admin/clients",   label: "Clients",     icon: Users },
+    { href: "/admin/intakes",   label: "Applicants",  icon: ClipboardList,  badge: "pending_intakes", badgeColor: "var(--gold)" },
+  ]},
+  { title: "Catalog", items: [
+    { href: "/admin/ops-queue", label: "Fulfillment", icon: ListChecks,     badge: "pending_ops",     badgeColor: "#FBBF24" },
+    { href: "/admin/inventory", label: "Inventory",   icon: Package,        badge: "low_stock",       badgeColor: "#F87171" },
+    { href: "/admin/revenue",   label: "Revenue",     icon: DollarSign },
+  ]},
+  { title: "Tools", items: [
+    { href: "/admin/sms",      label: "SMS Builder", icon: MessageSquare },
+    { href: "/calculator",     label: "Calculator",  icon: Calculator },
+    { href: "/admin/settings", label: "Settings",    icon: Settings },
+  ]},
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -41,13 +46,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const active = isActive(item.href)
     const count = item.badge ? badges[item.badge] : 0
     return (
-      <Link href={item.href} onClick={onClick} title={mini ? item.label : undefined} style={{
-        display: "flex", alignItems: "center", gap: "0.6rem",
-        padding: mini ? "0.6rem" : "0.6rem 0.75rem", borderRadius: "var(--radius)",
+      <Link href={item.href} onClick={onClick} title={mini ? item.label : undefined} className="nav-row" data-active={active} style={{
+        display: "flex", alignItems: "center", gap: "0.65rem",
+        padding: mini ? "0.6rem" : "0.55rem 0.7rem", borderRadius: "var(--radius-sm)",
         fontSize: "0.875rem", fontWeight: active ? 700 : 500,
-        color: active ? "var(--gold)" : "var(--text-soft)",
-        background: active ? "var(--surface-2)" : "transparent",
-        borderLeft: active ? "3px solid var(--gold)" : "3px solid transparent",
+        color: active ? "var(--gold-light)" : "var(--text-soft)",
+        background: active ? "var(--gold-dim)" : "transparent",
         textDecoration: "none", transition: "all 0.15s", justifyContent: mini ? "center" : "flex-start",
         position: "relative",
       }}>
@@ -66,10 +70,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const NavLinks = ({ onClick, mini }: { onClick?: () => void; mini?: boolean }) => (
-    <nav style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.1rem", padding: mini ? "0 0.5rem" : "0 0.75rem", flex: 1 }}>
-      {PRIMARY.map(item => <NavRow key={item.href} item={item} onClick={onClick} mini={mini} />)}
-      <div style={{ borderTop: "1px solid var(--border)", margin: "0.6rem 0" }} />
-      {UTILITY.map(item => <NavRow key={item.href} item={item} onClick={onClick} mini={mini} />)}
+    <nav style={{ marginTop: "0.85rem", display: "flex", flexDirection: "column", gap: "0.15rem", padding: mini ? "0 0.5rem" : "0 0.7rem", flex: 1 }}>
+      {GROUPS.map((g, gi) => (
+        <div key={g.title} style={{ marginBottom: "0.4rem" }}>
+          {!mini ? (
+            <div style={{ fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--text-mute)", padding: "0.5rem 0.7rem 0.3rem" }}>{g.title}</div>
+          ) : gi > 0 ? <div style={{ borderTop: "1px solid var(--border)", margin: "0.5rem 0.3rem" }} /> : null}
+          {g.items.map(item => <NavRow key={item.href} item={item} onClick={onClick} mini={mini} />)}
+        </div>
+      ))}
     </nav>
   )
 
@@ -137,6 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <CommandPalette />
 
       <style>{`
+        .nav-row[data-active="false"]:hover { background: var(--surface-2) !important; color: var(--text) !important; }
         @media (max-width: 767px) {
           .admin-sidebar-desktop { display: none !important; }
           .admin-topbar-mobile   { display: flex !important; }

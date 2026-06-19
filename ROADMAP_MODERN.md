@@ -21,7 +21,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | D.1 | data | Backup + purge client data (idempotent SQL + runner) | ✅ | inventory/settings/users kept |
 | D.2 | data | Seed 5 full demo profiles (intakes+protocols+checkins+proposals+ops) | ✅ | real SKU ids; all stats non-zero |
 | D.3 | data | Verify seeded counts + every Overview stat query returns believable values | ✅ | 5 clients/5 protocols/15 checkins/5 proposals/5 ops/1 urgent — all stats non-zero |
-| 1.1 | 1 | Modernize sidebar + topbar (grouped nav, soft active, pill search, badges) | ⬜ | |
+| 1.1 | 1 | Modernize sidebar + topbar (grouped nav, soft active, pill search, badges) | ✅ | Daily/Catalog/Tools groups, gold-dim soft active, Ops Queue→Fulfillment, Intakes→Applicants |
 | 1.2 | 1 | Overview rebuild: Welcome Richard + 4 hero tiles + sparklines + "Today" list + revenue/status/protocol charts | ✅ | new page.tsx; tsc clean |
 | 1.3 | 1 | OverviewActivity component restyle to charts + plain language | ⬜ | |
 | 2.1 | 2 | Clients list: card/table hybrid, avatars, chips, filter pills + back header | ⬜ | |
