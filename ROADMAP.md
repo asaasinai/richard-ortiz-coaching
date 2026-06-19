@@ -20,9 +20,9 @@ Branch: `loop/roc-admin-ux` · DB schema: `roc` (Neon, live prod)
 | 1.4 | 1 | Follow-up action panel + resolve flow (action_taken/notes/resolved → clears urgent, logs) | ✅ | `[id]` PATCH follow_up; resolves notification |
 | 1.5 | 1 | Urgent check-in admin alert (in-app notification row; email gated/stubbed — no real send) | ✅ | checkin submit derives urgency from threshold (admin_settings) + creates urgent_checkin/checkin_submitted notification; pre-existing email path untouched |
 | 2.1 | 2 | Ops Queue page — Kanban + List + card detail | ✅ | `/admin/ops-queue` Kanban+List+filters+create modal; `/[id]` stepper detail; `ops_cards` API. (DnD between columns deferred → polish; advance via button) |
-| 2.2 | 2 | FIFO lot creation on Receive Order (lot_identifier, cost) | ⬜ | extend inventory batch flow |
+| 2.2 | 2 | FIFO lot creation on Receive Order (lot_identifier, cost) | ✅ | batch route auto-gens lot id + received_by; optional Lot # field in receive form |
 | 2.3 | 2 | FIFO deduction on ops card → packed (oldest lot first, split, block if no stock) | ✅ | `lib/fifo.ts` preview+commit; all-or-nothing precheck; writes `lot_transactions` |
-| 2.4 | 2 | Inventory lot ledger page per SKU (`/admin/inventory/[id]`) | ⬜ | lot ledger + usage + reorder history |
+| 2.4 | 2 | Inventory lot ledger page per SKU (`/admin/inventory/[id]`) | ✅ | overview stats + Lot Ledger + Usage History (COGS) + Reorder History; editable reorder_point; row 'Ledger →' link |
 | 2.5 | 2 | Notification bell + dropdown in header | ✅ | `/api/admin/notifications` + NotificationBell (30s poll, deeplinks) + header bar |
 | 3.1 | 3 | Client profile page tabs (Profile/Protocol/Check-Ins/Intakes/Orders/Billing) | ⬜ | extend `clients/[id]` |
 | 3.2 | 3 | Intake detail page + approval flow + auto-create client | ⬜ | extend `intakes/[id]` |

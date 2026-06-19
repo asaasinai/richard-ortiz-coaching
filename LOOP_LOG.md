@@ -31,3 +31,11 @@
 - DnD between Kanban columns deferred to polish (advance-by-button is the functional path). tsc clean throughout.
 
 **NEXT** — Sprint 2 finish: 2.2 (receive-order lot_identifier+cost), 2.4 (inventory lot ledger page `/admin/inventory/[id]`). Then Sprint 3.
+
+## Iteration 4 (2026-06-19)
+**DONE** — Sprint 2 COMPLETE (2.2, 2.4):
+- 2.2: batch route now auto-generates `lot_identifier` (LOT-YYYYMMDD-XXXX) when blank + accepts `received_by`; per-SKU receive form has optional Lot # field; reset state updated.
+- 2.4: `/api/admin/inventory/[id]` returns SKU + lot ledger + FIFO usage (degrade-safe). `/admin/inventory/[id]` page: 4 overview stats (units, lot value, wholesale/unit, editable reorder threshold), Lot Ledger table (FIFO, full/partial/depleted status), Usage History (deductions w/ COGS + ops-card deeplinks), Reorder History. inventory PATCH gained `reorder_point`; SKU rows now have a 'Ledger →' link.
+- tsc clean.
+
+**NEXT** — Sprint 3: client profile tabs (3.1), intake detail + approval + auto-create client (3.2), sidebar nav badges/reorder/utility-strip (3.3), revenue FIFO COGS + by-protocol chart (3.4).
