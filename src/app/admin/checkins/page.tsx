@@ -9,7 +9,7 @@ interface CheckIn {
   id: string
   submitted_at: string
   urgent_flag: boolean
-  client_email: string
+  client_email: string | null
   first_name?: string
   last_name?: string
   client_intake_id?: string
@@ -43,7 +43,7 @@ const FILTERS: { id: Filter; label: string; key: keyof Counts }[] = [
 const FOLLOW_UP_OPTIONS = ["Client Contacted", "Protocol Adjusted", "Dosage Changed", "Referred Out", "No Action Needed"]
 
 function initials(c: CheckIn) {
-  const f = c.first_name?.[0] ?? c.client_email[0]
+  const f = c.first_name?.[0] ?? c.client_email?.[0] ?? "?"
   const l = c.last_name?.[0] ?? ""
   return (f + l).toUpperCase()
 }
@@ -227,10 +227,12 @@ function CheckInsInner() {
             style={{ flex: 1, padding: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }}>
             + Add Follow-Up
           </button>
-          <button onClick={() => router.push(`/admin/sms?to=${encodeURIComponent(selected.client_email)}`)}
-            style={{ flex: 1, padding: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}>
-            <Mail size={13} /> SMS Client
-          </button>
+          {selected.client_email && (
+            <button onClick={() => router.push(`/admin/sms?to=${encodeURIComponent(selected.client_email!)}`)}
+              style={{ flex: 1, padding: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}>
+              <Mail size={13} /> SMS Client
+            </button>
+          )}
         </div>
       )}
     </div>
