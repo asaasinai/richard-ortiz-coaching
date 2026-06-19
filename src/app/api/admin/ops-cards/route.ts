@@ -22,9 +22,11 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const status = url.searchParams.get("status")
     const search = url.searchParams.get("search")?.trim()
+    const client = url.searchParams.get("client")?.trim()
 
     const clauses: string[] = []
     const params: string[] = []
+    if (client) { params.push(client); clauses.push(`client_id::text = $${params.length}::text`) }
     if (status && status !== "all") {
       if (status === "overdue") {
         clauses.push(`status IN ('pending','packed') AND due_date < CURRENT_DATE`)
