@@ -10,7 +10,7 @@ This agreement is between Richard Ortiz Coaching ("Coach") and the client named 
 
 1. SERVICES
 Coach will provide personalized peptide optimization coaching including protocol design using 
-Elixsir peptide products, progress check-in review, and ongoing protocol adjustments based 
+manufacturer peptide products, progress check-in review, and ongoing protocol adjustments based 
 on Client's results.
 
 2. PAYMENT
@@ -33,7 +33,7 @@ check-ins honestly and on time, (c) notify Coach immediately of any adverse reac
 for protocol adjustments.
 
 6. PRODUCT SOURCE
-All peptides are sourced exclusively from Elixsir. Client acknowledges that peptide products 
+All peptides are sourced exclusively from the manufacturer. Client acknowledges that peptide products 
 are for research and personal optimization purposes.
 
 7. CONFIDENTIALITY

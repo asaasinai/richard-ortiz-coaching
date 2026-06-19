@@ -9,7 +9,7 @@ This agreement is between Richard Ortiz Coaching ("Coach") and the client named 
 
 1. SERVICES
 Coach will provide personalized peptide optimization coaching including protocol design using 
-Elixsir peptide products, progress check-in review, and ongoing protocol adjustments based 
+manufacturer peptide products, progress check-in review, and ongoing protocol adjustments based 
 on Client's results.
 
 2. PAYMENT
@@ -32,7 +32,7 @@ check-ins honestly and on time, (c) notify Coach immediately of any adverse reac
 for protocol adjustments.
 
 6. PRODUCT SOURCE
-All peptides are sourced exclusively from Elixsir. Client acknowledges that peptide products 
+All peptides are sourced exclusively from the manufacturer. Client acknowledges that peptide products 
 are for research and personal optimization purposes.
 
 7. CONFIDENTIALITY
@@ -83,7 +83,7 @@ export async function GET(
       return NextResponse.json({ error: "ANTHROPIC_API_KEY not set" }, { status: 500 })
     }
 
-    // Build the available-products list from the live Elixsir catalog so the
+    // Build the available-products list from the live manufacturer catalog so the
     // model can only recommend (peptide, vial size) pairs that resolve to a SKU.
     const catalogRes = await query<{ peptide_name: string; strength: string; strength_unit: string }>(
       `SELECT peptide_name, strength, strength_unit FROM roc.inventory_skus ORDER BY peptide_name, strength`
@@ -98,8 +98,8 @@ export async function GET(
       .map(([name, sizes]) => `- ${name}: ${sizes.join(", ")}`)
       .join("\n")
 
-    const systemPrompt = `You are an expert peptide optimization consultant for Elixsir, a peptide manufacturer.
-Based on the client intake below, recommend an optimal protocol from the Elixsir catalog.
+    const systemPrompt = `You are an expert peptide optimization consultant for the manufacturer, a peptide manufacturer.
+Based on the client intake below, recommend an optimal protocol from the manufacturer catalog.
 You MUST only choose a peptide + vial size that appears in this exact catalog (use the peptide name verbatim):
 ${catalogLines}
 

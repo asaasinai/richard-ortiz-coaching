@@ -141,7 +141,7 @@ export default function ProposalPage() {
           <div style={{ marginBottom: "1rem" }}>
             <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Primary</p>
             <p style={{ fontWeight: 700, fontSize: "1rem" }}>
-              {ss("peptide")} ({ss("sku_strength") ?? ss("vialSize")}mg vial · Elixsir)
+              {ss("peptide")} ({ss("sku_strength") ?? ss("vialSize")}mg vial · the manufacturer)
             </p>
             {ss("dose_amount") && (
               <p style={{ color: "#ccc", fontSize: "0.875rem", marginTop: "0.2rem" }}>
@@ -164,7 +164,7 @@ export default function ProposalPage() {
           {ss("secondary_peptide") && (
             <div style={{ marginBottom: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Secondary (optional)</p>
-              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{ss("secondary_peptide")} (Elixsir)</p>
+              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>{ss("secondary_peptide")} (manufacturer)</p>
             </div>
           )}
 

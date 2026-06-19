@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, AlertTriangle, Mail } from "lucide-react"
+import { ArrowLeft, AlertTriangle, Mail, Trash2 } from "lucide-react"
 import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
@@ -89,9 +89,11 @@ export default function ClientDetailPage() {
     if (t && ["overview","protocol","checkins","intake","proposals","orders","billing"].includes(t)) setTab(t as typeof tab)
   }, [])
 
-  const [pForm, setPForm] = useState({ peptide:"", doseAmount:"", doseUnit:"mg", frequencyDays:[] as string[], notes:"", monthlyRate:"", billingStatus:"active" })
+  const [pForm, setPForm] = useState({ peptide:"", doseAmount:"", doseUnit:"mg", frequencyDays:[] as string[], notes:"", monthlyRate:"", billingStatus:"active", durationWeeks:"" })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [startDate, setStartDate] = useState("")
   const [smsLink, setSmsLink] = useState("")
   const [smsDraft, setSmsDraft] = useState("")
@@ -119,7 +121,7 @@ export default function ClientDetailPage() {
       setProtocol(protoRes.protocol)
       let days: string[] = []
       try { days = JSON.parse(protoRes.protocol.frequency_days) } catch { days = [] }
-      setPForm({ peptide: protoRes.protocol.peptide ?? "", doseAmount: protoRes.protocol.dose_amount ?? "", doseUnit: protoRes.protocol.dose_unit ?? "mg", frequencyDays: days, notes: protoRes.protocol.coach_notes ?? "", monthlyRate: protoRes.protocol.monthly_rate ?? "", billingStatus: protoRes.protocol.billing_status ?? "active" })
+      setPForm({ peptide: protoRes.protocol.peptide ?? "", doseAmount: protoRes.protocol.dose_amount ?? "", doseUnit: protoRes.protocol.dose_unit ?? "mg", frequencyDays: days, notes: protoRes.protocol.coach_notes ?? "", monthlyRate: protoRes.protocol.monthly_rate ?? "", billingStatus: protoRes.protocol.billing_status ?? "active", durationWeeks: protoRes.protocol.duration_weeks != null ? String(protoRes.protocol.duration_weeks) : "" })
       if (protoRes.protocol.protocol_start_date) setStartDate(protoRes.protocol.protocol_start_date.slice(0,10))
     }
 
@@ -145,7 +147,7 @@ export default function ClientDetailPage() {
     setSaving(true); setSaved(false)
     await fetch("/api/admin/assign-protocol", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ clientId:id, peptide:pForm.peptide, doseAmount:pForm.doseAmount, doseUnit:pForm.doseUnit, frequencyDays:pForm.frequencyDays, notes:pForm.notes, monthlyRate: pForm.monthlyRate ? Number(pForm.monthlyRate) : null, billingStatus: pForm.billingStatus }),
+      body: JSON.stringify({ clientId:id, peptide:pForm.peptide, doseAmount:pForm.doseAmount, doseUnit:pForm.doseUnit, frequencyDays:pForm.frequencyDays, notes:pForm.notes, monthlyRate: pForm.monthlyRate ? Number(pForm.monthlyRate) : null, billingStatus: pForm.billingStatus, durationWeeks: pForm.durationWeeks ? Number(pForm.durationWeeks) : null }),
     })
     setSaving(false); setSaved(true)
     setTimeout(()=>setSaved(false), 2500)
@@ -155,6 +157,14 @@ export default function ClientDetailPage() {
   const updateStatus = async (status: string) => {
     await fetch("/api/admin/intakes", { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ id, status }) })
     setClient(p => p ? {...p,status} : p)
+  }
+
+  const deleteClient = async () => {
+    setDeleting(true)
+    const r = await fetch(`/api/admin/clients/${id}`, { method:"DELETE" }).then(r=>r.json()).catch(()=>({ok:false}))
+    setDeleting(false)
+    if (r.ok) router.push("/admin/clients")
+    else alert("Delete failed: " + (r.error || "unknown"))
   }
 
   if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh"}}><p style={{color:"var(--text-mute)"}}>Loading…</p></div>
@@ -203,7 +213,23 @@ export default function ClientDetailPage() {
               ))}
             </div>
           </div>
+          <button onClick={()=>setShowDelete(true)} title="Delete client" style={{ flexShrink:0, display:"flex", alignItems:"center", gap:"0.3rem", background:"none", border:"1px solid rgba(239,68,68,0.5)", color:"#ef4444", borderRadius:"var(--radius)", padding:"0.35rem 0.7rem", fontSize:"0.76rem", fontWeight:600, cursor:"pointer" }}>
+            <Trash2 size={13}/> Delete
+          </button>
         </div>
+
+        {showDelete && (
+          <div onClick={()=>setShowDelete(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:"1rem" }}>
+            <div onClick={e=>e.stopPropagation()} className="card" style={{ maxWidth:420 }}>
+              <h2 style={{ fontWeight:800, fontSize:"1.05rem", marginBottom:"0.5rem" }}>Delete {client.first_name} {client.last_name}?</h2>
+              <p style={{ color:"var(--text-mute)", fontSize:"0.85rem", lineHeight:1.5, marginBottom:"1rem" }}>This permanently removes the client and <b>all</b> their data — intake, protocol, proposals, check-ins and fulfillment cards. This cannot be undone.</p>
+              <div style={{ display:"flex", gap:"0.6rem", justifyContent:"flex-end" }}>
+                <button onClick={()=>setShowDelete(false)} style={{ padding:"0.55rem 1rem", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text)", fontWeight:600, cursor:"pointer" }}>Cancel</button>
+                <button onClick={deleteClient} disabled={deleting} style={{ padding:"0.55rem 1rem", background:"#ef4444", border:"none", borderRadius:"var(--radius)", color:"#fff", fontWeight:700, cursor: deleting?"default":"pointer", opacity: deleting?0.6:1 }}>{deleting?"Deleting…":"Delete permanently"}</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div style={{ display:"flex", borderBottom:"1px solid var(--border)", overflowX:"auto" }}>
@@ -258,9 +284,10 @@ export default function ClientDetailPage() {
                   {PEPTIDE_NAMES.map(p=><option key={p}>{p}</option>)}
                 </select>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"0.75rem" }}>
                 <div><label>Dose Amount</label><input type="text" placeholder="e.g. 250" value={pForm.doseAmount} onChange={e=>setPForm(p=>({...p,doseAmount:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
                 <div><label>Unit</label><select value={pForm.doseUnit} onChange={e=>setPForm(p=>({...p,doseUnit:e.target.value}))} style={{marginTop:"0.35rem"}}>{DOSE_UNITS.map(u=><option key={u}>{u}</option>)}</select></div>
+                <div><label>Duration (weeks)</label><input type="number" placeholder="e.g. 8" value={pForm.durationWeeks} onChange={e=>setPForm(p=>({...p,durationWeeks:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
               </div>
               <div>
                 <label style={{display:"block",marginBottom:"0.5rem"}}>Frequency</label>
@@ -281,11 +308,16 @@ export default function ClientDetailPage() {
                 <div><label>Billing Status</label><select value={pForm.billingStatus} onChange={e=>setPForm(p=>({...p,billingStatus:e.target.value}))} style={{marginTop:"0.35rem"}}>{["active","paused","complimentary"].map(s=><option key={s}>{s}</option>)}</select></div>
               </div>
               <button onClick={saveProtocol} disabled={saving||!pForm.peptide} className="btn-gold" style={{alignSelf:"flex-start"}}>
-                {saving?"Saving…":saved?"✓ Saved":"Save Protocol"}
+                {saving?"Saving…":"Save Protocol"}
               </button>
-              {protocol && <p style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>Last saved: {new Date(protocol.assigned_at).toLocaleString()}</p>}
+              {saved && (
+                <div style={{ background:"rgba(74,222,128,0.1)", border:"1px solid rgba(74,222,128,0.4)", borderRadius:"var(--radius)", padding:"0.6rem 0.85rem", fontSize:"0.82rem", color:"#4ade80", fontWeight:600 }}>
+                  ✓ Saved to {client.first_name}’s protocol — {pForm.peptide || "peptide"}, {pForm.doseAmount||"?"}{pForm.doseUnit}{pForm.durationWeeks?` for ${pForm.durationWeeks} wks`:""}, ${pForm.monthlyRate||0}/mo ({pForm.billingStatus}). Shows on the Protocol &amp; Billing tabs and Revenue.
+                </div>
+              )}
+              {protocol && !saved && <p style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>Last saved: {new Date(protocol.assigned_at).toLocaleString()}</p>}
               <div style={{ marginTop:"0.5rem" }}>
-                <a href={`/admin/intakes/${id}`} style={{ color:"var(--gold)", fontSize:"0.85rem" }}>View Full Intake + AI Rec + Proposal Builder →</a>
+                <a href={`/admin/intakes/${id}`} style={{ color:"var(--gold)", fontSize:"0.85rem" }}>Open AI rec + secondary peptide + proposal builder →</a>
               </div>
             </div>
           )}
@@ -437,7 +469,7 @@ export default function ClientDetailPage() {
                           {p.signed_at ? `${p.signed_name} · ${new Date(p.signed_at).toLocaleDateString()}` : "—"}
                         </td>
                         <td style={{ padding:"0.75rem" }}>
-                          <a href={`/proposal/${p.proposal_token}`} target="_blank" rel="noopener noreferrer" style={{ color:"var(--gold)", fontSize:"0.82rem" }}>View →</a>
+                          <a href={`/proposal/${p.proposal_token}`} target="_blank" rel="noopener noreferrer" style={{ color:"var(--gold)", fontSize:"0.82rem", fontWeight:600 }}>{p.status === "signed" ? "View signed proposal →" : "View proposal →"}</a>
                         </td>
                       </tr>
                     ))}

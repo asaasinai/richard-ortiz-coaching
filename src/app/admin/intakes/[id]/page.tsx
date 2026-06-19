@@ -54,7 +54,7 @@ This agreement is between Richard Ortiz Coaching ("Coach") and the client named 
 
 1. SERVICES
 Coach will provide personalized peptide optimization coaching including protocol design using 
-Elixsir peptide products, progress check-in review, and ongoing protocol adjustments based 
+manufacturer peptide products, progress check-in review, and ongoing protocol adjustments based 
 on Client's results.
 
 2. PAYMENT
@@ -77,7 +77,7 @@ check-ins honestly and on time, (c) notify Coach immediately of any adverse reac
 for protocol adjustments.
 
 6. PRODUCT SOURCE
-All peptides are sourced exclusively from Elixsir. Client acknowledges that peptide products 
+All peptides are sourced exclusively from the manufacturer. Client acknowledges that peptide products 
 are for research and personal optimization purposes.
 
 7. CONFIDENTIALITY
@@ -118,7 +118,7 @@ export default function IntakeDetailPage() {
   const [skuInfo, setSkuInfo] = useState<SkuInfo | null>(null)
   const [secondarySkuInfo, setSecondarySkuInfo] = useState<SkuInfo | null>(null)
 
-  // Live Elixsir catalog: peptide name -> sorted vial sizes (drives picker)
+  // Live manufacturer catalog: peptide name -> sorted vial sizes (drives picker)
   const [catalog, setCatalog] = useState<Record<string, number[]>>({})
   const peptideList = Object.keys(catalog).sort((a, b) => a.localeCompare(b))
   const [saving, setSaving] = useState(false)
@@ -528,7 +528,7 @@ export default function IntakeDetailPage() {
 
           {pForm.peptide && (
             <div>
-              <label style={{ display: "block", marginBottom: "0.5rem" }}>Vial Size (Elixsir)</label>
+              <label style={{ display: "block", marginBottom: "0.5rem" }}>Vial Size (manufacturer)</label>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 {(catalog[pForm.peptide] ?? []).map(mg => (
                   <button key={mg} type="button" onClick={() => setPForm(p => ({ ...p, vialSize: mg }))} style={{

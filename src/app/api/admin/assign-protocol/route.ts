@@ -48,7 +48,7 @@ async function maybeAutoGenerateOpsCard(clientId: string, skuId: string | null |
 
 export async function POST(req: NextRequest) {
   try {
-    const { clientId, peptide, doseAmount, doseUnit, frequencyDays, notes, skuId, monthlyRate, billingStatus, billingNotes, secondaryPeptide, secondarySkuId, durationWeeks, internalNotes } = await req.json()
+    const { clientId, peptide, doseAmount, doseUnit, frequencyDays, notes, skuId, monthlyRate, billingStatus, billingNotes, secondaryPeptide, secondarySkuId, durationWeeks, secondaryDurationWeeks, internalNotes } = await req.json()
     if (!clientId) {
       return NextResponse.json({ ok: false, error: "clientId required" }, { status: 400 })
     }
@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
       `INSERT INTO roc.client_protocols
          (client_id, peptide, protocol, dose_amount, dose_unit, frequency_days, coach_notes, assigned_at,
           sku_id, monthly_rate, billing_status, billing_notes,
-          secondary_peptide, secondary_sku_id, duration_weeks, internal_notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10, $11, $12, $13, $14, $15)
+          secondary_peptide, secondary_sku_id, duration_weeks, secondary_duration_weeks, internal_notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10, $11, $12, $13, $14, $15, $16)
        ON CONFLICT (client_id) DO UPDATE SET
          peptide = COALESCE(EXCLUDED.peptide, roc.client_protocols.peptide),
          protocol = EXCLUDED.protocol,
@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
          billing_notes = COALESCE(EXCLUDED.billing_notes, roc.client_protocols.billing_notes),
          secondary_peptide = EXCLUDED.secondary_peptide,
          secondary_sku_id = EXCLUDED.secondary_sku_id,
-         duration_weeks = EXCLUDED.duration_weeks,
+         duration_weeks = COALESCE(EXCLUDED.duration_weeks, roc.client_protocols.duration_weeks),
+         secondary_duration_weeks = COALESCE(EXCLUDED.secondary_duration_weeks, roc.client_protocols.secondary_duration_weeks),
          internal_notes = EXCLUDED.internal_notes`,
       [
         clientId, peptide ?? "", "custom", doseAmount ?? "", doseUnit ?? "mg",
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
         skuId ?? null, monthlyRate != null ? String(monthlyRate) : null,
         billingStatus ?? "active", billingNotes ?? null,
         secondaryPeptide ?? null, secondarySkuId ?? null,
-        durationWeeks ?? null, internalNotes ?? null,
+        durationWeeks ?? null, secondaryDurationWeeks ?? null, internalNotes ?? null,
       ]
     )
     await maybeAutoGenerateOpsCard(clientId, skuId, peptide ?? "")
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
   const clientId = new URL(req.url).searchParams.get("clientId")
   if (!clientId) return NextResponse.json({ protocol: null })
   const result = await query(
-    "SELECT peptide, protocol, dose_amount, dose_unit, frequency_days, coach_notes, assigned_at, sku_id, monthly_rate, billing_status, billing_notes, protocol_start_date, followup_sent FROM roc.client_protocols WHERE client_id = $1",
+    "SELECT peptide, protocol, dose_amount, dose_unit, frequency_days, coach_notes, assigned_at, sku_id, monthly_rate, billing_status, billing_notes, protocol_start_date, followup_sent, duration_weeks, secondary_peptide, secondary_duration_weeks FROM roc.client_protocols WHERE client_id = $1",
     [clientId]
   )
   return NextResponse.json({ protocol: result.rows[0] ?? null })

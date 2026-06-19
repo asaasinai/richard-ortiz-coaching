@@ -25,7 +25,7 @@ const STATUS = {
   unknown:  { bg: "rgba(255,255,255,0.04)", border: "var(--border)",          color: "var(--text-mute)", label: "No Data" },
 }
 
-// Vial sizes are sourced from the live catalog per peptide (Elixsir sells
+// Vial sizes are sourced from the live catalog per peptide (the manufacturer sells
 // different sizes per compound — e.g. NAD+ 500mg, GHK-Cu 50mg, IGF-LR3 1mg).
 const sizesOf = (group: Record<number, SKU>) =>
   Object.keys(group).map(Number).sort((a, b) => a - b)
@@ -39,7 +39,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState("")
   const [showAddBatch, setShowAddBatch] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
+  const [newBatch, setNewBatch] = useState({ qty_received: "", unit_cost: "", supplier: "Manufacturer", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
 
   // Bulk receive modal
   const [showBulkReceive, setShowBulkReceive] = useState(false)
@@ -58,7 +58,7 @@ export default function InventoryPage() {
     await fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: skuId, ...newBatch }) })
     setSaving(false)
     setShowAddBatch(null)
-    setNewBatch({ qty_received: "", unit_cost: "", supplier: "Elixsir", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
+    setNewBatch({ qty_received: "", unit_cost: "", supplier: "Manufacturer", ordered_at: "", received_at: "", notes: "", lot_identifier: "" })
     load()
   }
 
@@ -76,7 +76,7 @@ export default function InventoryPage() {
     if (!toSave.length) return
     setBulkSaving(true)
     await Promise.all(toSave.map(e =>
-      fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: e.skuId, qty_received: e.qty, unit_cost: e.cost, supplier: "Elixsir", received_at: new Date().toISOString().slice(0,10) }) })
+      fetch("/api/admin/inventory/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku_id: e.skuId, qty_received: e.qty, unit_cost: e.cost, supplier: "Manufacturer", received_at: new Date().toISOString().slice(0,10) }) })
     ))
     setBulkSaving(false)
     setShowBulkReceive(false)
@@ -122,7 +122,7 @@ export default function InventoryPage() {
             setBulkEntries(entries.slice(0, 40))
             setShowBulkReceive(true)
           }} className="btn-outline" style={{ fontSize:"0.875rem" }}>
-            📦 Receive Elixsir Order
+            📦 Receive Order
           </button>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function InventoryPage() {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:400, display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"2rem 1rem", overflowY:"auto" }}>
           <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1.5rem", width:"100%", maxWidth:660 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"1.25rem" }}>
-              <h2 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem" }}>📦 Receive Elixsir Order</h2>
+              <h2 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem" }}>📦 Receive Order</h2>
               <button onClick={() => setShowBulkReceive(false)} style={{ background:"none", border:"none", color:"var(--text-mute)", cursor:"pointer" }}><X size={18}/></button>
             </div>
             <p style={{ color:"var(--text-mute)", fontSize:"0.82rem", marginBottom:"1rem" }}>Enter quantity and cost for each SKU received. Leave blank to skip.</p>
@@ -284,7 +284,7 @@ export default function InventoryPage() {
                                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(110px, 1fr))", gap:"0.5rem", marginBottom:"0.5rem" }}>
                                     <div><label style={{ fontSize:"0.72rem" }}>Qty *</label><input type="number" placeholder="10" value={newBatch.qty_received} onChange={e => setNewBatch(p => ({ ...p, qty_received: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                     <div><label style={{ fontSize:"0.72rem" }}>Unit Cost ($) *</label><input type="number" step="0.01" placeholder="45.00" value={newBatch.unit_cost} onChange={e => setNewBatch(p => ({ ...p, unit_cost: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
-                                    <div><label style={{ fontSize:"0.72rem" }}>Supplier</label><input placeholder="Elixsir" value={newBatch.supplier} onChange={e => setNewBatch(p => ({ ...p, supplier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
+                                    <div><label style={{ fontSize:"0.72rem" }}>Supplier</label><input placeholder="Manufacturer" value={newBatch.supplier} onChange={e => setNewBatch(p => ({ ...p, supplier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                     <div><label style={{ fontSize:"0.72rem" }}>Received</label><input type="date" value={newBatch.received_at} onChange={e => setNewBatch(p => ({ ...p, received_at: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                     <div><label style={{ fontSize:"0.72rem" }}>Lot # <span style={{ color:"var(--text-mute)" }}>(auto)</span></label><input placeholder="auto-generate" value={newBatch.lot_identifier} onChange={e => setNewBatch(p => ({ ...p, lot_identifier: e.target.value }))} style={{ marginTop:"0.2rem" }}/></div>
                                   </div>
