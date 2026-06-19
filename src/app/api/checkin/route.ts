@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { sendCheckinConfirmation, sendAdminCheckinUrgent } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
+import { getSetting } from "@/lib/settings"
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,16 +12,36 @@ export async function POST(req: NextRequest) {
     const email = req.headers.get("x-user-email") || bodyEmail || ""
     const firstName = req.headers.get("x-user-name") || ""
 
+    // Urgency = client-requested OR any score at/below the configurable threshold
+    const threshold = Number(await getSetting("urgent_threshold")) || 5
+    const scores = [data.progressScore, data.energyScore, data.moodScore].map(Number).filter(n => !Number.isNaN(n))
+    const lowScore = scores.some(s => s <= threshold)
+    const isUrgent = Boolean(urgentFlag) || lowScore
+
     const result = await query(
       `INSERT INTO roc.checkins (data, urgent_flag, client_email) VALUES ($1, $2, $3) RETURNING id`,
-      [JSON.stringify(data), urgentFlag ? "true" : "false", email]
+      [JSON.stringify(data), isUrgent ? "true" : "false", email]
     )
     const checkinId = (result.rows[0] as { id: string }).id
+
+    // In-app admin notification feed (degrade-safe; pre-migration → no-op)
+    const who = firstName || email || "A client"
+    if (isUrgent) {
+      await createNotification({
+        type: "urgent_checkin", refId: checkinId, refType: "checkin",
+        message: `Urgent check-in from ${who}${lowScore && !urgentFlag ? " (low score)" : ""}`,
+      })
+    } else {
+      await createNotification({
+        type: "checkin_submitted", refId: checkinId, refType: "checkin",
+        message: `New check-in from ${who}`,
+      })
+    }
 
     if (email) {
       Promise.allSettled([
         sendCheckinConfirmation(email, firstName),
-        urgentFlag ? sendAdminCheckinUrgent(email, email, notes) : Promise.resolve(),
+        isUrgent ? sendAdminCheckinUrgent(email, email, notes) : Promise.resolve(),
       ]).catch(console.error)
     }
 

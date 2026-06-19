@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { sendIntakeConfirmation, sendAdminIntakeNotify } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,12 @@ export async function POST(req: NextRequest) {
       [JSON.stringify(data), email, firstName, lastName]
     )
     const intakeId = (result.rows[0] as { id: string }).id
+
+    // In-app admin notification (degrade-safe; lights up bell + overview banner)
+    await createNotification({
+      type: "new_intake", refId: intakeId, refType: "intake",
+      message: `New intake from ${[firstName, lastName].filter(Boolean).join(" ") || email || "a client"}`,
+    })
 
     // Fire emails (non-blocking — don't fail the request if email fails)
     if (email) {

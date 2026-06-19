@@ -1,19 +1,44 @@
 "use client"
 import { useEffect, useState } from "react"
-import { DollarSign, TrendingUp, Users, Percent } from "lucide-react"
+import Link from "next/link"
+import { DollarSign, TrendingUp, Users, Percent, Download } from "lucide-react"
 
 interface ClientRevRow {
   client_id: string; name: string; email: string
   peptide: string; strength: string | null
   monthly_rate: number; billing_status: string; billing_notes: string | null
   assigned_at: string; fifo_cogs: number; gross_margin_pct: number | null
+  orders_this_month?: number
 }
 
 interface RevenueData {
-  mrr: number; arr: number; activeCount: number
+  mrr: number; arr: number; activeCount: number; avgMargin?: number
   byStatus: Record<string, number>
   clients: ClientRevRow[]
+  byProtocol?: { peptide: string; avg_margin: number; clients: number; mrr: number }[]
   trend: { month: string; revenue: string }[]
+}
+
+const TREND_RANGES = [
+  { label: "Last 3 Months", n: 3 }, { label: "Last 6 Months", n: 6 }, { label: "Last 12 Months", n: 12 },
+]
+
+function ProtocolChart({ rows }: { rows: { peptide: string; avg_margin: number; clients: number }[] }) {
+  if (!rows.length) return <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No active protocols yet.</p>
+  const max = Math.max(...rows.map(r => r.avg_margin), 1)
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      {rows.slice(0, 8).map(r => (
+        <div key={r.peptide} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <span style={{ width: 110, fontSize: "0.74rem", color: "var(--text-soft)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flexShrink: 0 }}>{r.peptide}</span>
+          <div style={{ flex: 1, height: 16, background: "var(--surface-2)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ width: `${Math.max((r.avg_margin / max) * 100, 2)}%`, height: "100%", background: "var(--gold)", borderRadius: 4 }} />
+          </div>
+          <span style={{ width: 48, textAlign: "right", fontSize: "0.76rem", fontWeight: 700, color: "var(--gold)", flexShrink: 0 }}>{r.avg_margin.toFixed(0)}%</span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
@@ -59,10 +84,29 @@ export default function RevenuePage() {
   const [editStatus, setEditStatus] = useState("")
   const [editNotes, setEditNotes] = useState("")
   const [saving, setSaving] = useState(false)
+  const [trendN, setTrendN] = useState(6)
 
   useEffect(() => {
     fetch("/api/admin/revenue").then(r => r.json()).then(d => { setData(d); setLoading(false) })
   }, [])
+
+  const exportCsv = () => {
+    if (!data) return
+    const cols = ["Client", "Email", "Protocol", "Rate/mo", "Status", "FIFO COGS/mo", "Margin %", "Orders This Month", "Since"]
+    const lines = [cols.join(",")]
+    for (const c of data.clients) {
+      lines.push([
+        `"${c.name}"`, `"${c.email}"`, `"${c.peptide}${c.strength ? " " + c.strength : ""}"`,
+        c.monthly_rate, c.billing_status, c.fifo_cogs, c.gross_margin_pct ?? "",
+        c.orders_this_month ?? 0, new Date(c.assigned_at).toISOString().slice(0, 10),
+      ].join(","))
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url; a.download = `roc-revenue-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const startEdit = (c: ClientRevRow) => {
     setEditing(c.client_id)
@@ -88,8 +132,8 @@ export default function RevenuePage() {
   if (loading) return <div style={{ color: "var(--text-mute)", padding: "2rem" }}>Loading…</div>
   if (!data) return null
 
-  const avgMargin = data.clients.filter(c => c.gross_margin_pct !== null && c.billing_status === "active")
-  const marginAvg = avgMargin.length ? avgMargin.reduce((s, c) => s + (c.gross_margin_pct ?? 0), 0) / avgMargin.length : null
+  const marginAvg = data.avgMargin ?? null
+  const trendSlice = data.trend.slice(-trendN)
 
   return (
     <div>
@@ -99,16 +143,18 @@ export default function RevenuePage() {
       {/* Top KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
         {[
-          { icon: DollarSign, label: "MRR",           value: fmt(data.mrr),              color: "var(--gold)" },
-          { icon: TrendingUp, label: "ARR",            value: fmt(data.arr),              color: "#4ade80" },
-          { icon: Users,      label: "Active Clients", value: String(data.activeCount),   color: "#60a5fa" },
-          { icon: Percent,    label: "Avg Margin",     value: marginAvg !== null ? `${marginAvg.toFixed(1)}%` : "—", color: "#c084fc" },
+          { icon: DollarSign, label: "MRR",           value: fmt(data.mrr),              color: "var(--gold)", href: "#billing" },
+          { icon: TrendingUp, label: "ARR",            value: fmt(data.arr),              color: "#4ade80",     href: "#billing" },
+          { icon: Users,      label: "Active Clients", value: String(data.activeCount),   color: "#60a5fa",     href: "/admin/clients?status=APPROVED" },
+          { icon: Percent,    label: "Avg Margin",     value: marginAvg !== null ? `${marginAvg.toFixed(1)}%` : "—", color: "#c084fc", href: "#by-protocol" },
         ].map(card => (
-          <div key={card.label} className="card" style={{ padding: "1.1rem 1.25rem" }}>
-            <card.icon size={16} style={{ color: card.color, marginBottom: "0.5rem" }} />
-            <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--text)", lineHeight: 1 }}>{card.value}</div>
-            <div style={{ color: "var(--text-mute)", fontSize: "0.78rem", marginTop: "0.35rem", fontWeight: 600 }}>{card.label}</div>
-          </div>
+          <Link key={card.label} href={card.href} className="stat-card-link" style={{ textDecoration: "none" }}>
+            <div className="card stat-card" style={{ padding: "1.1rem 1.25rem", cursor: "pointer" }}>
+              <card.icon size={16} style={{ color: card.color, marginBottom: "0.5rem" }} />
+              <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--text)", lineHeight: 1 }}>{card.value}</div>
+              <div style={{ color: "var(--text-mute)", fontSize: "0.78rem", marginTop: "0.35rem", fontWeight: 600 }}>{card.label}</div>
+            </div>
+          </Link>
         ))}
       </div>
 
@@ -125,16 +171,29 @@ export default function RevenuePage() {
           {!Object.keys(data.byStatus).length && <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
         </div>
         <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
-          <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>Monthly Revenue Trend</p>
-          <TrendChart trend={data.trend} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <p style={{ fontWeight: 700, fontSize: "0.85rem" }}>Monthly Revenue Trend</p>
+            <select value={trendN} onChange={e => setTrendN(Number(e.target.value))} style={{ fontSize: "0.74rem", padding: "0.2rem 0.4rem", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-soft)" }}>
+              {TREND_RANGES.map(r => <option key={r.n} value={r.n}>{r.label}</option>)}
+            </select>
+          </div>
+          <TrendChart trend={trendSlice} />
         </div>
       </div>
 
+      {/* Revenue by Protocol */}
+      <div id="by-protocol" className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.5rem" }}>
+        <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.85rem" }}>Revenue by Protocol — Avg Gross Margin %</p>
+        <ProtocolChart rows={data.byProtocol ?? []} />
+      </div>
+
       {/* Client billing table */}
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div id="billing" className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           <h2 style={{ fontWeight: 700, fontSize: "0.95rem" }}>Client Billing</h2>
-          <span style={{ fontSize: "0.78rem", color: "var(--text-mute)" }}>Click rate to edit</span>
+          <button onClick={exportCsv} style={{ display: "flex", alignItems: "center", gap: "0.35rem", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-soft)", fontSize: "0.76rem", fontWeight: 600, padding: "0.35rem 0.7rem", cursor: "pointer" }}>
+            <Download size={13} /> Export CSV
+          </button>
         </div>
 
         {/* Desktop table */}
@@ -151,8 +210,10 @@ export default function RevenuePage() {
               {data.clients.map((c, i) => (
                 <tr key={c.client_id} style={{ borderBottom: "1px solid var(--border)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
                   <td style={{ padding: "0.7rem 0.875rem" }}>
-                    <p style={{ fontWeight: 600, fontSize: "0.875rem" }}>{c.name || "—"}</p>
-                    <p style={{ color: "var(--text-mute)", fontSize: "0.75rem" }}>{c.email}</p>
+                    <Link href={`/admin/clients/${c.client_id}?tab=billing`} style={{ textDecoration: "none" }}>
+                      <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text)" }}>{c.name || "—"}</p>
+                      <p style={{ color: "var(--text-mute)", fontSize: "0.75rem" }}>{c.email}</p>
+                    </Link>
                   </td>
                   <td style={{ padding: "0.7rem 0.875rem", color: "var(--text-soft)" }}>
                     {c.peptide}{c.strength ? ` ${c.strength}` : ""}

@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { resolveNotifications } from "@/lib/notifications"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   // LEFT JOIN the assigned protocol so the client list can show who has an
   // active protocol vs. who is still just an intake.
+  const status = new URL(req.url).searchParams.get("status")
+  const params: string[] = []
+  let where = ""
+  if (status && status !== "all") { params.push(status); where = `WHERE i.status = $1` }
   const result = await query(
     `SELECT i.id, i.first_name, i.last_name, i.email, (i.data->>'phone') as phone,
             i.status, i.submitted_at, i.data,
@@ -15,7 +20,9 @@ export async function GET() {
             (cp.client_id IS NOT NULL) AS has_protocol
      FROM roc.intakes i
      LEFT JOIN roc.client_protocols cp ON cp.client_id = i.id
-     ORDER BY i.submitted_at DESC LIMIT 100`
+     ${where}
+     ORDER BY i.submitted_at DESC LIMIT 100`,
+    params.length ? params : undefined
   )
   return NextResponse.json({ intakes: result.rows })
 }
@@ -30,5 +37,7 @@ export async function PATCH(req: NextRequest) {
     "INSERT INTO roc.activity_log (action, details) VALUES ('intake_status_updated', $1)",
     [JSON.stringify({ id, status })]
   )
+  // Reviewed (approved/flagged) → clear the pending-intake notification
+  if (status === "APPROVED" || status === "FLAGGED") await resolveNotifications("new_intake", id)
   return NextResponse.json({ ok: true })
 }

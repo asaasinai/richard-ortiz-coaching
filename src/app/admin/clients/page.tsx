@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { Download } from "lucide-react"
 
 interface Client {
   id: string; first_name: string; last_name: string; email: string
@@ -19,6 +20,7 @@ export default function AdminClientsPage() {
   const [clients,  setClients]  = useState<Client[]>([])
   const [loading,  setLoading]  = useState(true)
   const [search,   setSearch]   = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("All")
   const router = useRouter()
 
   useEffect(() => {
@@ -26,15 +28,43 @@ export default function AdminClientsPage() {
       setClients(d.intakes ?? [])
       setLoading(false)
     })
+    const st = new URLSearchParams(window.location.search).get("status")
+    if (st === "APPROVED") setStatusFilter("Active")
+    else if (st === "PENDING") setStatusFilter("Pending")
+    else if (st === "FLAGGED") setStatusFilter("Flagged")
   }, [])
 
-  const filtered = clients.filter(c =>
-    `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(search.toLowerCase())
-  )
+  const STATUS_FOR: Record<string,string|null> = { All:null, Active:"APPROVED", Pending:"PENDING", Flagged:"FLAGGED" }
+  const filtered = clients.filter(c => {
+    const matchSearch = `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(search.toLowerCase())
+    const want = STATUS_FOR[statusFilter]
+    return matchSearch && (!want || c.status === want)
+  })
+
+  const exportCsv = () => {
+    const cols = ["Name","Email","Phone","Status","Protocol","Billing","Monthly Rate","Intake Date"]
+    const lines = [cols.join(",")]
+    for (const c of filtered) lines.push([
+      `"${c.first_name} ${c.last_name}"`, `"${c.email}"`, `"${c.phone ?? ""}"`, c.status,
+      `"${c.protocol_peptide ?? ""}"`, c.protocol_billing_status ?? "", c.protocol_monthly_rate ?? "",
+      new Date(c.submitted_at).toISOString().slice(0,10),
+    ].join(","))
+    const blob = new Blob([lines.join("\n")], { type:"text/csv" })
+    const url = URL.createObjectURL(blob); const a = document.createElement("a")
+    a.href = url; a.download = `roc-clients-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url)
+  }
 
   return (
     <div>
-      <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.25rem,4vw,1.5rem)", marginBottom:"1.25rem" }}>Clients</h1>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem", flexWrap:"wrap", gap:"0.75rem" }}>
+        <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.25rem,4vw,1.5rem)" }}>Clients</h1>
+        <button onClick={exportCsv} style={{ display:"flex", alignItems:"center", gap:"0.35rem", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text-soft)", fontSize:"0.78rem", fontWeight:600, padding:"0.4rem 0.8rem", cursor:"pointer" }}><Download size={13}/> Export CSV</button>
+      </div>
+      <div style={{ display:"flex", gap:"0.5rem", marginBottom:"0.85rem", flexWrap:"wrap" }}>
+        {Object.keys(STATUS_FOR).map(f => (
+          <button key={f} onClick={()=>setStatusFilter(f)} style={{ padding:"0.35rem 0.85rem", borderRadius:"var(--radius)", fontSize:"0.78rem", fontWeight:600, cursor:"pointer", background: statusFilter===f?"var(--gold)":"var(--surface)", color: statusFilter===f?"#000":"var(--text-mute)", border:`1px solid ${statusFilter===f?"var(--gold)":"var(--border)"}` }}>{f}</button>
+        ))}
+      </div>
       <input placeholder="Search name or email…" value={search} onChange={e=>setSearch(e.target.value)}
         style={{ marginBottom:"1.25rem", maxWidth:"100%" }}/>
 

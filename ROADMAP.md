@@ -1,0 +1,40 @@
+# ROC Admin — UX/UI Upgrade Loop
+
+Branch: `loop/roc-admin-ux` · DB schema: `roc` (Neon, live prod)
+
+## Build rule (prod safety)
+- DB is **live production**. Local `next build` cannot reach it (NEON_HOST/DATABASE_URL are Vercel-only) — verify code with `npx tsc --noEmit`.
+- Migrations are **SQL files run manually by a human** against Neon. The loop NEVER executes migrations or deploys to prod. Migration: `sql/2026-06-19-admin-ux-upgrade.sql`.
+- New code must tolerate the pre-migration DB (wrap new-table queries so the page degrades gracefully, not 500s).
+- Every admin route handler MUST `export const dynamic = "force-dynamic"`.
+- DEFACTO/branding rules N/A here.
+
+## Status legend: ⬜ todo · 🔵 in_progress · ✅ done · ⛔ blocked · 🚧 human-gated
+
+| # | Sprint | Row | Status | Notes |
+|---|--------|-----|--------|-------|
+| 0 | — | Migration SQL (all new schema) | ✅ | `sql/2026-06-19-admin-ux-upgrade.sql`, idempotent |
+| 1.1 | 1 | Overview: 7 clickable stat cards + delta + alert banners + 3 recent sections + empty states | ✅ | hover-scale cards, WoW deltas on intakes/checkins, 3 banners, recent checkins/intakes/ops; all queries degrade-safe |
+| 1.2 | 1 | Check-in read/unread state (column + mark-read API + UI indicator) | ✅ | checkins GET cols, `[id]` PATCH mark_read, auto-read on open, gold-border + dot |
+| 1.3 | 1 | Check-in detail slide-over for ALL cards (already partial) + filter pills (All/Unread/Urgent/Resolved/This Week) | ✅ | pills w/ live counts, initials, score chips, empty state |
+| 1.4 | 1 | Follow-up action panel + resolve flow (action_taken/notes/resolved → clears urgent, logs) | ✅ | `[id]` PATCH follow_up; resolves notification |
+| 1.5 | 1 | Urgent check-in admin alert (in-app notification row; email gated/stubbed — no real send) | ✅ | checkin submit derives urgency from threshold (admin_settings) + creates urgent_checkin/checkin_submitted notification; pre-existing email path untouched |
+| 2.1 | 2 | Ops Queue page — Kanban + List + card detail | ✅ | `/admin/ops-queue` Kanban+List+filters+create modal; `/[id]` stepper detail; `ops_cards` API. (DnD between columns deferred → polish; advance via button) |
+| 2.2 | 2 | FIFO lot creation on Receive Order (lot_identifier, cost) | ✅ | batch route auto-gens lot id + received_by; optional Lot # field in receive form |
+| 2.3 | 2 | FIFO deduction on ops card → packed (oldest lot first, split, block if no stock) | ✅ | `lib/fifo.ts` preview+commit; all-or-nothing precheck; writes `lot_transactions` |
+| 2.4 | 2 | Inventory lot ledger page per SKU (`/admin/inventory/[id]`) | ✅ | overview stats + Lot Ledger + Usage History (COGS) + Reorder History; editable reorder_point; row 'Ledger →' link |
+| 2.5 | 2 | Notification bell + dropdown in header | ✅ | `/api/admin/notifications` + NotificationBell (30s poll, deeplinks) + header bar |
+| 3.1 | 3 | Client profile page tabs (Profile/Protocol/Check-Ins/Intakes/Orders/Billing) | ✅ | added Orders + Billing tabs to existing 5-tab page; ?tab= deep-link |
+| 3.2 | 3 | Intake detail page + approval flow + auto-create client | ✅ | v2 AI-rec/approve/proposal flow pre-existing; added new_intake notification on submit + resolve on approve/flag + ?status= filter. (Approved intake IS the client in this schema — no separate table) |
+| 3.3 | 3 | Sidebar nav badges (live counts) + reorder + utility strip + collapse | ✅ | /api/admin/badges + nav redesign (60s poll, colored badges, utility strip, collapse rail, left-border active) |
+| 3.4 | 3 | Revenue FIFO COGS tie-in + Revenue-by-Protocol chart + date filter | ✅ | by-protocol margin chart, orders-this-month, clickable cards, date range, CSV export, client→billing deep-link |
+| 4.1 | 4 | Global cmd+k search (clients/intakes/checkins/peptides) | ✅ | /api/admin/search + CommandPalette (⌘K/button, debounce, kbd nav); clients+intakes+inventory (checkins-by-content = minor gap) |
+| 4.2 | 4 | SMS triggers from check-in + ops card (draft only, no real send) | ✅ | checkin/ops SMS buttons → /admin/sms?to=; recipient banner; copy-only |
+| 4.3 | 4 | Settings module (all sections, persisted to admin_settings) | ✅ | /api/admin/settings + full page (alerts/checkin/inventory/ops/admin) |
+| 4.4 | 4 | CSV exports (clients, revenue, checkins) | ✅ | all three shipped |
+| 4.5 | 4 | Admin SMS/email alert toggles wired to notification dispatch | ✅ | toggles persisted; threshold drives urgency. Real email/SMS DISPATCH is human-gated (see HANDOFF) |
+| 4.6 | 4 | Mobile responsive sidebar collapse polish | ✅ | mobile drawer + desktop collapse rail (220↔56) |
+
+## Human-gated (do NOT auto-run)
+- Run `sql/2026-06-19-admin-ux-upgrade.sql` against Neon prod.
+- Deploy: push to `main` (Vercel git integration) OR `vercel --prod` with `target:production`.

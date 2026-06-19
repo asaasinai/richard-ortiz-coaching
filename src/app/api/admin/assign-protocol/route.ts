@@ -1,7 +1,50 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { getSetting } from "@/lib/settings"
 
 export const dynamic = "force-dynamic"
+
+// Gated by the auto_generate_ops_cards setting: when a protocol with a SKU is
+// assigned and there's no open card for that client+sku, create a pending
+// fulfillment card due on the configured billing_cycle_day. In-app only.
+async function maybeAutoGenerateOpsCard(clientId: string, skuId: string | null | undefined, peptide: string) {
+  try {
+    if (!skuId) return
+    if ((await getSetting("auto_generate_ops_cards")) !== "true") return
+
+    const open = await query<{ n: string }>(
+      `SELECT COUNT(*) n FROM roc.ops_cards
+       WHERE client_id::text = $1::text AND status IN ('pending','packed') AND line_items::text ILIKE $2`,
+      [clientId, `%"sku_id":"${skuId}"%`]
+    )
+    if (Number(open.rows[0]?.n ?? 0) > 0) return
+
+    const c = await query<{ first_name: string; last_name: string; email: string }>(
+      `SELECT first_name, last_name, email FROM roc.intakes WHERE id::text = $1::text`, [clientId])
+    const cl = c.rows[0]
+    const sku = (await query<{ peptide_name: string; strength: string; strength_unit: string; wholesale_cost: string | null }>(
+      `SELECT peptide_name, strength, strength_unit, wholesale_cost FROM roc.inventory_skus WHERE id::text = $1::text`, [skuId])).rows[0]
+
+    const billingDay = Math.min(Math.max(Number(await getSetting("billing_cycle_day")) || 1, 1), 28)
+    const now = new Date()
+    let due = new Date(now.getFullYear(), now.getMonth(), billingDay)
+    if (due < now) due = new Date(now.getFullYear(), now.getMonth() + 1, billingDay)
+
+    const cost = Number(sku?.wholesale_cost ?? 0)
+    const lineItems = [{
+      sku_id: String(skuId), peptide: sku?.peptide_name ?? peptide, strength: sku?.strength, strength_unit: sku?.strength_unit,
+      qty: 1, cost_per_unit: cost, line_total: cost,
+    }]
+    await query(
+      `INSERT INTO roc.ops_cards (client_id, client_email, client_name, status, line_items, total_cogs, due_date)
+       VALUES ($1,$2,$3,'pending',$4,$5,$6)`,
+      [clientId, cl?.email ?? null, cl ? `${cl.first_name} ${cl.last_name}`.trim() : null,
+       JSON.stringify(lineItems), String(cost), due.toISOString().slice(0, 10)]
+    )
+  } catch (e) {
+    console.error("[auto-gen ops card]", e)  // never block protocol assignment
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +83,7 @@ export async function POST(req: NextRequest) {
         durationWeeks ?? null, internalNotes ?? null,
       ]
     )
+    await maybeAutoGenerateOpsCard(clientId, skuId, peptide ?? "")
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error("[assign-protocol]", e)

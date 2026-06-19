@@ -23,6 +23,11 @@ interface Protocol {
 interface Proposal {
   id: string; status: string; created_at: string; sent_at?: string; signed_at?: string; signed_name?: string; proposal_token: string
 }
+interface OpsCardLite {
+  id: string; status: string; total_cogs: string; due_date: string | null; shipped_at: string | null
+  created_at: string; tracking_number: string | null
+  line_items: { peptide: string; strength?: string; strength_unit?: string; qty: number; lot_ids?: string[] }[]
+}
 
 function LineChart({ points, color, label, unit }: { points: { date: string; val: number }[]; color: string; label: string; unit: string }) {
   if (points.length < 2) return <div style={{ padding:"1rem", color:"var(--text-mute)", fontSize:"0.8rem" }}>Not enough data ({points.length} point{points.length===1?"":"s"}).</div>
@@ -74,8 +79,15 @@ export default function ClientDetailPage() {
   const [checkins, setCheckins] = useState<CheckIn[]>([])
   const [protocol, setProtocol] = useState<Protocol | null>(null)
   const [proposals, setProposals] = useState<Proposal[]>([])
+  const [orders, setOrders] = useState<OpsCardLite[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<"overview"|"protocol"|"checkins"|"intake"|"proposals">("overview")
+  const [tab, setTab] = useState<"overview"|"protocol"|"checkins"|"intake"|"proposals"|"orders"|"billing">("overview")
+
+  // Deep-link support: ?tab=billing (from revenue page)
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab")
+    if (t && ["overview","protocol","checkins","intake","proposals","orders","billing"].includes(t)) setTab(t as typeof tab)
+  }, [])
 
   const [pForm, setPForm] = useState({ peptide:"", doseAmount:"", doseUnit:"mg", frequencyDays:[] as string[], notes:"", monthlyRate:"", billingStatus:"active" })
   const [saving, setSaving] = useState(false)
@@ -86,14 +98,16 @@ export default function ClientDetailPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [intakeRes, checkinRes, protoRes, proposalsRes] = await Promise.all([
+    const [intakeRes, checkinRes, protoRes, proposalsRes, ordersRes] = await Promise.all([
       fetch(`/api/admin/intakes/${id}`).then(r => r.json()),
       fetch(`/api/admin/checkins?clientEmail=all`).then(r => r.json()),
       fetch(`/api/admin/assign-protocol?clientId=${id}`).then(r => r.json()),
       fetch(`/api/admin/intakes/${id}/proposal`).then(r => r.json()),
+      fetch(`/api/admin/ops-cards?client=${id}`).then(r => r.json()).catch(() => ({ cards: [] })),
     ])
 
     setClient(intakeRes.intake ?? null)
+    setOrders(ordersRes.cards ?? [])
 
     // Filter checkins for this client
     if (intakeRes.intake?.email) {
@@ -157,8 +171,13 @@ export default function ClientDetailPage() {
     { id:"protocol",   label:"Protocol" },
     { id:"checkins",   label:`Check-Ins (${checkins.length})` },
     { id:"intake",     label:"Intake" },
+    { id:"orders",     label:`Orders (${orders.length})` },
+    { id:"billing",    label:"Billing" },
     { id:"proposals",  label:`Proposals (${proposals.length})` },
   ] as const
+
+  const orderCogs = orders.reduce((s,o)=>s+Number(o.total_cogs??0),0)
+  const monthlyRate = Number(pForm.monthlyRate||0)
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
@@ -323,6 +342,70 @@ export default function ClientDetailPage() {
                   View Full Intake →
                 </a>
               </div>
+            </div>
+          )}
+
+          {/* ORDERS */}
+          {tab==="orders" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:"0.75rem" }}>
+              {orders.length===0 ? (
+                <div style={{ textAlign:"center", padding:"2rem 0", color:"var(--text-mute)" }}>
+                  <p style={{ marginBottom:"1rem" }}>No fulfillment orders yet.</p>
+                  <a href="/admin/ops-queue" className="btn-gold" style={{ textDecoration:"none", display:"inline-block" }}>Open Ops Queue →</a>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display:"flex", gap:"1rem", marginBottom:"0.25rem" }}>
+                    <span style={{ fontSize:"0.8rem", color:"var(--text-mute)" }}>{orders.length} order(s)</span>
+                    <span style={{ fontSize:"0.8rem", color:"var(--text-mute)" }}>Total COGS: <strong style={{ color:"var(--gold)" }}>${orderCogs.toFixed(2)}</strong></span>
+                  </div>
+                  {orders.map(o => (
+                    <a key={o.id} href={`/admin/ops-queue/${o.id}`} style={{ textDecoration:"none", color:"inherit" }}>
+                      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.85rem 1rem" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.35rem" }}>
+                          <span style={{ fontSize:"0.7rem", fontWeight:700, textTransform:"uppercase", color:"var(--text-mute)" }}>{o.status}</span>
+                          <span style={{ fontWeight:700, color:"var(--gold)", fontSize:"0.82rem" }}>${Number(o.total_cogs).toFixed(2)} COGS</span>
+                        </div>
+                        <div style={{ fontSize:"0.82rem", color:"var(--text-soft)" }}>{(o.line_items??[]).map(li=>`${li.peptide}${li.strength?` ${li.strength}${li.strength_unit??""}`:""} ×${li.qty}`).join(", ")}</div>
+                        <div style={{ display:"flex", gap:"1rem", marginTop:"0.35rem", fontSize:"0.72rem", color:"var(--text-mute)" }}>
+                          <span>Created {new Date(o.created_at).toLocaleDateString()}</span>
+                          {o.shipped_at && <span>Shipped {new Date(o.shipped_at).toLocaleDateString()}</span>}
+                          {o.tracking_number && <span>Tracking {o.tracking_number}</span>}
+                          {(o.line_items??[]).some(li=>li.lot_ids?.length) && <span>Lots: {(o.line_items??[]).flatMap(li=>li.lot_ids??[]).map(l=>l.slice(0,8)).join(", ")}</span>}
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* BILLING */}
+          {tab==="billing" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
+              <div className="client-stats-grid">
+                {[
+                  { label:"Rate / month", val: monthlyRate ? `$${monthlyRate.toFixed(0)}` : "—", color:"var(--gold)" },
+                  { label:"Billing Status", val: pForm.billingStatus || "—", color:"#4ade80" },
+                  { label:"Lifetime Order COGS", val: `$${orderCogs.toFixed(2)}`, color:"#60a5fa" },
+                  { label:"Est. Gross Margin", val: monthlyRate>0 && orders.length ? `${Math.round(((monthlyRate-(orderCogs/orders.length))/monthlyRate)*100)}%` : "—", color:"#c084fc" },
+                ].map(s=>(
+                  <div key={s.label} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.875rem 1rem" }}>
+                    <div style={{ fontSize:"0.68rem", textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)", marginBottom:"0.35rem" }}>{s.label}</div>
+                    <div style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:s.color }}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"0.75rem" }}>
+                  <div><label>Monthly Rate ($)</label><input type="number" value={pForm.monthlyRate} onChange={e=>setPForm(p=>({...p,monthlyRate:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
+                  <div><label>Billing Status</label><select value={pForm.billingStatus} onChange={e=>setPForm(p=>({...p,billingStatus:e.target.value}))} style={{marginTop:"0.35rem"}}>{["active","paused","complimentary","churned"].map(s=><option key={s}>{s}</option>)}</select></div>
+                </div>
+                <button onClick={saveProtocol} disabled={saving||!pForm.peptide} className="btn-gold">{saving?"Saving…":saved?"✓ Saved":"Save Billing"}</button>
+                {!pForm.peptide && <p style={{ fontSize:"0.75rem", color:"var(--text-mute)", marginTop:"0.5rem" }}>Assign a protocol first (Protocol tab) to enable billing.</p>}
+              </div>
+              <p style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>Per-month FIFO COGS &amp; margin breakdown on the <a href="/admin/revenue" style={{ color:"var(--gold)" }}>Revenue</a> page.</p>
             </div>
           )}
 
