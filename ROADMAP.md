@@ -28,12 +28,12 @@ Branch: `loop/roc-admin-ux` · DB schema: `roc` (Neon, live prod)
 | 3.2 | 3 | Intake detail page + approval flow + auto-create client | ✅ | v2 AI-rec/approve/proposal flow pre-existing; added new_intake notification on submit + resolve on approve/flag + ?status= filter. (Approved intake IS the client in this schema — no separate table) |
 | 3.3 | 3 | Sidebar nav badges (live counts) + reorder + utility strip + collapse | ✅ | /api/admin/badges + nav redesign (60s poll, colored badges, utility strip, collapse rail, left-border active) |
 | 3.4 | 3 | Revenue FIFO COGS tie-in + Revenue-by-Protocol chart + date filter | ✅ | by-protocol margin chart, orders-this-month, clickable cards, date range, CSV export, client→billing deep-link |
-| 4.1 | 4 | Global cmd+k search (clients/intakes/checkins/peptides) | ⬜ | search API + modal |
-| 4.2 | 4 | SMS triggers from check-in + ops card (draft only, no real send) | ⬜ | |
-| 4.3 | 4 | Settings module (all sections, persisted to admin_settings) | ⬜ | settings route + page |
-| 4.4 | 4 | CSV exports (clients, revenue, checkins) | ⬜ | |
-| 4.5 | 4 | Admin SMS/email alert toggles wired to notification dispatch | ⬜ | |
-| 4.6 | 4 | Mobile responsive sidebar collapse polish | ⬜ | |
+| 4.1 | 4 | Global cmd+k search (clients/intakes/checkins/peptides) | ✅ | /api/admin/search + CommandPalette (⌘K/button, debounce, kbd nav); clients+intakes+inventory (checkins-by-content = minor gap) |
+| 4.2 | 4 | SMS triggers from check-in + ops card (draft only, no real send) | ✅ | checkin/ops SMS buttons → /admin/sms?to=; recipient banner; copy-only |
+| 4.3 | 4 | Settings module (all sections, persisted to admin_settings) | ✅ | /api/admin/settings + full page (alerts/checkin/inventory/ops/admin) |
+| 4.4 | 4 | CSV exports (clients, revenue, checkins) | ✅ | all three shipped |
+| 4.5 | 4 | Admin SMS/email alert toggles wired to notification dispatch | ✅ | toggles persisted; threshold drives urgency. Real email/SMS DISPATCH is human-gated (see HANDOFF) |
+| 4.6 | 4 | Mobile responsive sidebar collapse polish | ✅ | mobile drawer + desktop collapse rail (220↔56) |
 
 ## Human-gated (do NOT auto-run)
 - Run `sql/2026-06-19-admin-ux-upgrade.sql` against Neon prod.

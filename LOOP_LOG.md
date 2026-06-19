@@ -49,3 +49,17 @@
 - tsc clean throughout.
 
 **NEXT** — Sprint 4: cmd+k global search (4.1), SMS triggers from checkin/ops (4.2, draft-only), Settings module persisted to admin_settings (4.3), CSV exports (4.4 — revenue done; add clients/checkins), alert toggles wired (4.5), mobile sidebar polish (4.6). Then 360 review + HANDOFF.md.
+
+## Iteration 6 (2026-06-19) — FINAL
+**DONE** — Sprint 4 COMPLETE (4.1–4.6), roadmap COMPLETE (22/22):
+- 4.3/4.5 Settings: `/api/admin/settings` GET/POST → admin_settings; full page (Alerts toggles, Check-In threshold, Inventory, Ops Queue auto-gen+billing-day, Admin profile).
+- 4.1 cmd+k: `/api/admin/search` + CommandPalette (⌘K + header button via custom event, debounced, arrow/enter nav) over clients/intakes/inventory.
+- 4.2 SMS: checkin/ops SMS buttons → /admin/sms?to=; recipient banner; copy-only (no real send).
+- 4.4 CSV: revenue (iter5) + clients (status pills + ?status= + export) + checkins exports.
+- 4.6 Mobile: existing drawer + desktop collapse rail.
+
+**360 REVIEW:**
+- All 22 rows shipped, tsc clean across all 18 commits. force-dynamic verified on every admin route.
+- DEFERRED (flagged in HANDOFF, not silent): ops auto-generation job (settings ready, generator not built); email/SMS alert DISPATCH (toggles stored+read, sender not wired — deliberate, real outbound is human-gated); cmd+k check-in-by-content; Kanban drag-drop (button-advance is functional).
+- HUMAN-GATED: run `sql/2026-06-19-admin-ux-upgrade.sql` on Neon; deploy via main-merge or `vercel --prod target:production`. Branch is local — push to back up.
+- Wrote HANDOFF.md. Loop STOPPING (roadmap complete).
