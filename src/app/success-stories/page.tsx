@@ -24,49 +24,50 @@ export default function SuccessStoriesPage() {
     <>
       <Nav />
 
-      <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem" }}>
-        <div className="max-w-5xl mx-auto">
+      <section style={{ position: "relative", padding: "7rem 1.5rem 4rem", overflow: "hidden" }}>
+        <div className="max-w-5xl mx-auto reveal">
           <span className="section-num">Success Stories</span>
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 700 }}>
-            Real people. Real transformations.
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)", letterSpacing: "-0.035em", lineHeight: 1.06, maxWidth: 720 }}>
+            Real people. <span className="gold-text">Real transformations.</span>
           </h1>
-          <p style={{ color: "var(--text-soft)", fontSize: "1.05rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 540 }}>
+          <p style={{ color: "var(--text-soft)", fontSize: "1.1rem", lineHeight: 1.7, marginTop: "1.75rem", maxWidth: 540 }}>
             Fat loss, lean muscle, strength, energy, and lifestyles that last — built with the PHAS3 System.
           </p>
         </div>
       </section>
 
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem 5rem" }}>
+      <section style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.012))", padding: "4.5rem 1.5rem 5.5rem", borderTop: "1px solid var(--border)" }}>
         <div className="max-w-5xl mx-auto">
           {successStories.length === 0 ? (
             /* Designed empty state — never a blank page, never fake testimonials */
-            <div className="card" style={{ textAlign: "center", padding: "4rem 2rem", maxWidth: 640, margin: "0 auto" }}>
-              <TrendingUp size={36} style={{ color: "var(--gold)", margin: "0 auto 1.25rem" }} />
-              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.5rem", marginBottom: "0.75rem" }}>
-                Client transformations coming soon.
-              </h2>
-              <p style={{ color: "var(--text-soft)", lineHeight: 1.75, marginBottom: "1.5rem" }}>
-                We&apos;re collecting before-and-after results from clients right now.
-                In the meantime — why read about someone else&apos;s transformation when you could start your own?
-              </p>
-              <Link href="/intake" className="btn-gold">Be the Next Story</Link>
-              <div className="flex flex-wrap justify-center gap-3 mt-8">
-                {outcomes.map(o => (
-                  <span key={o} style={{
-                    border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0.4rem 1rem",
-                    fontSize: "0.78rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--text-mute)",
-                  }}>{o}</span>
-                ))}
+            <div className="card" style={{ position: "relative", overflow: "hidden", textAlign: "center", padding: "4.5rem 2rem", maxWidth: 640, margin: "0 auto", boxShadow: "var(--glow-gold)", borderColor: "rgba(212,175,90,0.3)" }}>
+              <div style={{ position: "absolute", top: -60, left: "50%", transform: "translateX(-50%)", width: 280, height: 200, background: "radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative" }}>
+                <div style={{ width: 60, height: 60, borderRadius: 18, background: "var(--gold-dim)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
+                  <TrendingUp size={28} style={{ color: "var(--gold)" }} />
+                </div>
+                <h2 className="gold-text" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.6rem", marginBottom: "0.75rem", letterSpacing: "-0.01em" }}>
+                  Client transformations coming soon.
+                </h2>
+                <p style={{ color: "var(--text-soft)", lineHeight: 1.7, marginBottom: "1.75rem", fontSize: "1.02rem" }}>
+                  We&apos;re collecting before-and-after results from clients right now.
+                  In the meantime — why read about someone else&apos;s transformation when you could start your own?
+                </p>
+                <Link href="/intake" className="btn-gold">Be the Next Story</Link>
+                <div className="flex flex-wrap justify-center gap-3 mt-8">
+                  {outcomes.map(o => (
+                    <span key={o} className="chip" style={{ padding: "0.4rem 1rem", fontSize: "0.75rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>{o}</span>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {successStories.map(s => (
-                <div key={s.slug} style={{
-                  background: "var(--bg)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius)",
+              {successStories.map((s, idx) => (
+                <div key={s.slug} className="card reveal" style={{
+                  padding: 0,
                   overflow: "hidden",
+                  animationDelay: `${0.06 * idx}s`,
                 }}>
                   {/* Photos row if present */}
                   {s.beforePhoto && s.afterPhoto && (
@@ -94,8 +95,8 @@ export default function SuccessStoriesPage() {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                         {s.metrics.map(m => (
                           <span key={m} style={{
-                            background: "rgba(201,168,76,0.12)", color: "var(--gold)", fontSize: "0.72rem",
-                            fontWeight: 700, padding: "0.2rem 0.65rem", borderRadius: "var(--radius)",
+                            background: "var(--gold-dim)", color: "var(--gold-light)", fontSize: "0.72rem",
+                            fontWeight: 700, padding: "0.25rem 0.7rem", borderRadius: "var(--radius-pill)",
                             letterSpacing: "0.03em",
                           }}>{m}</span>
                         ))}
