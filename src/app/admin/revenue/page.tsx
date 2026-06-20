@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { DollarSign, TrendingUp, Users, Percent, Download } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
+import { AreaChart, Donut } from "@/components/admin/Charts"
 
 interface ClientRevRow {
   client_id: string; name: string; email: string
@@ -42,37 +44,27 @@ function ProtocolChart({ rows }: { rows: { peptide: string; avg_margin: number; 
 }
 
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
-  active:        { bg: "rgba(74,222,128,0.15)",  color: "#4ade80" },
-  paused:        { bg: "rgba(251,191,36,0.12)",  color: "#fbbf24" },
-  churned:       { bg: "rgba(248,113,113,0.15)", color: "#f87171" },
-  complimentary: { bg: "rgba(96,165,250,0.12)",  color: "#60a5fa" },
+  active:        { bg: "rgba(52,211,153,0.15)",  color: "#34D399" },
+  paused:        { bg: "rgba(251,191,36,0.12)",  color: "#FBBF24" },
+  churned:       { bg: "rgba(248,113,113,0.15)", color: "#F87171" },
+  complimentary: { bg: "rgba(96,165,250,0.12)",  color: "#60A5FA" },
 }
 
 function fmt(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n)
 }
 
-// Inline bar chart for trend
+// Smooth area chart for monthly revenue trend
 function TrendChart({ trend }: { trend: { month: string; revenue: string }[] }) {
   if (!trend.length) return <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No trend data yet.</p>
-  const vals = trend.map(t => Number(t.revenue))
-  const max = Math.max(...vals, 1)
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: "0.35rem", height: 80 }}>
-      {trend.map((t, i) => (
-        <div key={t.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.35rem" }}>
-          <div style={{
-            width: "100%", background: i === trend.length - 1 ? "var(--gold)" : "var(--surface-2)",
-            borderRadius: "3px 3px 0 0",
-            height: `${Math.max((vals[i] / max) * 64, 4)}px`,
-            transition: "height 0.3s",
-          }} />
-          <span style={{ fontSize: "0.6rem", color: "var(--text-mute)", whiteSpace: "nowrap" }}>
-            {t.month.slice(5)}
-          </span>
-        </div>
-      ))}
-    </div>
+    <>
+      <AreaChart data={trend.map(t => ({ value: Number(t.revenue) }))} color="var(--gold)" height={90} label="revenue" />
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.3rem", fontSize: "0.6rem", color: "var(--text-mute)" }}>
+        <span>{trend[0]?.month.slice(5)}</span>
+        <span>{trend[trend.length - 1]?.month.slice(5)}</span>
+      </div>
+    </>
   )
 }
 
@@ -129,16 +121,25 @@ export default function RevenuePage() {
     setData(d)
   }
 
-  if (loading) return <div style={{ color: "var(--text-mute)", padding: "2rem" }}>Loading…</div>
+  if (loading) return (
+    <div>
+      <PageHeader title="Revenue" subtitle="Your recurring income, client billing, and margin after product cost." backHref="/admin" backLabel="Overview" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+        {[0, 1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 96 }} />)}
+      </div>
+      <div className="skeleton" style={{ height: 220 }} />
+    </div>
+  )
   if (!data) return null
 
   const marginAvg = data.avgMargin ?? null
   const trendSlice = data.trend.slice(-trendN)
+  const STATUS_HEX: Record<string, string> = { active: "#34D399", paused: "#FBBF24", churned: "#F87171", complimentary: "#60A5FA" }
+  const statusSegments = Object.entries(data.byStatus).map(([s, n]) => ({ label: s, value: Number(n), color: STATUS_HEX[s] ?? "var(--text-mute)" }))
 
   return (
     <div>
-      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.75rem)", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Revenue</h1>
-      <p style={{ color: "var(--text-mute)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>MRR, client billing, and FIFO margin</p>
+      <PageHeader title="Revenue" subtitle="Your recurring income, client billing, and margin after product cost." backHref="/admin" backLabel="Overview" />
 
       {/* Top KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
@@ -161,14 +162,8 @@ export default function RevenuePage() {
       {/* Status breakdown + Trend */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginBottom: "1.5rem" }}>
         <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
-          <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.75rem" }}>By Status</p>
-          {Object.entries(data.byStatus).map(([s, n]) => (
-            <div key={s} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-              <span style={{ ...(STATUS_COLOR[s] ?? {}), padding: "0.15rem 0.5rem", borderRadius: 3, fontSize: "0.72rem", fontWeight: 700 }}>{s}</span>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>{n}</span>
-            </div>
-          ))}
-          {!Object.keys(data.byStatus).length && <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
+          <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "1rem" }}>Clients by billing</p>
+          {statusSegments.length ? <Donut segments={statusSegments} size={120} thickness={18} /> : <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
         </div>
         <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -183,7 +178,8 @@ export default function RevenuePage() {
 
       {/* Revenue by Protocol */}
       <div id="by-protocol" className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.5rem" }}>
-        <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.85rem" }}>Revenue by Protocol — Avg Gross Margin %</p>
+        <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Margin by protocol</p>
+        <p style={{ color: "var(--text-mute)", fontSize: "0.78rem", marginBottom: "0.85rem" }}>Average profit kept after product cost, per peptide.</p>
         <ProtocolChart rows={data.byProtocol ?? []} />
       </div>
 
@@ -201,7 +197,7 @@ export default function RevenuePage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
-                {["Client", "Protocol", "Rate/mo", "Status", "COGS/mo", "Margin", "Since", ""].map(h => (
+                {["Client", "Protocol", "Rate/mo", "Status", "Product cost/mo", "Margin", "Since", ""].map(h => (
                   <th key={h} style={{ textAlign: "left", padding: "0.6rem 0.875rem", color: "var(--text-mute)", fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
