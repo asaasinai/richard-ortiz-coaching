@@ -87,7 +87,7 @@ export default async function AdminOverview() {
     <div>
       {/* Greeting */}
       <div style={{ marginBottom: "1.75rem" }}>
-        <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.5rem,4vw,2.1rem)", letterSpacing: "-0.02em" }}>Welcome, Richard.</h1>
+        <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.5rem,4vw,2.1rem)", letterSpacing: "-0.02em" }}>Hello, Richard.</h1>
         <p style={{ color: "var(--text-mute)", fontSize: "0.95rem", marginTop: "0.35rem" }}>Here's how your coaching business is doing today.</p>
       </div>
 
