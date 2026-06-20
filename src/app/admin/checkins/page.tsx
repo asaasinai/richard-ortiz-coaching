@@ -299,28 +299,22 @@ function CheckInsInner() {
         })}
       </div>
 
-      {/* Mobile full-screen modal for detail */}
-      {selected && (
-        <div className="checkin-mobile-modal">
-          <div style={{ padding: "1rem" }}><DetailPanel /></div>
-        </div>
-      )}
-
-      {/* Desktop: side-by-side layout */}
-      <div className="checkin-desktop-layout">
-        <div style={{ flex: 1, overflow: "auto" }}>
-          {loading ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {[0, 1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 66 }} />)}
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      {/* List with inline-expanding detail (works on mobile) */}
+      <div>
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {[0, 1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 66 }} />)}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {checkins.map(c => {
                 const unread = !c.read
+                const isOpen = selected?.id === c.id
                 return (
-                  <div key={c.id} onClick={() => openCard(c)}
+                  <div key={c.id}>
+                  <div onClick={() => isOpen ? setSelected(null) : openCard(c)}
                     style={{
-                      background: c.urgent_flag && !c.resolved ? "rgba(248,113,113,0.07)" : selected?.id === c.id ? "var(--surface-2)" : "var(--surface)",
+                      background: c.urgent_flag && !c.resolved ? "rgba(248,113,113,0.07)" : isOpen ? "var(--surface-2)" : "var(--surface)",
                       borderRadius: "var(--radius)", padding: "0.875rem 1rem", cursor: "pointer",
                       borderTop: "1px solid var(--border)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
                       borderLeft: c.urgent_flag && !c.resolved ? "3px solid #f87171" : unread ? "3px solid var(--gold)" : "1px solid var(--border)",
@@ -356,6 +350,8 @@ function CheckInsInner() {
                       </div>
                     </div>
                   </div>
+                  {isOpen && <div style={{ marginTop: "0.6rem", animation: "ci-expand .18s ease" }}><DetailPanel /></div>}
+                  </div>
                 )
               })}
               {checkins.length === 0 && (
@@ -367,21 +363,9 @@ function CheckInsInner() {
               )}
             </div>
           )}
-        </div>
-
-        {selected && (
-          <div style={{ width: 380, flexShrink: 0, overflow: "auto" }}><DetailPanel /></div>
-        )}
       </div>
 
-      <style>{`
-        .checkin-desktop-layout { display: flex; gap: 1.5rem; min-height: calc(100vh - 12rem); }
-        .checkin-mobile-modal { display: none; }
-        @media (max-width: 767px) {
-          .checkin-desktop-layout > *:last-child { display: none; }
-          .checkin-mobile-modal { display: block; position: fixed; inset: 52px 0 0 0; background: var(--bg); z-index: 200; overflow-y: auto; }
-        }
-      `}</style>
+      <style>{`@keyframes ci-expand { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   )
 }

@@ -160,7 +160,7 @@ export default function RevenuePage() {
       </div>
 
       {/* Status breakdown + Trend */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginBottom: "1.5rem" }}>
+      <div className="rev-2col" style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginBottom: "1.5rem" }}>
         <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
           <p style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: "1rem" }}>Clients by billing</p>
           {statusSegments.length ? <Donut segments={statusSegments} size={120} thickness={18} /> : <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
@@ -295,6 +295,9 @@ export default function RevenuePage() {
 
       <style>{`
         .rev-table-wrap { overflow-x: auto; }
+        @media (max-width: 820px) {
+          .rev-2col { grid-template-columns: 1fr !important; }
+        }
         @media (max-width: 767px) {
           .rev-table-wrap { display: none; }
           .rev-card-list  { display: flex !important; }
