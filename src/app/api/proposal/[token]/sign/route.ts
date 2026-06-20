@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { getSetting } from "@/lib/settings"
+import { renderTemplate } from "@/lib/email-templates"
 
 async function sendEmail(payload: { to: string; subject: string; html: string }) {
   const RESEND_KEY = process.env.RESEND_API_KEY
@@ -68,33 +70,32 @@ export async function POST(
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://richardortizcoaching.com"
     const adminUrl = `${siteUrl}/admin/intakes/${proposal.intake_id}`
 
+    // Editable templates from Settings
+    const [coachSubj, coachBody, welcomeSubj, welcomeBody, adminEmailSetting] = await Promise.all([
+      getSetting("email_coach_notify_subject"),
+      getSetting("email_coach_notify_body"),
+      getSetting("email_welcome_subject"),
+      getSetting("email_welcome_body"),
+      getSetting("admin_email"),
+    ])
+    const vars = {
+      first_name: proposal.first_name, last_name: proposal.last_name,
+      client_email: proposal.client_email, signed_name: body.signed_name.trim(),
+      admin_url: adminUrl,
+    }
+
     // Coach notification
     await sendEmail({
-      to: process.env.ADMIN_EMAIL ?? "richard@richardortizcoaching.com",
-      subject: `✅ ${proposal.first_name} ${proposal.last_name} signed their agreement`,
-      html: `
-<div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
-  <h2 style="color:#C9A84C">Agreement Signed!</h2>
-  <p><strong>${body.signed_name}</strong> (${proposal.client_email}) just signed their coaching agreement.</p>
-  <p style="margin:1.5rem 0">
-    <a href="${adminUrl}" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">View Intake →</a>
-  </p>
-</div>`,
+      to: adminEmailSetting || process.env.ADMIN_EMAIL || "richard@richardortizcoaching.com",
+      subject: renderTemplate(coachSubj, vars),
+      html: renderTemplate(coachBody, vars),
     })
 
     // Client confirmation
     await sendEmail({
       to: proposal.client_email,
-      subject: "Welcome! Your coaching agreement is confirmed ✓",
-      html: `
-<div style="font-family:Inter,sans-serif;max-width:580px;margin:0 auto;background:#000;color:#fff;padding:2rem;border-radius:8px">
-  <h1 style="color:#C9A84C;font-size:1.4rem;margin-bottom:0.5rem">You're In! 🎉</h1>
-  <p style="color:#ccc;line-height:1.7">Hi ${proposal.first_name},</p>
-  <p style="color:#ccc;line-height:1.7">Your coaching agreement is signed and confirmed. Richard will reach out within <strong style="color:#fff">24 hours</strong> to kick off your protocol.</p>
-  <p style="color:#ccc;line-height:1.7">Get ready — your optimization journey starts now.</p>
-  <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
-  <p style="color:#555;font-size:0.75rem">Richard Ortiz Coaching — for educational and coaching purposes only. Not medical advice.</p>
-</div>`,
+      subject: renderTemplate(welcomeSubj, vars),
+      html: renderTemplate(welcomeBody, vars),
     })
 
     return NextResponse.json({ ok: true })

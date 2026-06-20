@@ -9,3 +9,4 @@ node_modules
 
 # Client-data backups (PII — never commit)
 backups
+.env*

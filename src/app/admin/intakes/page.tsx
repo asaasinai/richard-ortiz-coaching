@@ -11,6 +11,7 @@ interface Intake {
   status: string
   submitted_at: string
   data: Record<string, unknown>
+  is_client?: boolean
 }
 
 const statusChip = (s: string) => ({
@@ -32,7 +33,9 @@ function IntakesInner() {
 
   useEffect(() => {
     fetch("/api/admin/intakes").then(r => r.json()).then(d => {
-      setIntakes(d.intakes ?? [])
+      // Applicants = people still in the pipeline. Once they sign a proposal they
+      // become a client and move to the Clients list, so drop them here.
+      setIntakes((d.intakes ?? []).filter((i: Intake) => !i.is_client))
       setLoading(false)
     })
   }, [])

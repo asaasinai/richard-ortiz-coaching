@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const strengthFilter = url.searchParams.get('strength')
   if (peptideFilter && strengthFilter) {
     const result = await query(
-      `SELECT id, peptide_name, strength, strength_unit, units_in_stock, notes, wholesale_cost,
+      `SELECT id, peptide_name, strength, strength_unit, units_in_stock, notes, wholesale_cost, retail_price,
               (SELECT unit_cost FROM roc.inventory_batches WHERE sku_id = s.id AND qty_remaining > 0 ORDER BY received_at ASC LIMIT 1) as fifo_cost
        FROM roc.inventory_skus s
        WHERE peptide_name = $1 AND strength = $2::numeric`,
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 // PATCH — update SKU fields
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, reorder_qty, notes, units_in_stock, reorder_point } = await req.json()
+    const { id, reorder_qty, notes, units_in_stock, reorder_point, retail_price, wholesale_cost } = await req.json()
     if (!id) return NextResponse.json({ ok: false, error: "id required" }, { status: 400 })
     await query(
       `UPDATE roc.inventory_skus SET
@@ -149,9 +149,11 @@ export async function PATCH(req: NextRequest) {
         notes = COALESCE($2, notes),
         units_in_stock = COALESCE($3, units_in_stock),
         reorder_point = COALESCE($4, reorder_point),
+        retail_price = COALESCE($5, retail_price),
+        wholesale_cost = COALESCE($6, wholesale_cost),
         updated_at = NOW()
-       WHERE id = $5`,
-      [reorder_qty != null ? String(reorder_qty) : null, notes ?? null, units_in_stock != null ? String(units_in_stock) : null, reorder_point != null ? String(reorder_point) : null, id]
+       WHERE id = $7`,
+      [reorder_qty != null ? String(reorder_qty) : null, notes ?? null, units_in_stock != null ? String(units_in_stock) : null, reorder_point != null ? String(reorder_point) : null, retail_price != null ? String(retail_price) : null, wholesale_cost != null ? String(wholesale_cost) : null, id]
     )
     return NextResponse.json({ ok: true })
   } catch (err) {

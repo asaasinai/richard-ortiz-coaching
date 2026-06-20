@@ -53,6 +53,13 @@ export default function AdminSettingsPage() {
   const text = (k: string, label: string, type = "text") => (
     <div><label style={lbl}>{label}</label><input type={type} value={s[k] ?? ""} onChange={e => set(k, e.target.value)} style={inp} /></div>
   )
+  const area = (k: string, label: string, rows = 6, mono = false) => (
+    <div>
+      <label style={lbl}>{label}</label>
+      <textarea rows={rows} value={s[k] ?? ""} onChange={e => set(k, e.target.value)}
+        style={{ ...inp, resize: "vertical", lineHeight: 1.55, fontFamily: mono ? "monospace" : "inherit", fontSize: mono ? "0.78rem" : "0.875rem" }} />
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: 620 }}>
@@ -77,6 +84,36 @@ export default function AdminSettingsPage() {
         {text("admin_name", "Admin / Coach Name")}
         {text("admin_email", "Admin Email", "email")}
         {text("admin_phone", "Admin Phone (for SMS alerts)", "tel")}
+      </Section>
+
+      <Section title="Terms of Service">
+        <p style={{ fontSize: "0.74rem", color: "var(--text-mute)", marginBottom: "0.4rem" }}>
+          Shown on every proposal and required for the client&apos;s e-signature. Edits apply to newly generated proposals.
+        </p>
+        {area("tos_text", "Coaching Agreement (TOS)", 14, true)}
+      </Section>
+
+      <Section title="Email Templates">
+        <div style={{ fontSize: "0.74rem", color: "var(--text-mute)", lineHeight: 1.6, marginBottom: "0.5rem" }}>
+          These are the emails the system sends. Bodies are HTML. Use these placeholders — they fill in automatically:
+          <div style={{ marginTop: "0.4rem", display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+            {["{{first_name}}", "{{last_name}}", "{{client_email}}", "{{proposal_url}}", "{{protocol_summary}}", "{{total_monthly}}", "{{signed_name}}", "{{admin_email}}", "{{admin_url}}"].map(p => (
+              <code key={p} style={{ background: "var(--surface-2)", padding: "0.1rem 0.4rem", borderRadius: 3, fontSize: "0.72rem", color: "var(--gold-light)" }}>{p}</code>
+            ))}
+          </div>
+        </div>
+
+        <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-soft)", marginTop: "0.5rem" }}>1. Proposal — sent to client to review &amp; sign</p>
+        {text("email_proposal_subject", "Subject")}
+        {area("email_proposal_body", "Body (HTML)", 10, true)}
+
+        <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-soft)", marginTop: "0.75rem" }}>2. Welcome — sent to client after they sign</p>
+        {text("email_welcome_subject", "Subject")}
+        {area("email_welcome_body", "Body (HTML)", 8, true)}
+
+        <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-soft)", marginTop: "0.75rem" }}>3. Coach notification — sent to you when a client signs</p>
+        {text("email_coach_notify_subject", "Subject")}
+        {area("email_coach_notify_body", "Body (HTML)", 6, true)}
       </Section>
 
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

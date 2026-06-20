@@ -1,4 +1,5 @@
 import { query } from "@/lib/db"
+import { EMAIL_TEMPLATE_DEFAULTS } from "@/lib/email-templates"
 
 const DEFAULTS: Record<string, string> = {
   notify_email_urgent_checkin: "true",
@@ -14,6 +15,8 @@ const DEFAULTS: Record<string, string> = {
   admin_email: "",
   admin_phone: "",
   admin_avatar: "",
+  // Editable email templates + TOS (see lib/email-templates.ts)
+  ...EMAIL_TEMPLATE_DEFAULTS,
 }
 
 // Read all settings merged over defaults. Degrades to defaults pre-migration.

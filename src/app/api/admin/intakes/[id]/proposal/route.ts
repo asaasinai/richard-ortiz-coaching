@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { randomBytes } from "crypto"
+import { getSetting } from "@/lib/settings"
 
 export const dynamic = "force-dynamic"
 
@@ -96,10 +97,28 @@ export async function POST(
 
     const protocol = protocolRes.rows[0]
     const intake = intakeRes.rows[0] as { first_name: string; last_name: string; email: string }
-    const tosText = body.tos_text ?? DEFAULT_TOS
+    // Never let a blank/stub TOS through — fall back to the editable Settings TOS,
+    // then the hardcoded default if Settings is empty.
+    const tosText = body.tos_text && body.tos_text.trim().length >= 50
+      ? body.tos_text
+      : (await getSetting("tos_text")) || DEFAULT_TOS
+
+    // Pull every saved protocol line so the proposal lists them all with a total.
+    const linesRes = await query(
+      `SELECT id, peptide, sku_id, strength, strength_unit, dose_amount, dose_unit,
+              frequency_days, duration_weeks, monthly_rate, coach_notes, secondary_peptide
+       FROM roc.protocol_lines WHERE client_id = $1 ORDER BY sort_order, created_at`,
+      [id]
+    )
+    const lines = linesRes.rows as { monthly_rate: string | null }[]
+    const totalMonthly = lines.reduce((s, l) => s + Number(l.monthly_rate ?? 0), 0)
 
     const protocolSnapshot = {
       ...protocol,
+      // Multi-protocol proposal: full line list + summed monthly. Falls back to the
+      // single client_protocols row for older proposals that have no lines.
+      lines: linesRes.rows,
+      total_monthly: lines.length ? totalMonthly : Number(protocol.monthly_rate ?? 0),
       client_first_name: intake.first_name,
       client_last_name: intake.last_name,
       client_email: intake.email,

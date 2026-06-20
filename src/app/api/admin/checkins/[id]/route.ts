@@ -20,6 +20,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ ok: true })
     }
 
+    if (action === "dismiss") {
+      // Soft-remove from the active queue. Data stays on the client profile.
+      const dismiss = body.dismissed !== false
+      await query(
+        `UPDATE roc.checkins SET dismissed = $1, dismissed_at = CASE WHEN $1 THEN NOW() ELSE NULL END WHERE id = $2`,
+        [dismiss, id]
+      )
+      // Clear any open queue notifications for this check-in when dismissing.
+      if (dismiss) {
+        await resolveNotifications("urgent_checkin", id)
+        await resolveNotifications("checkin_submitted", id)
+      }
+      return NextResponse.json({ ok: true })
+    }
+
     if (action === "follow_up") {
       const resolved = body.resolved === true
       await query(

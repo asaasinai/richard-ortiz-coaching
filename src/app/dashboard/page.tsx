@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import Link from "next/link"
-import { Calendar, TrendingUp, TrendingDown, Minus, ArrowRight, Beaker, Trash2, Calculator } from "lucide-react"
+import { Calendar, ArrowRight, Beaker, Trash2, Calculator } from "lucide-react"
 
 interface CheckIn {
   id: string
@@ -16,33 +16,37 @@ interface CheckIn {
 }
 interface Protocol { peptide: string; protocol: string; coach_notes: string; assigned_at: string }
 
-function Spark({ values, color="var(--gold)", h=52 }: { values: number[], color?: string, h?: number }) {
+// kind="delta": headline is the change first→last (weight — lower is better).
+// kind="avg": headline is the average (energy, mood). Plots every point with its
+// value labelled, and shows the point count.
+function Spark({ values, color="var(--gold)", h=52, kind="avg", unit="" }: { values: number[], color?: string, h?: number, kind?: "delta"|"avg", unit?: string }) {
   if (values.length < 2) return null
   const min = Math.min(...values); const max = Math.max(...values); const range = max - min || 1
   const w = 220
-  const pts = values.map((v,i) => {
-    const x = (i/(values.length-1))*w
-    const y = h - ((v-min)/range)*(h-8) - 4
-    return `${x},${y}`
-  }).join(" ")
-  const last = values[values.length-1]; const prev = values[values.length-2]
-  const trend = last>prev?"up":last<prev?"down":"flat"
+  const xy = (v: number, i: number) => ({ x: (i/(values.length-1))*w, y: h - ((v-min)/range)*(h-8) - 4 })
+  const pts = values.map((v,i) => { const p = xy(v,i); return `${p.x},${p.y}` }).join(" ")
+  const first = values[0]; const last = values[values.length-1]
+  const avg = values.reduce((a,b)=>a+b,0)/values.length
+  const delta = last - first
+  let result: string, rColor: string
+  if (kind === "avg") { result = `avg ${avg.toFixed(1)}${unit}`; rColor = "var(--gold)" }
+  else { result = delta === 0 ? "no change" : `${delta < 0 ? "down" : "up"} ${Math.abs(delta).toFixed(1)} ${unit}`.trim(); rColor = delta < 0 ? "#4ade80" : delta > 0 ? "#f87171" : "var(--text-mute)" }
+  const showLabels = values.length <= 14
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:"1rem" }}>
-      <svg width={w} height={h} style={{ overflow:"visible" }}>
+    <div style={{ display:"flex", alignItems:"center", gap:"1rem", flexWrap:"wrap" }}>
+      <svg width={w} height={h+14} style={{ overflow:"visible" }}>
         <polyline points={pts} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
         {values.map((v,i) => {
-          const x=(i/(values.length-1))*w; const y=h-((v-min)/range)*(h-8)-4
-          return <circle key={i} cx={x} cy={y} r={i===values.length-1?5:3} fill={color} opacity={i===values.length-1?1:0.5}/>
+          const p = xy(v,i)
+          return <g key={i}>
+            <circle cx={p.x} cy={p.y} r={i===values.length-1?5:3} fill={color} opacity={i===values.length-1?1:0.5}/>
+            {showLabels && <text x={p.x} y={p.y-7} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-soft)">{v}</text>}
+          </g>
         })}
       </svg>
       <div>
-        <div style={{ fontSize:"1.75rem", fontWeight:900, fontFamily:"var(--font-display)", color:"var(--text)", lineHeight:1 }}>{last}</div>
-        <div style={{ fontSize:"0.7rem", marginTop:"0.25rem", display:"flex", alignItems:"center", gap:"0.2rem",
-          color: trend==="up"?"#4ade80":trend==="down"?"#f87171":"var(--text-mute)" }}>
-          {trend==="up"?<TrendingUp size={11}/>:trend==="down"?<TrendingDown size={11}/>:<Minus size={11}/>}
-          {trend==="up"?"improving":trend==="down"?"declining":"stable"}
-        </div>
+        <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"var(--font-display)", color:rColor, lineHeight:1.1 }}>{result}</div>
+        <div style={{ fontSize:"0.7rem", marginTop:"0.3rem", color:"var(--text-mute)" }}>{values.length} check-ins · latest {last}{unit}</div>
       </div>
     </div>
   )
@@ -154,9 +158,11 @@ export default function DashboardPage() {
 
   const signOut = () => { sessionStorage.clear(); router.push("/auth/signin") }
 
-  const weightVals = checkins.filter(c => c.data.weight && !isNaN(Number(c.data.weight))).map(c => Number(c.data.weight)).slice(-10)
-  const energyVals = checkins.filter(c => c.data.energyScore !== undefined).map(c => c.data.energyScore!).slice(-10)
-  const moodVals   = checkins.filter(c => c.data.moodScore !== undefined).map(c => c.data.moodScore!).slice(-10)
+  // Plot every check-in point (chronological), not just the last 10.
+  const byDate = [...checkins].sort((a,b) => +new Date(a.submitted_at) - +new Date(b.submitted_at))
+  const weightVals = byDate.filter(c => c.data.weight && !isNaN(Number(c.data.weight))).map(c => Number(c.data.weight))
+  const energyVals = byDate.filter(c => c.data.energyScore !== undefined).map(c => c.data.energyScore!)
+  const moodVals   = byDate.filter(c => c.data.moodScore !== undefined).map(c => c.data.moodScore!)
 
   if (!clientEmail) return null
 
@@ -224,7 +230,7 @@ export default function DashboardPage() {
             {weightVals.length >= 2 && (
               <div className="card" style={{ marginBottom:"1.5rem" }}>
                 <div style={{ fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", marginBottom:"1rem" }}>Weight Trend (lbs)</div>
-                <Spark values={weightVals} color="var(--gold)" h={60}/>
+                <Spark values={weightVals} color="var(--gold)" h={60} kind="delta" unit="lbs"/>
               </div>
             )}
 
@@ -234,13 +240,13 @@ export default function DashboardPage() {
                 {energyVals.length>=2 && (
                   <div className="card" style={{ flex:1, minWidth:200 }}>
                     <div style={{ fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", marginBottom:"0.75rem" }}>Energy</div>
-                    <Spark values={energyVals} color="#60a5fa" h={40}/>
+                    <Spark values={energyVals} color="#60a5fa" h={40} kind="avg" unit="/10"/>
                   </div>
                 )}
                 {moodVals.length>=2 && (
                   <div className="card" style={{ flex:1, minWidth:200 }}>
                     <div style={{ fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", marginBottom:"0.75rem" }}>Mood</div>
-                    <Spark values={moodVals} color="#4ade80" h={40}/>
+                    <Spark values={moodVals} color="#4ade80" h={40} kind="avg" unit="/10"/>
                   </div>
                 )}
               </div>

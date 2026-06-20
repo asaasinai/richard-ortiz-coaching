@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, X, CheckCircle, Mail, ArrowUp, ArrowDown, Download, CheckCheck } from "lucide-react"
 import PageHeader from "@/components/admin/PageHeader"
 
-type Filter = "all" | "unread" | "urgent" | "resolved" | "thisweek"
+type Filter = "all" | "unread" | "urgent" | "resolved" | "thisweek" | "dismissed"
 
 interface CheckIn {
   id: string
@@ -20,6 +20,7 @@ interface CheckIn {
   follow_up_notes?: string | null
   resolved_by?: string | null
   resolved_at?: string | null
+  dismissed?: boolean
   data: {
     weight?: string
     progressScore?: number
@@ -31,14 +32,15 @@ interface CheckIn {
   }
 }
 
-interface Counts { all?: string; unread?: string; urgent?: string; resolved?: string; thisweek?: string }
+interface Counts { all?: string; unread?: string; urgent?: string; resolved?: string; thisweek?: string; dismissed?: string }
 
 const FILTERS: { id: Filter; label: string; key: keyof Counts }[] = [
-  { id: "all",      label: "All",       key: "all" },
-  { id: "unread",   label: "Unread",    key: "unread" },
-  { id: "urgent",   label: "Urgent",    key: "urgent" },
-  { id: "resolved", label: "Resolved",  key: "resolved" },
-  { id: "thisweek", label: "This Week", key: "thisweek" },
+  { id: "all",       label: "All",       key: "all" },
+  { id: "unread",    label: "Unread",    key: "unread" },
+  { id: "urgent",    label: "Urgent",    key: "urgent" },
+  { id: "resolved",  label: "Resolved",  key: "resolved" },
+  { id: "thisweek",  label: "This Week", key: "thisweek" },
+  { id: "dismissed", label: "Dismissed", key: "dismissed" },
 ]
 
 const FOLLOW_UP_OPTIONS = ["Client Contacted", "Protocol Adjusted", "Dosage Changed", "Referred Out", "No Action Needed"]
@@ -128,6 +130,12 @@ function CheckInsInner() {
   const rowResolve = (c: CheckIn) => {
     fetch(`/api/admin/checkins/${c.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "follow_up", follow_up_action: "No Action Needed", resolved: true }) })
       .then(() => load(filter))
+  }
+  // Dismiss removes a check-in from the active queue (it still lives on the
+  // client's profile). Restore brings it back.
+  const setDismissed = (c: CheckIn, dismissed: boolean) => {
+    fetch(`/api/admin/checkins/${c.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "dismiss", dismissed }) })
+      .then(() => { if (selected?.id === c.id) setSelected(null); load(filter) })
   }
 
   const markAllRead = () => {
@@ -259,6 +267,15 @@ function CheckInsInner() {
               <Mail size={13} /> SMS Client
             </button>
           )}
+          {selected.dismissed
+            ? <button onClick={() => setDismissed(selected, false)}
+                style={{ flex: 1, padding: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }}>
+                ↩ Restore to queue
+              </button>
+            : <button onClick={() => setDismissed(selected, true)}
+                style={{ flex: 1, padding: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-mute)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }}>
+                ✕ Dismiss
+              </button>}
         </div>
       )}
     </div>
@@ -345,8 +362,11 @@ function CheckInsInner() {
                       </div>
                       {/* inline row actions — manage queue without opening */}
                       <div style={{ display: "flex", gap: "0.3rem" }} onClick={e => e.stopPropagation()}>
-                        {unread && <button onClick={() => rowMarkSeen(c)} title="Mark seen" style={rowBtn}>✓ Seen</button>}
-                        {c.urgent_flag && !c.resolved && <button onClick={() => rowResolve(c)} title="Resolve urgent" style={{ ...rowBtn, color: "#22c55e", borderColor: "#22c55e" }}>Resolve</button>}
+                        {unread && !c.dismissed && <button onClick={() => rowMarkSeen(c)} title="Mark seen" style={rowBtn}>✓ Seen</button>}
+                        {c.urgent_flag && !c.resolved && !c.dismissed && <button onClick={() => rowResolve(c)} title="Resolve urgent" style={{ ...rowBtn, color: "#22c55e", borderColor: "#22c55e" }}>Resolve</button>}
+                        {c.dismissed
+                          ? <button onClick={() => setDismissed(c, false)} title="Restore to queue" style={rowBtn}>↩ Restore</button>
+                          : <button onClick={() => setDismissed(c, true)} title="Dismiss from queue" style={rowBtn}>✕ Dismiss</button>}
                       </div>
                     </div>
                   </div>

@@ -45,3 +45,53 @@ export async function GET(
     return NextResponse.json({ error: String(e) }, { status: 500 })
   }
 }
+
+// PATCH /api/admin/intakes/[id] — admin edits an applicant/client's details.
+// Body: { first_name?, last_name?, email?, data?: { <scalar fields to merge> } }
+// `data` is shallow-merged into the existing JSONB so we never drop fields the
+// editor didn't touch (e.g. rawAnswers). first_name/last_name/email are also
+// mirrored into data so the two stay consistent.
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params
+  try {
+    const body = await req.json() as {
+      first_name?: string; last_name?: string; email?: string
+      data?: Record<string, string | number | null>
+    }
+
+    // Build the JSONB merge payload: any data fields sent, plus mirrored contact.
+    const merge: Record<string, string | number | null> = { ...(body.data ?? {}) }
+    if (body.first_name !== undefined) merge.firstName = body.first_name
+    if (body.last_name !== undefined) merge.lastName = body.last_name
+    if (body.email !== undefined) merge.email = body.email
+
+    await query(
+      `UPDATE roc.intakes SET
+         first_name = COALESCE($1, first_name),
+         last_name  = COALESCE($2, last_name),
+         email      = COALESCE($3, email),
+         data       = COALESCE(data, '{}'::jsonb) || $4::jsonb
+       WHERE id = $5`,
+      [
+        body.first_name ?? null,
+        body.last_name ?? null,
+        body.email ?? null,
+        JSON.stringify(merge),
+        id,
+      ]
+    )
+
+    await query(
+      "INSERT INTO roc.activity_log (action, details) VALUES ('intake_edited', $1)",
+      [JSON.stringify({ id, fields: Object.keys({ ...(body.data ?? {}), ...(body.first_name !== undefined ? { first_name: 1 } : {}), ...(body.last_name !== undefined ? { last_name: 1 } : {}), ...(body.email !== undefined ? { email: 1 } : {}) }) })]
+    )
+
+    return NextResponse.json({ ok: true })
+  } catch (e) {
+    console.error("[PATCH /api/admin/intakes/[id]]", e)
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
+}

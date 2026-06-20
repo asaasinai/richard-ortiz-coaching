@@ -10,13 +10,13 @@ export async function GET() {
       client_id: string; first_name: string; last_name: string; email: string
       peptide: string; dose_amount: string; dose_unit: string; frequency_days: string | null
       monthly_rate: string; billing_status: string; billing_notes: string | null
-      assigned_at: string; sku_id: string | null
+      assigned_at: string; sku_id: string | null; duration_weeks: string | null
       strength: string | null; strength_unit: string | null
     }>(`
       SELECT
         cp.client_id, cp.peptide, cp.dose_amount, cp.dose_unit, cp.frequency_days,
         cp.monthly_rate, cp.billing_status, cp.billing_notes,
-        cp.assigned_at, cp.sku_id,
+        cp.assigned_at, cp.sku_id, cp.duration_weeks,
         s.strength, s.strength_unit,
         i.first_name, i.last_name, i.email
       FROM roc.client_protocols cp
@@ -26,13 +26,13 @@ export async function GET() {
     `)
 
     const rows = clients.rows
-
-    // MRR = sum of active monthly_rate
-    const mrr = rows
-      .filter(r => r.billing_status === "active")
-      .reduce((sum, r) => sum + Number(r.monthly_rate ?? 0), 0)
-
-    const arr = mrr * 12
+    // monthly_rate is the RATE PER ORDER. A protocol runs `duration_weeks`, so
+    // orders/year = 52 / duration_weeks (default 12 if no duration). Annual value
+    // = rate × orders/year; MRR = ARR / 12.
+    const ordersPerYear = (durationWeeks: string | null) => {
+      const w = Number(durationWeeks ?? 0)
+      return w > 0 ? 52 / w : 12
+    }
 
     // By status
     const byStatus = rows.reduce<Record<string, number>>((acc, r) => {
@@ -49,13 +49,14 @@ export async function GET() {
     `)
     const fifoCost = Object.fromEntries(batchRows.rows.map(b => [b.sku_id, Number(b.unit_cost)]))
 
-    // Monthly COGS per client = vials consumed per month × FIFO vial cost.
-    //   monthly_vials = (doses/week × dose_per_dose) / vial_strength × 4.333 weeks
+    // Per-ORDER COGS = vials consumed across the protocol's full run × FIFO cost.
+    //   order_vials = (doses/week × dose_per_dose) / vial_strength × run_weeks
     // Dose and strength are unit-normalized to mg so mcg doses don't blow up the math.
     const toMg = (v: number, unit: string | null | undefined) => unit === "mcg" ? v / 1000 : v
     const clientRows = rows.map(r => {
-      const rate = Number(r.monthly_rate ?? 0)
-      let cogs = 0
+      const rate = Number(r.monthly_rate ?? 0) // rate per order
+      const runWeeks = Number(r.duration_weeks ?? 0) > 0 ? Number(r.duration_weeks) : 4.333
+      let cogs = 0 // COGS for one order
       if (r.sku_id && fifoCost[r.sku_id]) {
         let dosesPerWeek = 0
         try { const f = JSON.parse(r.frequency_days || "[]"); dosesPerWeek = Array.isArray(f) ? f.length : 0 } catch { dosesPerWeek = 0 }
@@ -63,18 +64,21 @@ export async function GET() {
         const doseMg = toMg(Number(r.dose_amount ?? 0), r.dose_unit)
         const vialMg = toMg(Number(r.strength ?? 0), r.strength_unit)
         if (vialMg > 0 && doseMg > 0) {
-          const monthlyVials = (dosesPerWeek * doseMg * 4.333) / vialMg
-          cogs = monthlyVials * fifoCost[r.sku_id]
+          const orderVials = (dosesPerWeek * doseMg * runWeeks) / vialMg
+          cogs = orderVials * fifoCost[r.sku_id]
         }
       }
       const margin = rate > 0 ? ((rate - cogs) / rate) * 100 : null
+      const annual = rate * ordersPerYear(r.duration_weeks)
       return {
         client_id: r.client_id,
         name: `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim() || r.client_id,
         email: r.email ?? "",
         peptide: r.peptide,
         strength: r.strength ? `${r.strength}${r.strength_unit ?? "mg"}` : null,
-        monthly_rate: rate,
+        monthly_rate: rate, // rate per order (column name is legacy)
+        duration_weeks: r.duration_weeks ? Number(r.duration_weeks) : null,
+        annual_value: Math.round(annual * 100) / 100,
         billing_status: r.billing_status,
         billing_notes: r.billing_notes,
         assigned_at: r.assigned_at,
@@ -82,6 +86,10 @@ export async function GET() {
         gross_margin_pct: margin !== null ? Math.round(margin * 10) / 10 : null,
       }
     })
+
+    // ARR = sum of active clients' annualized value; MRR = ARR / 12.
+    const arr = clientRows.filter(c => c.billing_status === "active").reduce((s, c) => s + c.annual_value, 0)
+    const mrr = arr / 12
 
     // Orders this month per client (FIFO fulfillment volume) — degrade-safe
     let ordersByClient: Record<string, number> = {}

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Package, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
+import { Package, Plus, X, ChevronDown, ChevronUp, DollarSign } from "lucide-react"
 import PageHeader from "@/components/admin/PageHeader"
 import { Ring } from "@/components/admin/Charts"
 
@@ -14,6 +14,7 @@ interface SKU {
   id: string; peptide_name: string; strength: string; strength_unit: string
   units_in_stock: string; reorder_qty: string; reorder_point: number
   wholesale_cost: number | null
+  retail_price: number | null
   fifo_cost: number | null; fifo_supplier: string | null
   weekly_burn: number; active_clients: number
   weeks_of_stock: number | null; stock_status: "ok" | "warning" | "critical" | "unknown"
@@ -48,11 +49,67 @@ export default function InventoryPage() {
   const [bulkEntries, setBulkEntries] = useState<{ skuId: string; qty: string; cost: string }[]>([])
   const [bulkSaving, setBulkSaving] = useState(false)
 
+  // Tabs + pricing editor
+  const [tab, setTab] = useState<"stock" | "pricing">("stock")
+  // Per-SKU draft prices, keyed by sku id: { retail, wholesale }
+  const [priceEdits, setPriceEdits] = useState<Record<string, { retail: string; wholesale: string }>>({})
+  const [markup, setMarkup] = useState("5")
+  const [pricingSaving, setPricingSaving] = useState(false)
+  const [pricingSaved, setPricingSaved] = useState(false)
+
   const load = () => {
     setLoading(true)
-    fetch("/api/admin/inventory").then(r => r.json()).then(d => { setSkus(d.skus ?? []); setLoading(false) })
+    fetch("/api/admin/inventory").then(r => r.json()).then(d => {
+      const list: SKU[] = d.skus ?? []
+      setSkus(list)
+      // Seed the pricing draft from the live values
+      setPriceEdits(Object.fromEntries(list.map(s => [s.id, {
+        retail: s.retail_price != null ? String(s.retail_price) : "",
+        wholesale: s.wholesale_cost != null ? String(s.wholesale_cost) : "",
+      }])))
+      setLoading(false)
+    })
   }
   useEffect(load, [])
+
+  const setEdit = (id: string, field: "retail" | "wholesale", val: string) =>
+    setPriceEdits(prev => ({ ...prev, [id]: { ...(prev[id] ?? { retail: "", wholesale: "" }), [field]: val } }))
+
+  // Apply a cost × multiple to every SKU's retail draft (rounded to whole $)
+  const applyMarkup = () => {
+    const m = Number(markup)
+    if (!m || m <= 0) return
+    setPriceEdits(prev => {
+      const next = { ...prev }
+      for (const s of skus) {
+        const cost = Number(next[s.id]?.wholesale || s.wholesale_cost || 0)
+        if (cost > 0) next[s.id] = { ...next[s.id], retail: String(Math.round(cost * m)) }
+      }
+      return next
+    })
+  }
+
+  // Only send rows whose retail or wholesale draft differs from the stored value
+  const dirtyPricing = skus.filter(s => {
+    const e = priceEdits[s.id]; if (!e) return false
+    const r = s.retail_price != null ? String(s.retail_price) : ""
+    const w = s.wholesale_cost != null ? String(s.wholesale_cost) : ""
+    return e.retail !== r || e.wholesale !== w
+  })
+
+  const savePricing = async () => {
+    if (!dirtyPricing.length) return
+    setPricingSaving(true); setPricingSaved(false)
+    const updates = dirtyPricing.map(s => ({
+      id: s.id,
+      retail_price: priceEdits[s.id].retail === "" ? null : Number(priceEdits[s.id].retail),
+      wholesale_cost: priceEdits[s.id].wholesale === "" ? null : Number(priceEdits[s.id].wholesale),
+    }))
+    await fetch("/api/admin/inventory/pricing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ updates }) })
+    setPricingSaving(false); setPricingSaved(true)
+    setTimeout(() => setPricingSaved(false), 2500)
+    load()
+  }
 
   const addBatch = async (skuId: string) => {
     if (!newBatch.qty_received || !newBatch.unit_cost) return
@@ -109,8 +166,8 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <PageHeader title="Inventory" subtitle="Your peptide stock. Keep an eye on what's running low and receive new orders here." backHref="/admin" backLabel="Overview"
-        action={<button onClick={() => {
+      <PageHeader title="Inventory" subtitle="Your peptide stock and pricing. Track what's running low, receive orders, and set the price on every SKU." backHref="/admin" backLabel="Overview"
+        action={tab === "stock" ? <button onClick={() => {
           const entries = Object.values(skuByPeptide).flatMap(group =>
             Object.values(group).map(sku => ({ skuId: sku.id, qty: "", cost: "" }))
           )
@@ -118,7 +175,32 @@ export default function InventoryPage() {
           setShowBulkReceive(true)
         }} className="btn-gold" style={{ fontSize:"0.82rem", padding:"0.5rem 0.95rem" }}>
           <Package size={15} /> Receive order
-        </button>} />
+        </button> : undefined} />
+
+      {/* Tab switcher */}
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.25rem", borderBottom:"1px solid var(--border)", paddingBottom:"0.1rem" }}>
+        {([["stock","Stock",Package],["pricing","Pricing",DollarSign]] as const).map(([val,label,Icon]) => (
+          <button key={val} onClick={() => setTab(val)} style={{
+            display:"flex", alignItems:"center", gap:"0.4rem", padding:"0.55rem 1rem", background:"none", border:"none", cursor:"pointer",
+            fontWeight:700, fontSize:"0.85rem", color: tab===val ? "var(--gold)" : "var(--text-mute)",
+            borderBottom: `2px solid ${tab===val ? "var(--gold)" : "transparent"}`, marginBottom:"-1px",
+          }}>
+            <Icon size={15}/> {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ===================== PRICING TAB ===================== */}
+      {tab === "pricing" && (
+        <PricingPanel
+          skus={skus} loading={loading} priceEdits={priceEdits} setEdit={setEdit}
+          markup={markup} setMarkup={setMarkup} applyMarkup={applyMarkup}
+          dirtyCount={dirtyPricing.length} saving={pricingSaving} saved={pricingSaved} onSave={savePricing}
+        />
+      )}
+
+      {/* ===================== STOCK TAB ===================== */}
+      {tab === "stock" && <>
 
       {/* Stock summary strip */}
       {!loading && (
@@ -345,7 +427,107 @@ export default function InventoryPage() {
         })}
       </div>
 
+      </>}
+
       <style>{`@media (max-width: 700px) { .inv-summary { grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  )
+}
+
+// ── Pricing tab ──────────────────────────────────────────────────────────────
+// Flat editable table of every SKU: wholesale cost (COGS) + retail price, with
+// live unit margin. These retail prices feed the suggested monthly rate in the
+// protocol builder and the planned-margin math on proposals/revenue.
+function PricingPanel({
+  skus, loading, priceEdits, setEdit, markup, setMarkup, applyMarkup, dirtyCount, saving, saved, onSave,
+}: {
+  skus: SKU[]; loading: boolean
+  priceEdits: Record<string, { retail: string; wholesale: string }>
+  setEdit: (id: string, field: "retail" | "wholesale", val: string) => void
+  markup: string; setMarkup: (v: string) => void; applyMarkup: () => void
+  dirtyCount: number; saving: boolean; saved: boolean; onSave: () => void
+}) {
+  const [search, setSearch] = useState("")
+  const rows = skus
+    .filter(s => !search || s.peptide_name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.peptide_name.localeCompare(b.peptide_name) || Number(a.strength) - Number(b.strength))
+
+  const priced = skus.filter(s => (priceEdits[s.id]?.retail ?? "") !== "").length
+
+  return (
+    <div>
+      {/* Controls */}
+      <div style={{ display:"flex", gap:"0.75rem", marginBottom:"1rem", flexWrap:"wrap", alignItems:"center" }}>
+        <input placeholder="Search peptide…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex:1, minWidth:160, maxWidth:260 }}/>
+        <div style={{ display:"flex", alignItems:"center", gap:"0.4rem", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.3rem 0.6rem" }}>
+          <span style={{ fontSize:"0.78rem", color:"var(--text-mute)" }}>Price all at</span>
+          <input type="number" step="0.5" value={markup} onChange={e => setMarkup(e.target.value)} style={{ width:54, textAlign:"center", padding:"0.25rem" }}/>
+          <span style={{ fontSize:"0.78rem", color:"var(--text-mute)" }}>× cost</span>
+          <button onClick={applyMarkup} className="btn-outline" style={{ fontSize:"0.75rem", padding:"0.3rem 0.6rem" }}>Apply</button>
+        </div>
+        <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"0.75rem" }}>
+          {saved && <span style={{ color:"#34D399", fontSize:"0.8rem", fontWeight:700 }}>✓ Saved</span>}
+          <span style={{ fontSize:"0.78rem", color:"var(--text-mute)" }}>{priced}/{skus.length} priced</span>
+          <button onClick={onSave} disabled={saving || dirtyCount === 0} className="btn-gold" style={{ fontSize:"0.82rem", padding:"0.5rem 0.95rem", opacity: dirtyCount===0 ? 0.5 : 1 }}>
+            {saving ? "Saving…" : dirtyCount > 0 ? `Save ${dirtyCount} change${dirtyCount!==1?"s":""}` : "Saved"}
+          </button>
+        </div>
+      </div>
+
+      {loading && (
+        <div style={{ display:"flex", flexDirection:"column", gap:"0.4rem" }}>
+          {[0,1,2,3,4,5,6,7].map(i => <div key={i} className="skeleton" style={{ height:42 }} />)}
+        </div>
+      )}
+
+      {!loading && (
+        <div className="card" style={{ padding:0, overflow:"hidden" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"0.82rem" }}>
+            <thead>
+              <tr style={{ borderBottom:"1px solid var(--border)", background:"var(--surface)" }}>
+                {["Peptide","Size","Wholesale cost","Retail price","Margin $","Margin %"].map((h,i) => (
+                  <th key={h} style={{ textAlign: i<2 ? "left" : "right", padding:"0.6rem 0.85rem", color:"var(--text-mute)", fontWeight:600, fontSize:"0.66rem", textTransform:"uppercase", letterSpacing:"0.03em" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(s => {
+                const e = priceEdits[s.id] ?? { retail:"", wholesale:"" }
+                const cost = Number(e.wholesale || 0)
+                const retail = Number(e.retail || 0)
+                const marginD = retail > 0 ? retail - cost : null
+                const marginP = retail > 0 ? Math.round(((retail - cost) / retail) * 100) : null
+                const mColor = marginP === null ? "var(--text-mute)" : marginP >= 70 ? "#34D399" : marginP >= 40 ? "#FBBF24" : "#F87171"
+                return (
+                  <tr key={s.id} style={{ borderBottom:"1px solid var(--border)" }}>
+                    <td style={{ padding:"0.45rem 0.85rem", fontWeight:600 }}>{s.peptide_name}</td>
+                    <td style={{ padding:"0.45rem 0.85rem", color:"var(--text-mute)" }}>{s.strength}{s.strength_unit}</td>
+                    <td style={{ padding:"0.35rem 0.85rem", textAlign:"right" }}>
+                      <div style={{ display:"inline-flex", alignItems:"center", gap:"0.15rem" }}>
+                        <span style={{ color:"var(--text-mute)" }}>$</span>
+                        <input type="number" step="0.01" value={e.wholesale} onChange={ev => setEdit(s.id, "wholesale", ev.target.value)} style={{ width:78, textAlign:"right", padding:"0.3rem 0.4rem" }}/>
+                      </div>
+                    </td>
+                    <td style={{ padding:"0.35rem 0.85rem", textAlign:"right" }}>
+                      <div style={{ display:"inline-flex", alignItems:"center", gap:"0.15rem" }}>
+                        <span style={{ color:"var(--gold)" }}>$</span>
+                        <input type="number" step="1" placeholder="—" value={e.retail} onChange={ev => setEdit(s.id, "retail", ev.target.value)} style={{ width:78, textAlign:"right", padding:"0.3rem 0.4rem", borderColor: e.retail ? "var(--gold)" : undefined, color:"var(--gold)", fontWeight:700 }}/>
+                      </div>
+                    </td>
+                    <td style={{ padding:"0.45rem 0.85rem", textAlign:"right", color: mColor, fontWeight:600 }}>{marginD !== null ? `$${marginD.toFixed(0)}` : "—"}</td>
+                    <td style={{ padding:"0.45rem 0.85rem", textAlign:"right", color: mColor, fontWeight:700 }}>{marginP !== null ? `${marginP}%` : "—"}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          {rows.length === 0 && <p style={{ textAlign:"center", padding:"2rem", color:"var(--text-mute)" }}>No SKUs match.</p>}
+        </div>
+      )}
+
+      <p style={{ fontSize:"0.76rem", color:"var(--text-mute)", marginTop:"0.85rem" }}>
+        Retail price is the per-vial price the client pays. It powers the suggested monthly rate in the protocol builder (price × vials/month), so proposals and revenue margins stay consistent.
+      </p>
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { getSetting } from "@/lib/settings"
+import { renderTemplate, protocolSummaryHtml } from "@/lib/email-templates"
 
 export const dynamic = "force-dynamic"
 
@@ -53,29 +55,23 @@ export async function POST(
       [id]
     )
 
-    // Send email to client
+    // Render the editable template from Settings and send to the client
+    const [subjTpl, bodyTpl, adminEmail] = await Promise.all([
+      getSetting("email_proposal_subject"),
+      getSetting("email_proposal_body"),
+      getSetting("admin_email"),
+    ])
+    const vars = {
+      first_name: proposal.first_name, last_name: proposal.last_name,
+      client_email: proposal.client_email, proposal_url: proposalUrl,
+      protocol_summary: protocolSummaryHtml(snapshot),
+      total_monthly: Number((snapshot as Record<string, unknown>).total_monthly ?? 0),
+      admin_email: adminEmail || "richard@richardortizcoaching.com",
+    }
     await sendEmail({
       to: proposal.client_email,
-      subject: "Your Coaching Agreement — Please Review & Sign",
-      html: `
-<div style="font-family:Inter,sans-serif;max-width:580px;margin:0 auto;background:#000;color:#fff;padding:2rem;border-radius:8px">
-  <h1 style="color:#C9A84C;font-size:1.4rem;margin-bottom:0.5rem">Your Coaching Agreement is Ready</h1>
-  <p style="color:#ccc;line-height:1.7">Hi ${proposal.first_name},</p>
-  <p style="color:#ccc;line-height:1.7">Richard has prepared your personalized peptide protocol agreement. Please review and sign it to get started.</p>
-  <div style="background:#111;border:1px solid #333;border-radius:6px;padding:1.25rem;margin:1.5rem 0">
-    <p style="color:#C9A84C;font-weight:700;margin:0 0 0.75rem">Your Protocol Summary</p>
-    <p style="color:#ccc;margin:0.25rem 0"><strong style="color:#fff">Primary:</strong> ${snapshot.peptide ?? ""} (${snapshot.sku_strength ?? ""}${snapshot.sku_unit ?? "mg"} vial)</p>
-    ${snapshot.dose_amount ? `<p style="color:#ccc;margin:0.25rem 0"><strong style="color:#fff">Dose:</strong> ${snapshot.dose_amount} ${snapshot.dose_unit ?? ""}</p>` : ""}
-    ${snapshot.duration_weeks ? `<p style="color:#ccc;margin:0.25rem 0"><strong style="color:#fff">Duration:</strong> ${snapshot.duration_weeks} weeks</p>` : ""}
-    ${snapshot.monthly_rate ? `<p style="color:#ccc;margin:0.25rem 0"><strong style="color:#fff">Monthly:</strong> $${snapshot.monthly_rate}/month</p>` : ""}
-  </div>
-  <p style="margin:1.75rem 0;text-align:center">
-    <a href="${proposalUrl}" style="background:#C9A84C;color:#000;padding:0.85rem 2rem;border-radius:4px;text-decoration:none;font-weight:700;font-size:1rem;display:inline-block">Review & Sign Agreement →</a>
-  </p>
-  <p style="color:#666;font-size:0.8rem;margin-top:1.5rem">Questions? Reply to this email or contact richard@richardortizcoaching.com</p>
-  <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
-  <p style="color:#555;font-size:0.75rem">Richard Ortiz Coaching — for educational and coaching purposes only. Not medical advice.</p>
-</div>`,
+      subject: renderTemplate(subjTpl, vars),
+      html: renderTemplate(bodyTpl, vars),
     })
 
     return NextResponse.json({ ok: true })

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 
 const COLS = `ci.id, ci.submitted_at, ci.urgent_flag, ci.client_email, ci.data,
               ci.read, ci.resolved, ci.follow_up_action, ci.follow_up_notes,
-              ci.resolved_by, ci.resolved_at,
+              ci.resolved_by, ci.resolved_at, ci.dismissed, ci.dismissed_at,
               i.first_name, i.last_name, i.id as client_intake_id`
 
 export async function GET(req: NextRequest) {
@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
   const params: string[] = []
 
   if (clientEmail && clientEmail !== "all") {
+    // Per-client history (profile view) keeps everything, dismissed included —
+    // dismissing only clears the queue, the data still lives on the profile.
     sql = `SELECT ${COLS}
            FROM roc.checkins ci
            LEFT JOIN roc.intakes i ON lower(i.email) = lower(ci.client_email)
@@ -24,28 +26,32 @@ export async function GET(req: NextRequest) {
            ORDER BY ci.submitted_at ASC LIMIT 500`
     params.push(clientEmail)
   } else {
-    const where =
-      filter === "urgent"   ? "WHERE ci.urgent_flag = true" :
-      filter === "unread"   ? "WHERE ci.read = false" :
-      filter === "resolved" ? "WHERE ci.resolved = true" :
-      filter === "thisweek" ? "WHERE ci.submitted_at > NOW() - INTERVAL '7 days'" :
+    // The main queue hides dismissed check-ins unless the Dismissed tab is open.
+    const base = filter === "dismissed" ? "ci.dismissed = true" : "ci.dismissed = false"
+    const extra =
+      filter === "urgent"   ? " AND ci.urgent_flag = true" :
+      filter === "unread"   ? " AND ci.read = false" :
+      filter === "resolved" ? " AND ci.resolved = true" :
+      filter === "thisweek" ? " AND ci.submitted_at > NOW() - INTERVAL '7 days'" :
       ""
     sql = `SELECT ${COLS}
            FROM roc.checkins ci
            LEFT JOIN roc.intakes i ON lower(i.email) = lower(ci.client_email)
-           ${where}
+           WHERE ${base}${extra}
            ORDER BY ci.submitted_at DESC LIMIT 200`
   }
 
   const result = await query(sql, params.length ? params : undefined)
 
-  // Filter counts for pill tabs (single round-trip)
-  const counts = await query<{ all: string; unread: string; urgent: string; resolved: string; thisweek: string }>(`
-    SELECT COUNT(*) AS all,
-           COUNT(*) FILTER (WHERE read = false)     AS unread,
-           COUNT(*) FILTER (WHERE urgent_flag = true) AS urgent,
-           COUNT(*) FILTER (WHERE resolved = true)  AS resolved,
-           COUNT(*) FILTER (WHERE submitted_at > NOW() - INTERVAL '7 days') AS thisweek
+  // Filter counts for pill tabs (single round-trip). Active-queue counts exclude
+  // dismissed; `dismissed` is its own bucket.
+  const counts = await query<{ all: string; unread: string; urgent: string; resolved: string; thisweek: string; dismissed: string }>(`
+    SELECT COUNT(*) FILTER (WHERE dismissed = false) AS all,
+           COUNT(*) FILTER (WHERE dismissed = false AND read = false)     AS unread,
+           COUNT(*) FILTER (WHERE dismissed = false AND urgent_flag = true) AS urgent,
+           COUNT(*) FILTER (WHERE dismissed = false AND resolved = true)  AS resolved,
+           COUNT(*) FILTER (WHERE dismissed = false AND submitted_at > NOW() - INTERVAL '7 days') AS thisweek,
+           COUNT(*) FILTER (WHERE dismissed = true) AS dismissed
     FROM roc.checkins`)
 
   return NextResponse.json({ checkins: result.rows, counts: counts.rows[0] ?? {} })

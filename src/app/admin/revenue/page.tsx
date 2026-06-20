@@ -84,7 +84,7 @@ export default function RevenuePage() {
 
   const exportCsv = () => {
     if (!data) return
-    const cols = ["Client", "Email", "Protocol", "Rate/mo", "Status", "FIFO COGS/mo", "Margin %", "Orders This Month", "Since"]
+    const cols = ["Client", "Email", "Protocol", "Rate/order", "Status", "FIFO COGS/order", "Margin %", "Orders This Month", "Since"]
     const lines = [cols.join(",")]
     for (const c of data.clients) {
       lines.push([
@@ -144,7 +144,7 @@ export default function RevenuePage() {
       {/* Top KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
         {[
-          { icon: DollarSign, label: "MRR",           value: fmt(data.mrr),              color: "var(--gold)", href: "#billing" },
+          { icon: DollarSign, label: "Avg Monthly",    value: fmt(data.mrr),              color: "var(--gold)", href: "#billing" },
           { icon: TrendingUp, label: "ARR",            value: fmt(data.arr),              color: "#4ade80",     href: "#billing" },
           { icon: Users,      label: "Active Clients", value: String(data.activeCount),   color: "#60a5fa",     href: "/admin/clients?status=APPROVED" },
           { icon: Percent,    label: "Avg Margin",     value: marginAvg !== null ? `${marginAvg.toFixed(1)}%` : "—", color: "#c084fc", href: "#by-protocol" },
@@ -167,7 +167,7 @@ export default function RevenuePage() {
         </div>
         <div className="card" style={{ padding: "1.1rem 1.25rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <p style={{ fontWeight: 700, fontSize: "0.85rem" }}>Monthly Revenue Trend</p>
+            <p style={{ fontWeight: 700, fontSize: "0.85rem" }}>Revenue Booked (by month)</p>
             <select value={trendN} onChange={e => setTrendN(Number(e.target.value))} style={{ fontSize: "0.74rem", padding: "0.2rem 0.4rem", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-soft)" }}>
               {TREND_RANGES.map(r => <option key={r.n} value={r.n}>{r.label}</option>)}
             </select>
@@ -197,7 +197,7 @@ export default function RevenuePage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
-                {["Client", "Protocol", "Rate/mo", "Status", "Product cost/mo", "Margin", "Since", ""].map(h => (
+                {["Client", "Protocol", "Rate/order", "Status", "Product cost/order", "Margin", "Since", ""].map(h => (
                   <th key={h} style={{ textAlign: "left", padding: "0.6rem 0.875rem", color: "var(--text-mute)", fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -285,7 +285,7 @@ export default function RevenuePage() {
               </div>
               <p style={{ color: "var(--text-mute)", fontSize: "0.78rem" }}>{c.peptide}{c.strength ? ` ${c.strength}` : ""}</p>
               <div style={{ display: "flex", gap: "1rem", marginTop: "0.4rem" }}>
-                <span style={{ color: "var(--gold)", fontWeight: 700, fontSize: "0.875rem" }}>{c.monthly_rate ? fmt(c.monthly_rate) : "—"}/mo</span>
+                <span style={{ color: "var(--gold)", fontWeight: 700, fontSize: "0.875rem" }}>{c.monthly_rate ? fmt(c.monthly_rate) : "—"}</span>
                 {c.gross_margin_pct !== null && <span style={{ color: "var(--text-mute)", fontSize: "0.82rem" }}>Margin: {c.gross_margin_pct.toFixed(1)}%</span>}
               </div>
             </div>

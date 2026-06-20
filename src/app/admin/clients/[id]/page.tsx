@@ -1,12 +1,10 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, AlertTriangle, Mail, Trash2 } from "lucide-react"
-import { PEPTIDE_NAMES } from "@/lib/peptides-data"
+import { ChevronLeft, AlertTriangle, Mail, Trash2, Pencil } from "lucide-react"
+import EditDetailsModal from "@/components/admin/EditDetailsModal"
+import ProtocolWorkspace from "@/components/admin/ProtocolWorkspace"
 import { Ring } from "@/components/admin/Charts"
-
-const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-const DOSE_UNITS = ["mg","mcg","IU","mL"]
 
 const initials = (f: string, l: string) => `${(f||"?")[0] ?? ""}${(l||"")[0] ?? ""}`.toUpperCase()
 const AV = ["#60A5FA","#34D399","#F472B6","#FBBF24","#A78BFA","#C9A84C"]
@@ -35,28 +33,46 @@ interface OpsCardLite {
   line_items: { peptide: string; strength?: string; strength_unit?: string; qty: number; lot_ids?: string[] }[]
 }
 
-function LineChart({ points, color, label, unit }: { points: { date: string; val: number }[]; color: string; label: string; unit: string }) {
+// kind="delta": headline result is the change first→last (weight, body fat —
+// lower is better). kind="avg": headline result is the average (energy, mood).
+function LineChart({ points, color, label, unit, kind="delta" }: { points: { date: string; val: number }[]; color: string; label: string; unit: string; kind?: "delta"|"avg" }) {
   if (points.length < 2) return <div style={{ padding:"1rem", color:"var(--text-mute)", fontSize:"0.8rem" }}>Not enough data ({points.length} point{points.length===1?"":"s"}).</div>
   const vals = points.map(p => p.val)
   const min = Math.min(...vals); const max = Math.max(...vals); const range = max - min || 1
   const W = 300; const H = 80; const PAD = 8
   const pts = points.map((p, i) => { const x = PAD + (i/(points.length-1))*(W-PAD*2); const y = H - PAD - ((p.val-min)/range)*(H-PAD*2); return { x, y, ...p } })
   const polyline = pts.map(p => `${p.x},${p.y}`).join(" ")
-  const last = pts[pts.length-1]; const prev = pts[pts.length-2]; const trend = last.val > prev.val ? "up" : last.val < prev.val ? "down" : "flat"
+  const last = pts[pts.length-1]; const first = pts[0]
+  const u = unit.trim()
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length
+  const delta = last.val - first.val
+  // Headline result + colour
+  let result: string, rColor: string
+  if (kind === "avg") {
+    result = `avg ${avg.toFixed(1)}${unit}`
+    rColor = "var(--gold)"
+  } else {
+    result = delta === 0 ? "no change" : `${delta < 0 ? "down" : "up"} ${Math.abs(delta).toFixed(1)} ${u}`
+    rColor = delta < 0 ? "#4ade80" : delta > 0 ? "#f87171" : "var(--text-mute)"
+  }
+  const showLabels = pts.length <= 14
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:"0.35rem" }}>
-        <span style={{ fontSize:"0.7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)" }}>{label}</span>
-        <div style={{ display:"flex", alignItems:"center", gap:"0.3rem" }}>
-          <span style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem" }}>{last.val}{unit}</span>
-          <span style={{ fontSize:"0.7rem", color: trend==="up"?"#4ade80":trend==="down"?"#f87171":"var(--text-mute)" }}>{trend==="up"?"↑":trend==="down"?"↓":"="}</span>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"0.5rem" }}>
+        <div>
+          <div style={{ fontSize:"0.7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)" }}>{label}</div>
+          <div style={{ fontSize:"0.66rem", color:"var(--text-mute)", marginTop:"0.15rem" }}>{points.length} check-ins · latest {last.val}{unit}</div>
         </div>
+        <span style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.05rem", color:rColor, whiteSpace:"nowrap" }}>{result}</span>
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow:"visible", display:"block" }}>
+      <svg width="100%" viewBox={`0 0 ${W} ${H+12}`} style={{ overflow:"visible", display:"block" }}>
         <defs><linearGradient id={`fill-${label}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.18"/><stop offset="100%" stopColor={color} stopOpacity="0"/></linearGradient></defs>
         <polygon points={`${pts[0].x},${H} ${polyline} ${pts[pts.length-1].x},${H}`} fill={`url(#fill-${label})`}/>
         <polyline points={polyline} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/>
         {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={i===pts.length-1?4:2.5} fill={color} opacity={i===pts.length-1?1:0.6}/>)}
+        {showLabels && pts.map((p, i) => (
+          <text key={`t${i}`} x={p.x} y={p.y - 6} textAnchor="middle" fontSize="7" fontWeight="700" fill="var(--text-soft)">{p.val}</text>
+        ))}
       </svg>
       <div style={{ display:"flex", justifyContent:"space-between", fontSize:"0.65rem", color:"var(--text-mute)", marginTop:"0.2rem" }}>
         <span>{new Date(pts[0].date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
@@ -93,6 +109,7 @@ export default function ClientDetailPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [startDate, setStartDate] = useState("")
   const [smsLink, setSmsLink] = useState("")
@@ -140,8 +157,6 @@ export default function ClientDetailPage() {
 
   useEffect(() => { load() }, [load])
 
-  const toggleDay = (d: string) =>
-    setPForm(p => ({ ...p, frequencyDays: p.frequencyDays.includes(d) ? p.frequencyDays.filter(x=>x!==d) : [...p.frequencyDays, d] }))
 
   const saveProtocol = async () => {
     setSaving(true); setSaved(false)
@@ -238,11 +253,22 @@ export default function ClientDetailPage() {
                 </div>
               )
             })() : null}
+            <button onClick={()=>setShowEdit(true)} title="Edit details" className="btn-ghost" style={{ fontSize:"0.78rem", padding:"0.45rem 0.75rem" }}>
+              <Pencil size={13}/> Edit
+            </button>
             <button onClick={()=>setShowDelete(true)} title="Delete client" className="btn-ghost" style={{ color:"#F87171", borderColor:"rgba(248,113,113,0.4)", fontSize:"0.78rem", padding:"0.45rem 0.75rem" }}>
               <Trash2 size={13}/> Delete
             </button>
           </div>
         </div>
+
+        {showEdit && client && (
+          <EditDetailsModal
+            intake={{ id: client.id, first_name: client.first_name, last_name: client.last_name, email: client.email, data: client.data }}
+            onClose={()=>setShowEdit(false)}
+            onSaved={load}
+          />
+        )}
 
         {showDelete && (
           <div onClick={()=>setShowDelete(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:"1rem" }}>
@@ -289,8 +315,8 @@ export default function ClientDetailPage() {
                 <div className="client-charts-grid">
                   {weightPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={weightPts} color="var(--gold)" label="Weight" unit=" lbs"/></div>}
                   {bfPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={bfPts} color="#f87171" label="Body Fat" unit="%"/></div>}
-                  {energyPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={energyPts} color="#60a5fa" label="Energy" unit="/10"/></div>}
-                  {moodPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={moodPts} color="#4ade80" label="Mood" unit="/10"/></div>}
+                  {energyPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={energyPts} color="#60a5fa" label="Energy" unit="/10" kind="avg"/></div>}
+                  {moodPts.length>=2 && <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={moodPts} color="#4ade80" label="Mood" unit="/10" kind="avg"/></div>}
                 </div>
               ) : (
                 <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"2rem", textAlign:"center", color:"var(--text-mute)", fontSize:"0.875rem" }}>
@@ -301,51 +327,8 @@ export default function ClientDetailPage() {
           )}
 
           {/* PROTOCOL */}
-          {tab==="protocol" && (
-            <div style={{ display:"flex", flexDirection:"column", gap:"1.25rem" }}>
-              <div>
-                <label>Peptide</label>
-                <select value={pForm.peptide} onChange={e=>setPForm(p=>({...p,peptide:e.target.value}))} style={{marginTop:"0.35rem"}}>
-                  <option value="">— Select peptide —</option>
-                  {PEPTIDE_NAMES.map(p=><option key={p}>{p}</option>)}
-                </select>
-              </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"0.75rem" }}>
-                <div><label>Dose Amount</label><input type="text" placeholder="e.g. 250" value={pForm.doseAmount} onChange={e=>setPForm(p=>({...p,doseAmount:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
-                <div><label>Unit</label><select value={pForm.doseUnit} onChange={e=>setPForm(p=>({...p,doseUnit:e.target.value}))} style={{marginTop:"0.35rem"}}>{DOSE_UNITS.map(u=><option key={u}>{u}</option>)}</select></div>
-                <div><label>Duration (weeks)</label><input type="number" placeholder="e.g. 8" value={pForm.durationWeeks} onChange={e=>setPForm(p=>({...p,durationWeeks:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
-              </div>
-              <div>
-                <label style={{display:"block",marginBottom:"0.5rem"}}>Frequency</label>
-                <div style={{ display:"flex", gap:"0.4rem", flexWrap:"wrap", marginBottom:"0.6rem" }}>
-                  {[{label:"Daily",days:DAYS},{label:"3×/wk",days:["Mon","Wed","Fri"]},{label:"2×/wk",days:["Mon","Thu"]},{label:"Weekly",days:["Mon"]}].map(preset=>(
-                    <button key={preset.label} type="button" onClick={()=>setPForm(p=>({...p,frequencyDays:preset.days}))} style={{ padding:"0.35rem 0.75rem", borderRadius:"var(--radius)", fontSize:"0.78rem", fontWeight:600, cursor:"pointer", background: JSON.stringify([...pForm.frequencyDays].sort())===JSON.stringify([...preset.days].sort()) ? "var(--gold)" : "var(--surface-2)", color: JSON.stringify([...pForm.frequencyDays].sort())===JSON.stringify([...preset.days].sort()) ? "#000" : "var(--text-mute)", border:"1px solid var(--border)" }}>{preset.label}</button>
-                  ))}
-                </div>
-                <div style={{ display:"flex", gap:"0.4rem", flexWrap:"wrap" }}>
-                  {DAYS.map(d=>(
-                    <button key={d} type="button" onClick={()=>toggleDay(d)} style={{ width:"2.5rem", height:"2.5rem", borderRadius:"var(--radius)", fontSize:"0.75rem", fontWeight:700, cursor:"pointer", background: pForm.frequencyDays.includes(d) ? "var(--gold)" : "var(--surface-2)", color: pForm.frequencyDays.includes(d) ? "#000" : "var(--text-mute)", border:`1px solid ${pForm.frequencyDays.includes(d) ? "var(--gold)" : "var(--border)"}` }}>{d}</button>
-                  ))}
-                </div>
-              </div>
-              <div><label>Coach Notes</label><textarea rows={3} value={pForm.notes} onChange={e=>setPForm(p=>({...p,notes:e.target.value}))} placeholder="Reconstitution instructions, timing, special notes..." style={{marginTop:"0.35rem"}}/></div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem" }}>
-                <div><label>Monthly Rate ($)</label><input type="number" placeholder="299" value={pForm.monthlyRate} onChange={e=>setPForm(p=>({...p,monthlyRate:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
-                <div><label>Billing Status</label><select value={pForm.billingStatus} onChange={e=>setPForm(p=>({...p,billingStatus:e.target.value}))} style={{marginTop:"0.35rem"}}>{["active","paused","complimentary"].map(s=><option key={s}>{s}</option>)}</select></div>
-              </div>
-              <button onClick={saveProtocol} disabled={saving||!pForm.peptide} className="btn-gold" style={{alignSelf:"flex-start"}}>
-                {saving?"Saving…":"Save Protocol"}
-              </button>
-              {saved && (
-                <div style={{ background:"rgba(74,222,128,0.1)", border:"1px solid rgba(74,222,128,0.4)", borderRadius:"var(--radius)", padding:"0.6rem 0.85rem", fontSize:"0.82rem", color:"#4ade80", fontWeight:600 }}>
-                  ✓ Saved to {client.first_name}’s protocol — {pForm.peptide || "peptide"}, {pForm.doseAmount||"?"}{pForm.doseUnit}{pForm.durationWeeks?` for ${pForm.durationWeeks} wks`:""}, ${pForm.monthlyRate||0}/mo ({pForm.billingStatus}). Shows on the Protocol &amp; Billing tabs and Revenue.
-                </div>
-              )}
-              {protocol && !saved && <p style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>Last saved: {new Date(protocol.assigned_at).toLocaleString()}</p>}
-              <div style={{ marginTop:"0.5rem" }}>
-                <a href={`/admin/intakes/${id}`} style={{ color:"var(--gold)", fontSize:"0.85rem" }}>Open AI rec + secondary peptide + proposal builder →</a>
-              </div>
-            </div>
+          {tab==="protocol" && client && (
+            <ProtocolWorkspace clientId={id} clientEmail={client.email} onChanged={load} />
           )}
 
           {/* CHECK-INS */}
@@ -358,8 +341,8 @@ export default function ClientDetailPage() {
                   <div className="client-charts-grid">
                     {weightPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={weightPts} color="var(--gold)" label="Weight" unit=" lbs"/></div>}
                     {bfPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={bfPts} color="#F87171" label="Body Fat" unit="%"/></div>}
-                    {energyPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={energyPts} color="#60A5FA" label="Energy" unit="/10"/></div>}
-                    {moodPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={moodPts} color="#34D399" label="Mood" unit="/10"/></div>}
+                    {energyPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={energyPts} color="#60A5FA" label="Energy" unit="/10" kind="avg"/></div>}
+                    {moodPts.length>=2 && <div style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}><LineChart points={moodPts} color="#34D399" label="Mood" unit="/10" kind="avg"/></div>}
                   </div>
                 </div>
               )}
@@ -461,7 +444,7 @@ export default function ClientDetailPage() {
             <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
               <div className="client-stats-grid">
                 {[
-                  { label:"Rate / month", val: monthlyRate ? `$${monthlyRate.toFixed(0)}` : "—", color:"var(--gold)" },
+                  { label:"Rate / order", val: monthlyRate ? `$${monthlyRate.toFixed(0)}` : "—", color:"var(--gold)" },
                   { label:"Billing Status", val: pForm.billingStatus || "—", color:"#4ade80" },
                   { label:"Lifetime Order COGS", val: `$${orderCogs.toFixed(2)}`, color:"#60a5fa" },
                   { label:"Est. Gross Margin", val: monthlyRate>0 && orders.length ? `${Math.round(((monthlyRate-(orderCogs/orders.length))/monthlyRate)*100)}%` : "—", color:"#c084fc" },
@@ -474,7 +457,7 @@ export default function ClientDetailPage() {
               </div>
               <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1rem" }}>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"0.75rem" }}>
-                  <div><label>Monthly Rate ($)</label><input type="number" value={pForm.monthlyRate} onChange={e=>setPForm(p=>({...p,monthlyRate:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
+                  <div><label>Rate ($) — per order</label><input type="number" value={pForm.monthlyRate} onChange={e=>setPForm(p=>({...p,monthlyRate:e.target.value}))} style={{marginTop:"0.35rem"}}/></div>
                   <div><label>Billing Status</label><select value={pForm.billingStatus} onChange={e=>setPForm(p=>({...p,billingStatus:e.target.value}))} style={{marginTop:"0.35rem"}}>{["active","paused","complimentary","churned"].map(s=><option key={s}>{s}</option>)}</select></div>
                 </div>
                 <button onClick={saveProtocol} disabled={saving||!pForm.peptide} className="btn-gold">{saving?"Saving…":saved?"✓ Saved":"Save Billing"}</button>

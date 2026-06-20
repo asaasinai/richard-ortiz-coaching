@@ -9,6 +9,7 @@ interface Client {
   phone?: string; status: string; submitted_at: string; data?: Record<string, unknown>
   has_protocol?: boolean; protocol_peptide?: string | null
   protocol_billing_status?: string | null; protocol_monthly_rate?: string | null
+  is_client?: boolean
 }
 
 const statusChip = (s: string) => ({
@@ -39,7 +40,8 @@ export default function AdminClientsPage() {
 
   useEffect(() => {
     fetch("/api/admin/intakes").then(r => r.json()).then(d => {
-      setClients(d.intakes ?? [])
+      // Clients = applicants who have accepted (signed) their proposal.
+      setClients((d.intakes ?? []).filter((c: Client) => c.is_client))
       setLoading(false)
     })
     const st = new URLSearchParams(window.location.search).get("status")
@@ -57,7 +59,7 @@ export default function AdminClientsPage() {
   const countFor = (f: string) => { const w = STATUS_FOR[f]; return w ? clients.filter(c => c.status === w).length : clients.length }
 
   const exportCsv = () => {
-    const cols = ["Name", "Email", "Phone", "Status", "Protocol", "Billing", "Monthly Rate", "Intake Date"]
+    const cols = ["Name", "Email", "Phone", "Status", "Protocol", "Billing", "Rate", "Intake Date"]
     const lines = [cols.join(",")]
     for (const c of filtered) lines.push([
       `"${c.first_name} ${c.last_name}"`, `"${c.email}"`, `"${c.phone ?? ""}"`, c.status,
@@ -111,7 +113,7 @@ export default function AdminClientsPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                       <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{c.protocol_peptide || "—"}</span>
                       {c.protocol_monthly_rate && Number(c.protocol_monthly_rate) > 0 &&
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-mute)" }}>${Math.round(Number(c.protocol_monthly_rate))}/mo</span>}
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-mute)" }}>${Math.round(Number(c.protocol_monthly_rate))}</span>}
                     </div>
                   ) : <span style={{ color: "var(--text-mute)", fontSize: "0.82rem" }}>No protocol yet</span>}
                 </div>
