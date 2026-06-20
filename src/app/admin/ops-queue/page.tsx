@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LayoutGrid, List as ListIcon, Plus, Package, X } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
 
 interface LineItem { sku_id: string; peptide: string; strength?: string; strength_unit?: string; dosage?: string; qty: number; cost_per_unit?: number; line_total?: number; lot_ids?: string[] }
 interface OpsCard {
@@ -12,9 +13,9 @@ interface OpsCard {
 interface Sku { id: string; peptide_name: string; strength: string; strength_unit: string; units_in_stock: string; stock_status?: string }
 
 const COLUMNS = [
-  { id: "pending",   label: "Pending",   color: "#f59e0b" },
-  { id: "packed",    label: "Packed",    color: "#3b82f6" },
-  { id: "shipped",   label: "Shipped",   color: "#22c55e" },
+  { id: "pending",   label: "To pack",   color: "#FBBF24" },
+  { id: "packed",    label: "Packed",    color: "#60A5FA" },
+  { id: "shipped",   label: "Shipped",   color: "#34D399" },
   { id: "delivered", label: "Delivered", color: "var(--text-mute)" },
 ]
 const FILTERS = ["All", "Pending", "Packed", "Shipped", "Overdue"]
@@ -69,24 +70,26 @@ function OpsQueueInner() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.5rem)" }}>Ops Queue</h1>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
-            <button onClick={() => setView("kanban")} style={{ padding: "0.4rem 0.6rem", background: view === "kanban" ? "var(--gold)" : "var(--surface)", color: view === "kanban" ? "#000" : "var(--text-mute)", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}><LayoutGrid size={15} /></button>
-            <button onClick={() => setView("list")} style={{ padding: "0.4rem 0.6rem", background: view === "list" ? "var(--gold)" : "var(--surface)", color: view === "list" ? "#000" : "var(--text-mute)", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}><ListIcon size={15} /></button>
+      <PageHeader title="Fulfillment" subtitle="What to ship, to whom, and by when. Move orders across the board as they go out." backHref="/admin" backLabel="Overview"
+        action={<>
+          <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+            <button onClick={() => setView("kanban")} style={{ padding: "0.45rem 0.65rem", background: view === "kanban" ? "var(--gold-dim)" : "var(--surface-2)", color: view === "kanban" ? "var(--gold-light)" : "var(--text-mute)", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}><LayoutGrid size={15} /></button>
+            <button onClick={() => setView("list")} style={{ padding: "0.45rem 0.65rem", background: view === "list" ? "var(--gold-dim)" : "var(--surface-2)", color: view === "list" ? "var(--gold-light)" : "var(--text-mute)", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}><ListIcon size={15} /></button>
           </div>
-          <button onClick={() => setShowCreate(true)} style={{ padding: "0.45rem 0.9rem", background: "var(--gold)", color: "#000", border: "none", borderRadius: "var(--radius)", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.35rem" }}><Plus size={15} /> New Card</button>
-        </div>
-      </div>
+          <button onClick={() => setShowCreate(true)} className="btn-gold" style={{ fontSize: "0.82rem", padding: "0.5rem 0.95rem" }}><Plus size={15} /> New order</button>
+        </>} />
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
         {FILTERS.map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: "0.35rem 0.85rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: filter === f ? "var(--gold)" : "var(--surface)", color: filter === f ? "#000" : "var(--text-mute)", border: `1px solid ${filter === f ? "var(--gold)" : "var(--border)"}` }}>{f}</button>
+          <button key={f} className="pill" data-active={filter === f} onClick={() => setFilter(f)}>{f}</button>
         ))}
       </div>
 
-      {loading ? <p style={{ color: "var(--text-mute)" }}>Loading…</p> : cards.length === 0 ? (
+      {loading ? (
+        <div className="ops-kanban" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.85rem" }}>
+          {[0, 1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 180 }} />)}
+        </div>
+      ) : cards.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-mute)" }}>
           <Package size={32} style={{ opacity: 0.4, marginBottom: "0.75rem" }} />
           <p style={{ fontWeight: 700, color: "var(--text)" }}>No fulfillment cards</p>
