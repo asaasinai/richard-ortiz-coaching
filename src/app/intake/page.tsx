@@ -257,16 +257,17 @@ export default function IntakePage() {
     <>
       <Nav />
       <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem" }}>
-        <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
+        <div className="reveal" style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
           <div style={{
-            width: 72, height: 72, borderRadius: "50%",
-            background: "var(--gold)", display: "flex", alignItems: "center",
-            justifyContent: "center", margin: "0 auto 1.5rem",
+            width: 76, height: 76, borderRadius: "50%",
+            background: "var(--gold-grad)", display: "flex", alignItems: "center",
+            justifyContent: "center", margin: "0 auto 1.75rem",
+            boxShadow: "0 0 0 8px rgba(212,175,90,0.1), 0 14px 40px rgba(212,175,90,0.3)",
           }}>
-            <CheckCircle size={36} color="#000" />
+            <CheckCircle size={38} color="#1A1400" />
           </div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
-            You&apos;re on deck.
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(1.9rem,4.5vw,2.6rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+            You&apos;re <span className="gold-text">on deck.</span>
           </h1>
           <p style={{ color: "var(--text-soft)", marginTop: "1rem", lineHeight: 1.75, fontSize: "1rem" }}>
             Richard will review your intake within 48 hours and reach out to schedule your initial consult.
@@ -380,16 +381,16 @@ export default function IntakePage() {
       <Nav />
 
       {/* Hero strip */}
-      <div style={{ background: "var(--bg-2)", borderBottom: "1px solid var(--border)", padding: "2.5rem 1.5rem 0" }}>
+      <div style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.012), transparent)", borderBottom: "1px solid var(--border)", padding: "3.5rem 1.5rem 0" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
-            Start Your Intake
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(1.9rem,4.5vw,2.6rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+            Start Your <span className="gold-text">Intake</span>
           </h1>
-          <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginTop: "0.4rem" }}>
+          <p style={{ color: "var(--text-soft)", fontSize: "0.98rem", marginTop: "0.5rem" }}>
             10 quick questions — takes under 2 minutes.
           </p>
-          <div style={{ height: 3, background: "var(--surface)", borderRadius: 2, margin: "1.25rem 0 0" }}>
-            <div style={{ height: "100%", background: "var(--gold)", borderRadius: 2, width: `${progress}%`, transition: "width 0.35s ease" }} />
+          <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 4, margin: "1.5rem 0 0", overflow: "hidden" }}>
+            <div style={{ height: "100%", background: "var(--gold-grad)", borderRadius: 4, width: `${progress}%`, transition: "width 0.35s ease", boxShadow: "0 0 12px rgba(212,175,90,0.5)" }} />
           </div>
         </div>
       </div>
@@ -440,12 +441,12 @@ export default function IntakePage() {
         <div style={{ display: "flex", justifyContent: "center", gap: "0.35rem", marginTop: "1.25rem", flexWrap: "wrap" }}>
           {allSteps.map((_, i) => (
             <div key={i} style={{
-              width: i === step ? 20 : 8,
+              width: i === step ? 22 : 8,
               height: 8,
               borderRadius: 4,
-              background: i < step ? "var(--gold)" : i === step ? "var(--gold)" : "var(--surface)",
+              background: i <= step ? "var(--gold-grad)" : "var(--surface-2)",
               transition: "all 0.25s ease",
-              opacity: i > step ? 0.4 : 1,
+              opacity: i > step ? 0.5 : 1,
             }} />
           ))}
         </div>
@@ -483,18 +484,20 @@ function OptionGrid(props: OptionGridProps) {
             type="button"
             onClick={() => multi ? props.onToggle(opt.value) : props.onSelect(opt.value)}
             style={{
-              padding: "0.75rem 1rem",
-              borderRadius: "var(--radius)",
-              border: `1.5px solid ${active ? "var(--gold)" : "var(--border)"}`,
-              background: active ? "rgba(201,168,76,0.12)" : "var(--surface)",
-              color: active ? "var(--gold)" : "var(--text-soft)",
+              padding: "0.85rem 1.1rem",
+              borderRadius: "var(--radius-sm)",
+              border: `1.5px solid ${active ? "rgba(212,175,90,0.55)" : "var(--border)"}`,
+              background: active ? "var(--gold-dim)" : "var(--surface-2)",
+              color: active ? "var(--gold-light)" : "var(--text-soft)",
               fontWeight: active ? 700 : 500,
-              fontSize: "0.9rem",
+              fontSize: "0.92rem",
               cursor: "pointer",
               textAlign: "left",
               display: "flex",
               alignItems: "center",
               gap: "0.6rem",
+              transition: "all 0.14s",
+              boxShadow: active ? "0 0 0 1px rgba(212,175,90,0.15)" : "none",
               transition: "all 0.15s ease",
               width: "100%",
             }}

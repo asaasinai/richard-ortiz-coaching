@@ -22,7 +22,7 @@ Branch: `loop/site-modern` · Shares the admin's elevated design system (`global
 | 6 | Success Stories (`/success-stories`) — premium testimonial cards | ✅ | gradient hero, glass story cards + reveal, glowing empty state, pill metrics; content frozen |
 | 7 | Pricing (`/pricing`) — premium plan cards, gold-accent featured tier | ✅ | featured-tier glow+gradient price+gradient badge, reveal stagger, radial CTA; prices frozen |
 | 8 | Contact (`/contact`) — refined form | ✅ | gradient heading, icon-badge accent, glowing success state; content frozen |
-| 9 | Intake (`/intake`) — premium multi-step form styling | ⬜ | content frozen |
+| 9 | Intake (`/intake`) — premium multi-step form styling | ✅ | gradient hero+progress, gold-dim option states, gradient step dots + success state; questions frozen |
 | 10 | Final: tsc clean, mobile pass, smoke-test all public pages 200 | ⬜ | |
 
 ## Human-gated
