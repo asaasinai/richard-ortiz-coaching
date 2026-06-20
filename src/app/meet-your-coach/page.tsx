@@ -29,11 +29,11 @@ export default function MeetYourCoachPage() {
             About <span className="gold-text">Richard Ortiz</span>
           </h1>
           {/* Brand badge — swap for the professional portrait when it lands */}
-          <div style={{ position: "relative", marginTop: "2.75rem" }}>
+          <div style={{ position: "relative", marginTop: "2.75rem", width: "min(380px, 100%)", marginLeft: "auto", marginRight: "auto" }}>
             <div style={{ position: "absolute", inset: "-10%", background: "radial-gradient(circle at 50% 45%, rgba(212,175,90,0.26), transparent 62%)", filter: "blur(8px)", pointerEvents: "none" }} />
             <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz — Strength, Longevity, 55"
               width={1158} height={1383} priority
-              style={{ width: "min(380px, 100%)", height: "auto", position: "relative", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,0.55)" }} />
+              style={{ width: "100%", height: "auto", position: "relative", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,0.55)", display: "block" }} />
           </div>
         </div>
       </section>
