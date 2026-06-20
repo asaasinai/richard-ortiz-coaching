@@ -8,13 +8,13 @@ export async function GET() {
     // Active client billing rows
     const clients = await query<{
       client_id: string; first_name: string; last_name: string; email: string
-      peptide: string; dose_amount: string; dose_unit: string
+      peptide: string; dose_amount: string; dose_unit: string; frequency_days: string | null
       monthly_rate: string; billing_status: string; billing_notes: string | null
       assigned_at: string; sku_id: string | null
       strength: string | null; strength_unit: string | null
     }>(`
       SELECT
-        cp.client_id, cp.peptide, cp.dose_amount, cp.dose_unit,
+        cp.client_id, cp.peptide, cp.dose_amount, cp.dose_unit, cp.frequency_days,
         cp.monthly_rate, cp.billing_status, cp.billing_notes,
         cp.assigned_at, cp.sku_id,
         s.strength, s.strength_unit,
@@ -49,13 +49,24 @@ export async function GET() {
     `)
     const fifoCost = Object.fromEntries(batchRows.rows.map(b => [b.sku_id, Number(b.unit_cost)]))
 
-    // Monthly COGS per client: dose_amount × (freq_days/month) × unit_cost
-    // Simplified: dose_amount × 30 / interval_days × unit_cost
+    // Monthly COGS per client = vials consumed per month × FIFO vial cost.
+    //   monthly_vials = (doses/week × dose_per_dose) / vial_strength × 4.333 weeks
+    // Dose and strength are unit-normalized to mg so mcg doses don't blow up the math.
+    const toMg = (v: number, unit: string | null | undefined) => unit === "mcg" ? v / 1000 : v
     const clientRows = rows.map(r => {
       const rate = Number(r.monthly_rate ?? 0)
-      const cogs = r.sku_id && fifoCost[r.sku_id]
-        ? Number(r.dose_amount ?? 0) * (30 / 7) * fifoCost[r.sku_id]
-        : 0
+      let cogs = 0
+      if (r.sku_id && fifoCost[r.sku_id]) {
+        let dosesPerWeek = 0
+        try { const f = JSON.parse(r.frequency_days || "[]"); dosesPerWeek = Array.isArray(f) ? f.length : 0 } catch { dosesPerWeek = 0 }
+        if (!dosesPerWeek) dosesPerWeek = 3 // sane default when frequency unset
+        const doseMg = toMg(Number(r.dose_amount ?? 0), r.dose_unit)
+        const vialMg = toMg(Number(r.strength ?? 0), r.strength_unit)
+        if (vialMg > 0 && doseMg > 0) {
+          const monthlyVials = (dosesPerWeek * doseMg * 4.333) / vialMg
+          cogs = monthlyVials * fifoCost[r.sku_id]
+        }
+      }
       const margin = rate > 0 ? ((rate - cogs) / rate) * 100 : null
       return {
         client_id: r.client_id,
