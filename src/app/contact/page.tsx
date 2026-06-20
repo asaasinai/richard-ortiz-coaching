@@ -18,7 +18,7 @@ export default function ContactPage() {
     <>
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <h1 style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em" }}>Get In Touch</h1>
+        <h1 style={{ fontFamily:"var(--font-display)",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em" }}>Get In Touch</h1>
         <p style={{ color:"var(--text-soft)",marginTop:"0.75rem",marginBottom:"2.5rem" }}>Questions before starting? Use the form below.</p>
         <div style={{ marginBottom:"2rem" }}>
           <div className="card" style={{ display:"flex",gap:"1rem",alignItems:"center" }}>

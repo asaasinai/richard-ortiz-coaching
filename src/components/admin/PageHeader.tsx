@@ -36,7 +36,7 @@ export default function PageHeader({ title, subtitle, backHref, backLabel = "Bac
       <div style={{ marginBottom: "0.85rem" }}>{Back}</div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.4rem,4vw,2rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{title}</h1>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(1.4rem,4vw,2rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{title}</h1>
           {subtitle && <p style={{ color: "var(--text-mute)", fontSize: "0.9rem", marginTop: "0.35rem" }}>{subtitle}</p>}
         </div>
         {action && <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>{action}</div>}

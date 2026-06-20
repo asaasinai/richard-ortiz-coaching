@@ -48,7 +48,7 @@ function LineChart({ points, color, label, unit }: { points: { date: string; val
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:"0.35rem" }}>
         <span style={{ fontSize:"0.7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)" }}>{label}</span>
         <div style={{ display:"flex", alignItems:"center", gap:"0.3rem" }}>
-          <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem" }}>{last.val}{unit}</span>
+          <span style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem" }}>{last.val}{unit}</span>
           <span style={{ fontSize:"0.7rem", color: trend==="up"?"#4ade80":trend==="down"?"#f87171":"var(--text-mute)" }}>{trend==="up"?"↑":trend==="down"?"↓":"="}</span>
         </div>
       </div>
@@ -204,7 +204,7 @@ export default function ClientDetailPage() {
               {initials(client.first_name, client.last_name)}
             </div>
             <div style={{ minWidth:0 }}>
-              <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:800, fontSize:"clamp(1.2rem,4vw,1.5rem)", letterSpacing:"-0.01em" }}>
+              <h1 style={{ fontFamily:"var(--font-display)", fontWeight:800, fontSize:"clamp(1.2rem,4vw,1.5rem)", letterSpacing:"-0.01em" }}>
                 {client.first_name} {client.last_name}
               </h1>
               <p style={{ color:"var(--text-mute)", fontSize:"0.85rem", marginTop:"0.15rem" }}>{client.email}{client.phone ? ` · ${client.phone}` : ""}</p>
@@ -281,7 +281,7 @@ export default function ClientDetailPage() {
                 ].map(s=>(
                   <div key={s.label} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.875rem 1rem" }}>
                     <div style={{ fontSize:"0.68rem", textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)", marginBottom:"0.35rem" }}>{s.label}</div>
-                    <div style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:s.color, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.val}</div>
+                    <div style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem", color:s.color, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.val}</div>
                   </div>
                 ))}
               </div>
@@ -468,7 +468,7 @@ export default function ClientDetailPage() {
                 ].map(s=>(
                   <div key={s.label} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.875rem 1rem" }}>
                     <div style={{ fontSize:"0.68rem", textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-mute)", marginBottom:"0.35rem" }}>{s.label}</div>
-                    <div style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:s.color }}>{s.val}</div>
+                    <div style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem", color:s.color }}>{s.val}</div>
                   </div>
                 ))}
               </div>

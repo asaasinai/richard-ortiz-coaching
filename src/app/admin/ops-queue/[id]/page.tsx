@@ -65,7 +65,7 @@ export default function OpsCardDetail() {
       <div className="card" style={{ marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem" }}>
           <div>
-            <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.25rem" }}>{card.client_name ?? card.client_email ?? "Fulfillment"}</h1>
+            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.25rem" }}>{card.client_name ?? card.client_email ?? "Fulfillment"}</h1>
             {card.client_id && <Link href={`/admin/clients/${card.client_id}`} style={{ color: "var(--gold)", fontSize: "0.8rem", textDecoration: "none" }}>View client profile →</Link>}
           </div>
           <span style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: STEP_COLOR[card.status] ?? "var(--text-mute)", border: `1px solid ${STEP_COLOR[card.status] ?? "var(--border)"}`, padding: "0.2rem 0.6rem", borderRadius: 6 }}>{card.status}</span>

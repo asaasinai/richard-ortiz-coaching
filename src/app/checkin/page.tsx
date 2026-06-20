@@ -127,7 +127,7 @@ export default function CheckInPage() {
       <Nav/>
       <div className="max-w-2xl mx-auto px-4 py-24 text-center">
         <CheckCircle size={48} style={{color:"var(--gold)",margin:"0 auto 1.5rem"}}/>
-        <h1 style={{fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2rem"}}>Check-In Submitted</h1>
+        <h1 style={{fontFamily:"var(--font-display)",fontWeight:900,fontSize:"2rem"}}>Check-In Submitted</h1>
         <p style={{color:"var(--text-soft)",marginTop:"1rem",lineHeight:1.7}}>
           Your 2-week check-in has been received. Richard will review it and follow up within 24 hours.
         </p>
@@ -141,7 +141,7 @@ export default function CheckInPage() {
     <>
       <Nav/>
       <div className="max-w-2xl mx-auto px-4 py-16">
-        <h1 style={{fontFamily:"Inter Tight,sans-serif",fontWeight:900,fontSize:"2rem",letterSpacing:"-0.02em"}}>2-Week Check-In</h1>
+        <h1 style={{fontFamily:"var(--font-display)",fontWeight:900,fontSize:"2rem",letterSpacing:"-0.02em"}}>2-Week Check-In</h1>
         <p style={{color:"var(--text-soft)",fontSize:"0.9rem",marginTop:"0.25rem",marginBottom:"0.5rem"}}>
           Logged in as <span style={{color:"var(--gold)"}}>{clientEmail}</span>
         </p>

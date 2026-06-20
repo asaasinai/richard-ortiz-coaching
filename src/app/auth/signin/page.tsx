@@ -43,7 +43,7 @@ function SignInForm() {
     <div style={{ minHeight:"80vh", display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem" }}>
       <div style={{ width:"100%", maxWidth:400 }}>
         <span className="section-num">— Login</span>
-        <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.02em", marginBottom:"0.5rem" }}>
+        <h1 style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.02em", marginBottom:"0.5rem" }}>
           Client Login
         </h1>
         <p style={{ color:"var(--text-mute)", fontSize:"0.875rem", marginBottom:"1.75rem", lineHeight:1.6 }}>

@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
           <div style={{ width:52,height:52,borderRadius:16,background:"var(--gold-dim)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:"1rem" }}>
             <Lock size={22} style={{ color:"var(--gold)" }} />
           </div>
-          <span style={{ fontFamily:"Inter Tight,sans-serif",fontWeight:800,fontSize:"1.3rem",letterSpacing:"-0.01em" }}>Welcome back</span>
+          <span style={{ fontFamily:"var(--font-display)",fontWeight:800,fontSize:"1.3rem",letterSpacing:"-0.01em" }}>Welcome back</span>
           <span style={{ color:"var(--text-mute)",fontSize:"0.85rem",marginTop:"0.3rem" }}>Sign in to your coaching dashboard.</span>
         </div>
         <form onSubmit={submit} style={{ display:"flex",flexDirection:"column",gap:"1rem" }}>

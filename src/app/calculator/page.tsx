@@ -309,7 +309,7 @@ export default function CalculatorPage() {
           padding:"1rem 1.25rem" }}>
           <div style={{ fontSize:"0.7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em",
             color:"var(--gold)", marginBottom:"0.5rem" }}>Resulting Concentration</div>
-          <div style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.75rem", color:"var(--text)", lineHeight:1 }}>
+          <div style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.75rem", color:"var(--text)", lineHeight:1 }}>
             {conc.toFixed(3)} mg/mL
           </div>
           <div style={{ fontSize:"0.82rem", color:"var(--text-mute)", marginTop:"0.25rem" }}>
@@ -421,16 +421,16 @@ export default function CalculatorPage() {
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"0.75rem" }}>
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"Inter Tight,sans-serif", color:"var(--text)", lineHeight:1 }}>{doseLabel}</div>
+              <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"var(--font-display)", color:"var(--text)", lineHeight:1 }}>{doseLabel}</div>
               <div style={{ fontSize:"0.7rem", color:"var(--text-mute)", marginTop:"0.2rem" }}>dose</div>
             </div>
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"Inter Tight,sans-serif", color:"var(--text)", lineHeight:1 }}>{volMl.toFixed(3)}</div>
+              <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"var(--font-display)", color:"var(--text)", lineHeight:1 }}>{volMl.toFixed(3)}</div>
               <div style={{ fontSize:"0.7rem", color:"var(--text-mute)", marginTop:"0.2rem" }}>mL</div>
             </div>
             {units !== null ? (
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"Inter Tight,sans-serif", color:"var(--gold)", lineHeight:1 }}>{units.toFixed(1)}</div>
+                <div style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"var(--font-display)", color:"var(--gold)", lineHeight:1 }}>{units.toFixed(1)}</div>
                 <div style={{ fontSize:"0.7rem", color:"var(--text-mute)", marginTop:"0.2rem" }}>syringe units</div>
               </div>
             ) : (
@@ -472,7 +472,7 @@ export default function CalculatorPage() {
 
       {/* Dosing card */}
       <div id="dosing-card" style={{ background:"var(--surface-2)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1.25rem" }}>
-        <div style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", marginBottom:"0.25rem" }}>{peptide.name} Dosing Card</div>
+        <div style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem", marginBottom:"0.25rem" }}>{peptide.name} Dosing Card</div>
         <div style={{ fontSize:"0.75rem", color:"var(--text-mute)", marginBottom:"1rem" }}>Richard Ortiz Coaching</div>
         {[
           ["Peptide",        peptide.name],
@@ -542,7 +542,7 @@ export default function CalculatorPage() {
       <Nav/>
       <div className="max-w-3xl mx-auto px-4 py-16">
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"0.5rem", flexWrap:"wrap", gap:"0.5rem" }}>
-          <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>Dosage Calculator</h1>
+          <h1 style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>Dosage Calculator</h1>
           <button onClick={reset} style={{ display:"flex", alignItems:"center", gap:"0.35rem", background:"none",
             border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"0.4rem 0.9rem",
             color:"var(--text-mute)", fontSize:"0.8rem", cursor:"pointer" }}>

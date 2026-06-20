@@ -85,18 +85,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebarW = collapsed ? 56 : 220
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "transparent" }}>
       {/* ── Desktop sidebar ── */}
       <aside className="admin-sidebar-desktop" style={{
-        width: sidebarW, background: "var(--surface)", borderRight: "1px solid var(--border)",
-        display: "flex", flexDirection: "column", padding: "1.25rem 0", flexShrink: 0,
+        width: sidebarW, background: "rgba(10,10,12,0.55)", borderRight: "1px solid var(--border)",
+        display: "flex", flexDirection: "column", padding: "1.1rem 0", flexShrink: 0,
         position: "sticky", top: 0, height: "100vh", transition: "width 0.18s",
+        backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
       }}>
-        <div style={{ padding: collapsed ? "0 0 1rem" : "0 1.25rem 1rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between" }}>
-          {!collapsed && <span style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.05em", color: "var(--gold)" }}>ROC ADMIN</span>}
-          <button onClick={() => setCollapsed(c => !c)} aria-label="Toggle sidebar" style={{ background: "none", border: "none", color: "var(--text-mute)", cursor: "pointer", display: "flex", alignItems: "center" }}>
-            {collapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
-          </button>
+        <div style={{ padding: collapsed ? "0 0 1.1rem" : "0 1.1rem 1.1rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: "0.5rem" }}>
+          {!collapsed ? (
+            <>
+              <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: "0.6rem", textDecoration: "none", minWidth: 0 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 11, background: "var(--gold-grad)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(212,175,90,0.35)" }}>
+                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1rem", color: "#1A1400" }}>R</span>
+                </div>
+                <div style={{ lineHeight: 1.05, minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.84rem", color: "var(--text)", whiteSpace: "nowrap" }}>Richard Ortiz</div>
+                  <div style={{ fontSize: "0.58rem", fontWeight: 600, letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--gold)" }}>Coaching</div>
+                </div>
+              </Link>
+              <button onClick={() => setCollapsed(true)} aria-label="Collapse sidebar" style={{ background: "none", border: "none", color: "var(--text-mute)", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                <PanelLeftClose size={16} />
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setCollapsed(false)} aria-label="Expand sidebar" title="Richard Ortiz Coaching" style={{ width: 34, height: 34, borderRadius: 11, background: "var(--gold-grad)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 16px rgba(212,175,90,0.35)" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1rem", color: "#1A1400" }}>R</span>
+            </button>
+          )}
         </div>
         <NavLinks mini={collapsed} />
         {!collapsed && (
@@ -108,7 +125,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Mobile top bar ── */}
       <div className="admin-topbar-mobile" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 300, background: "var(--surface)", borderBottom: "1px solid var(--border)", display: "none", alignItems: "center", justifyContent: "space-between", padding: "0 1rem", height: 52 }}>
-        <span style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.05em", color: "var(--gold)" }}>ROC ADMIN</span>
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.05em", color: "var(--gold)" }}>ROC ADMIN</span>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <NotificationBell />
           <button onClick={() => setMobileOpen(o => !o)} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center" }}>
@@ -129,19 +146,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Main content ── */}
       <main className="admin-main" style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
-        <header className="admin-header-desktop" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.6rem 2rem", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "var(--bg)", zIndex: 100, minHeight: 52 }}>
-          <button onClick={() => window.dispatchEvent(new Event("roc:cmdk"))} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text-mute)", fontSize: "0.8rem", padding: "0.4rem 0.75rem", cursor: "pointer", minWidth: 220 }}>
-            <Search size={14} /> <span style={{ flex: 1, textAlign: "left" }}>Search…</span>
-            <kbd style={{ fontSize: "0.66rem", border: "1px solid var(--border)", borderRadius: 4, padding: "0.05rem 0.3rem" }}>⌘K</kbd>
+        <header className="admin-header-desktop" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.65rem 2rem", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "rgba(8,8,10,0.6)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", zIndex: 100, minHeight: 54 }}>
+          <button onClick={() => window.dispatchEvent(new Event("roc:cmdk"))} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-pill)", color: "var(--text-mute)", fontSize: "0.82rem", padding: "0.45rem 0.85rem", cursor: "pointer", minWidth: 240 }}>
+            <Search size={14} /> <span style={{ flex: 1, textAlign: "left" }}>Search clients, applicants…</span>
+            <kbd style={{ fontSize: "0.66rem", border: "1px solid var(--border)", borderRadius: 6, padding: "0.1rem 0.35rem", color: "var(--text-soft)" }}>⌘K</kbd>
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <NotificationBell />
           <Link href="/admin/settings" aria-label="Admin" style={{ textDecoration: "none" }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--gold)", color: "#000", fontWeight: 800, fontSize: "0.72rem", display: "flex", alignItems: "center", justifyContent: "center" }}>RO</div>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--gold-grad)", color: "#1A1400", fontWeight: 800, fontSize: "0.74rem", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(212,175,90,0.3)" }}>RO</div>
           </Link>
           </div>
         </header>
-        <div style={{ padding: "2rem", flex: 1 }}>{children}</div>
+        <div style={{ padding: "2.25rem 2rem", flex: 1 }}>{children}</div>
       </main>
       <CommandPalette />
 

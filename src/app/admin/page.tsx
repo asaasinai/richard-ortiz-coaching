@@ -80,32 +80,38 @@ export default async function AdminOverview() {
     s.lowStock > 0 && { color: "#F87171", text: `${s.lowStock} item${s.lowStock > 1 ? "s" : ""} running low on stock`, cta: "Reorder", href: "/admin/inventory?filter=order-soon" },
   ].filter(Boolean) as { color: string; text: string; cta: string; href: string }[]
 
+  const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
   const revData = s.byProtocol.map((p, i) => ({ ...p, color: PALETTE[i % PALETTE.length] }))
   const statusData = s.statusBreak.map(p => ({ ...p, color: p.label === "APPROVED" ? "#34D399" : p.label === "PENDING" ? "#FBBF24" : "#60A5FA" }))
 
   return (
     <div>
       {/* Greeting */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.5rem,4vw,2.1rem)", letterSpacing: "-0.02em" }}>Hello, Richard.</h1>
-        <p style={{ color: "var(--text-mute)", fontSize: "0.95rem", marginTop: "0.35rem" }}>Here's how your coaching business is doing today.</p>
+      <div className="reveal" style={{ marginBottom: "2rem" }}>
+        <div style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold)", marginBottom: "0.6rem" }}>{todayLabel}</div>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(1.9rem,5vw,2.9rem)", letterSpacing: "-0.03em", lineHeight: 1.02 }}>
+          Hello, <span className="gold-text">Richard</span>.
+        </h1>
+        <p style={{ color: "var(--text-soft)", fontSize: "1rem", marginTop: "0.5rem", maxWidth: 520 }}>Here's how your coaching business is performing today.</p>
       </div>
 
       {/* Hero tiles */}
       <div className="hero-grid" style={{ display: "grid", gap: "1rem", marginBottom: "1.25rem" }}>
-        {hero.map(c => {
+        {hero.map((c, i) => {
           const foot = typeof c.foot === "string" ? null : c.foot
+          const isGold = c.color === "var(--gold)"
           return (
-            <Link key={c.label} href={c.href} className="hero-tile" style={{ textDecoration: "none" }}>
-              <div className="card" style={{ position: "relative", overflow: "hidden" }}>
+            <Link key={c.label} href={c.href} className="hero-tile reveal" style={{ textDecoration: "none", animationDelay: `${0.06 * i + 0.05}s` }}>
+              <div className="card hero-card" style={{ position: "relative", overflow: "hidden", boxShadow: isGold ? "var(--glow-gold)" : undefined, borderColor: isGold ? "rgba(212,175,90,0.3)" : undefined }}>
+                {isGold && <div style={{ position: "absolute", top: -40, right: -40, width: 140, height: 140, background: "radial-gradient(circle, rgba(212,175,90,0.18), transparent 70%)", pointerEvents: "none" }} />}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 13, background: isGold ? "var(--gold-dim)" : "var(--surface-2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <c.icon size={19} style={{ color: c.color }} />
                   </div>
                   {c.spark && c.spark.length > 1 && <Sparkline data={c.spark} color={c.color} />}
                 </div>
-                <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "2.4rem", lineHeight: 1, marginTop: "1rem" }}>{c.value}</div>
-                <div style={{ fontWeight: 600, fontSize: "0.92rem", marginTop: "0.45rem", color: "var(--text)" }}>{c.label}</div>
+                <div className={isGold ? "gold-text" : undefined} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "2.7rem", lineHeight: 1, marginTop: "1.1rem", letterSpacing: "-0.02em" }}>{c.value}</div>
+                <div style={{ fontWeight: 600, fontSize: "0.92rem", marginTop: "0.5rem", color: "var(--text)" }}>{c.label}</div>
                 <div style={{ fontSize: "0.78rem", marginTop: "0.3rem", color: foot?.up == null ? "var(--text-mute)" : foot.up ? "var(--good)" : "var(--bad)", display: "flex", alignItems: "center", gap: 3 }}>
                   {foot && foot.up != null && (foot.up ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />)}
                   {typeof c.foot === "string" ? c.foot : c.foot.text}
@@ -123,7 +129,7 @@ export default async function AdminOverview() {
             <div className="sec-tile" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "0.9rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem", transition: "all .12s" }}>
               <c.icon size={17} style={{ color: c.color, flexShrink: 0 }} />
               <span style={{ color: "var(--text-soft)", fontSize: "0.85rem", flex: 1 }}>{c.label}</span>
-              <span style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.15rem" }}>{c.value}</span>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.15rem" }}>{c.value}</span>
             </div>
           </Link>
         ))}
@@ -132,7 +138,7 @@ export default async function AdminOverview() {
       {/* Today + revenue donut */}
       <div className="ov-2col" style={{ display: "grid", gap: "1.25rem", marginBottom: "1.75rem" }}>
         <div className="card">
-          <h2 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Today</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Today</h2>
           <p style={{ color: "var(--text-mute)", fontSize: "0.8rem", marginBottom: "1rem" }}>What needs you right now.</p>
           {today.length === 0 ? (
             <div style={{ padding: "1.5rem 0", color: "var(--text-mute)", fontSize: "0.9rem", textAlign: "center" }}>🎉 You're all caught up. Nothing needs attention.</div>
@@ -151,7 +157,7 @@ export default async function AdminOverview() {
         </div>
 
         <div className="card">
-          <h2 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Revenue by protocol</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Revenue by protocol</h2>
           <p style={{ color: "var(--text-mute)", fontSize: "0.8rem", marginBottom: "1.25rem" }}>Monthly recurring, by peptide.</p>
           {revData.length ? <Donut segments={revData} centerLabel={`$${s.mrr.toLocaleString()}`} centerSub="per month" /> : <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No active protocols yet.</p>}
         </div>
@@ -160,12 +166,12 @@ export default async function AdminOverview() {
       {/* Client status + top protocols */}
       <div className="ov-2col" style={{ display: "grid", gap: "1.25rem", marginBottom: "1.75rem" }}>
         <div className="card">
-          <h2 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Clients by status</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Clients by status</h2>
           <p style={{ color: "var(--text-mute)", fontSize: "0.8rem", marginBottom: "1.25rem" }}>Where everyone stands.</p>
           {statusData.length ? <Donut segments={statusData} size={150} centerLabel={String(s.totalIntakes)} centerSub="total" /> : <p style={{ color: "var(--text-mute)", fontSize: "0.85rem" }}>No clients yet.</p>}
         </div>
         <div className="card">
-          <h2 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Top protocols by revenue</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.25rem" }}>Top protocols by revenue</h2>
           <p style={{ color: "var(--text-mute)", fontSize: "0.8rem", marginBottom: "1.25rem" }}>Your biggest earners.</p>
           <Bars data={revData.map(r => ({ label: r.label, value: r.value, sub: `$${r.value}/mo` }))} />
         </div>
@@ -178,9 +184,9 @@ export default async function AdminOverview() {
         .hero-grid { grid-template-columns: repeat(4, 1fr); }
         .sec-grid { grid-template-columns: repeat(4, 1fr); }
         .ov-2col { grid-template-columns: 1fr 1fr; }
-        .hero-tile .card { transition: transform .14s ease, border-color .14s; }
-        .hero-tile:hover .card { transform: translateY(-3px); border-color: var(--border-strong); }
-        .sec-tile:hover { background: var(--surface-2) !important; border-color: var(--border-strong) !important; }
+        .hero-tile .card { transition: transform .2s cubic-bezier(.2,.7,.2,1), border-color .2s, box-shadow .2s; }
+        .hero-tile:hover .card { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow-card), 0 22px 50px rgba(0,0,0,.4); }
+        .sec-tile:hover { background: var(--surface-2) !important; border-color: var(--border-strong) !important; transform: translateY(-1px); }
         .today-row:hover { background: var(--surface-3) !important; }
         @media (max-width: 1100px) { .hero-grid { grid-template-columns: repeat(2, 1fr); } .sec-grid { grid-template-columns: repeat(2, 1fr); } .ov-2col { grid-template-columns: 1fr; } }
         @media (max-width: 600px) { .hero-grid { grid-template-columns: 1fr; } .sec-grid { grid-template-columns: 1fr; } }

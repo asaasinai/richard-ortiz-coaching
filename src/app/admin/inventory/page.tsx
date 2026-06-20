@@ -153,7 +153,7 @@ export default function InventoryPage() {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:400, display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"2rem 1rem", overflowY:"auto" }}>
           <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"1.5rem", width:"100%", maxWidth:660 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"1.25rem" }}>
-              <h2 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem" }}>📦 Receive Order</h2>
+              <h2 style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem" }}>📦 Receive Order</h2>
               <button onClick={() => setShowBulkReceive(false)} style={{ background:"none", border:"none", color:"var(--text-mute)", cursor:"pointer" }}><X size={18}/></button>
             </div>
             <p style={{ color:"var(--text-mute)", fontSize:"0.82rem", marginBottom:"1rem" }}>Enter quantity and cost for each SKU received. Leave blank to skip.</p>
@@ -232,7 +232,7 @@ export default function InventoryPage() {
               <button
                 onClick={() => setExpanded(isOpen ? null : name)}
                 style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.875rem 1.25rem", background:"var(--surface)", border:"none", cursor:"pointer", gap:"0.75rem" }}>
-                <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:700, fontSize:"0.95rem", textAlign:"left" }}>{name}</span>
+                <span style={{ fontFamily:"var(--font-display)", fontWeight:700, fontSize:"0.95rem", textAlign:"left" }}>{name}</span>
                 <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
                   {/* Quick size tiles in header */}
                   <div style={{ display:"flex", gap:"0.3rem" }}>
@@ -263,7 +263,7 @@ export default function InventoryPage() {
                           <div style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.75rem 1rem", background:st.bg, flexWrap:"wrap" }}>
                             <span style={{ fontWeight:700, fontSize:"0.875rem", width:50 }}>{mg}{sku.strength_unit}</span>
                             <div style={{ display:"flex", alignItems:"center", gap:"0.4rem", flex:1 }}>
-                              <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.1rem", color:st.color }}>{sku.units_in_stock}</span>
+                              <span style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.1rem", color:st.color }}>{sku.units_in_stock}</span>
                               <span style={{ fontSize:"0.72rem", color:"var(--text-mute)" }}>in stock</span>
                               <span style={{ padding:"0.1rem 0.4rem", borderRadius:3, fontSize:"0.65rem", fontWeight:700, background:st.color, color:"#000" }}>{st.label}</span>
                             </div>

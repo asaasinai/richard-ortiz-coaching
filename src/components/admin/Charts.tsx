@@ -84,7 +84,7 @@ export function Donut({ segments, size = 160, thickness = 22, centerLabel, cente
       {(centerLabel || segments.length) && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {centerLabel && <div style={{ marginBottom: "0.25rem" }}>
-            <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "1.5rem" }}>{centerLabel}</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.5rem" }}>{centerLabel}</div>
             {centerSub && <div style={{ color: "var(--text-mute)", fontSize: "0.78rem" }}>{centerSub}</div>}
           </div>}
           {segments.map((s, i) => (
@@ -115,7 +115,7 @@ export function Ring({ value, max, size = 64, thickness = 7, color = "var(--gold
           strokeDasharray={`${pct * c} ${c}`} strokeLinecap="round" style={{ transition: "stroke-dasharray .9s ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: size > 56 ? "0.95rem" : "0.8rem", lineHeight: 1 }}>{label ?? value}</span>
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: size > 56 ? "0.95rem" : "0.8rem", lineHeight: 1 }}>{label ?? value}</span>
       </div>
     </div>
   )

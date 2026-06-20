@@ -42,7 +42,7 @@ export default function InventoryDetail() {
     <div>
       <Link href="/admin/inventory" style={{ color: "var(--text-mute)", fontSize: "0.82rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.3rem", marginBottom: "1rem" }}><ArrowLeft size={14} /> Inventory</Link>
 
-      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.4rem", marginBottom: "0.2rem" }}>{sku.peptide_name} <span style={{ color: "var(--text-mute)", fontWeight: 600, fontSize: "1rem" }}>{sku.strength}{sku.strength_unit}</span></h1>
+      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.4rem", marginBottom: "0.2rem" }}>{sku.peptide_name} <span style={{ color: "var(--text-mute)", fontWeight: 600, fontSize: "1rem" }}>{sku.strength}{sku.strength_unit}</span></h1>
 
       {/* Overview stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "0.75rem", margin: "1rem 0 1.5rem" }} className="inv-stats">
@@ -117,7 +117,7 @@ export default function InventoryDetail() {
 
 const td: React.CSSProperties = { padding: "0.55rem 0.75rem", fontSize: "0.82rem" }
 function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
-  return <div className="card"><div style={{ fontSize: "0.72rem", color: "var(--text-mute)", marginBottom: "0.3rem" }}>{label}</div><div style={{ fontSize: "1.4rem", fontWeight: 900, fontFamily: "Inter Tight,sans-serif", color: color ?? "var(--text)" }}>{value}</div></div>
+  return <div className="card"><div style={{ fontSize: "0.72rem", color: "var(--text-mute)", marginBottom: "0.3rem" }}>{label}</div><div style={{ fontSize: "1.4rem", fontWeight: 900, fontFamily: "var(--font-display)", color: color ?? "var(--text)" }}>{value}</div></div>
 }
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: "1.25rem" }}><div style={{ padding: "0.85rem 1rem", borderBottom: "1px solid var(--border)" }}><h2 style={{ fontWeight: 700, fontSize: "0.92rem" }}>{title}</h2></div><div className="admin-table-wrap" style={{ overflowX: "auto" }}>{children}</div></div>

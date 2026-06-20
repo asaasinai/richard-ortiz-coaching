@@ -351,7 +351,7 @@ export default function IntakeDetailPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.3rem,4vw,1.6rem)", letterSpacing: "-0.01em", marginBottom: "0.2rem" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(1.3rem,4vw,1.6rem)", letterSpacing: "-0.01em", marginBottom: "0.2rem" }}>
             {intake.first_name} {intake.last_name}
           </h1>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", color: "var(--text-mute)", marginTop: "0.3rem" }}>

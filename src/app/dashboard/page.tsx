@@ -37,7 +37,7 @@ function Spark({ values, color="var(--gold)", h=52 }: { values: number[], color?
         })}
       </svg>
       <div>
-        <div style={{ fontSize:"1.75rem", fontWeight:900, fontFamily:"Inter Tight,sans-serif", color:"var(--text)", lineHeight:1 }}>{last}</div>
+        <div style={{ fontSize:"1.75rem", fontWeight:900, fontFamily:"var(--font-display)", color:"var(--text)", lineHeight:1 }}>{last}</div>
         <div style={{ fontSize:"0.7rem", marginTop:"0.25rem", display:"flex", alignItems:"center", gap:"0.2rem",
           color: trend==="up"?"#4ade80":trend==="down"?"#f87171":"var(--text-mute)" }}>
           {trend==="up"?<TrendingUp size={11}/>:trend==="down"?<TrendingDown size={11}/>:<Minus size={11}/>}
@@ -169,7 +169,7 @@ export default function DashboardPage() {
       <div className="max-w-5xl mx-auto px-4 py-16">
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"2rem", flexWrap:"wrap", gap:"0.5rem" }}>
           <div>
-            <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>
+            <h1 style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"2rem", letterSpacing:"-0.03em" }}>
               {clientName ? `Hey, ${clientName.split(" ")[0]}` : "Your Dashboard"}
             </h1>
             <p style={{ color:"var(--text-mute)", fontSize:"0.85rem", marginTop:"0.2rem" }}>{clientEmail}</p>
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", marginBottom:"0.3rem" }}>Your Protocol</div>
                     <div style={{ display:"flex", gap:"1.5rem", flexWrap:"wrap", alignItems:"baseline" }}>
-                      <span style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"1.3rem", color:"var(--text)" }}>{protocol.peptide}</span>
+                      <span style={{ fontFamily:"var(--font-display)", fontWeight:900, fontSize:"1.3rem", color:"var(--text)" }}>{protocol.peptide}</span>
                       <span style={{ fontSize:"0.85rem", color:"var(--gold)", fontWeight:700 }}>{protocol.protocol} dose</span>
                     </div>
                     {protocol.coach_notes && (

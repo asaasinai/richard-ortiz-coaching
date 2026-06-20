@@ -62,7 +62,7 @@ export default function OpsPage() {
 
   return (
     <div>
-      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.75rem)", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
+      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.75rem)", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
         Ops Queue
       </h1>
       <p style={{ color: "var(--text-mute)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>

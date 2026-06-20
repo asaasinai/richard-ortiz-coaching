@@ -74,7 +74,7 @@ export default function ProposalPage() {
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#000" }}>
       <div style={{ textAlign: "center", maxWidth: 480, padding: "2rem" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>✅</div>
-        <h2 style={{ color: "#C9A84C", fontSize: "1.4rem", fontFamily: "Inter Tight,sans-serif", fontWeight: 900, marginBottom: "0.5rem" }}>Agreement Already Signed</h2>
+        <h2 style={{ color: "#C9A84C", fontSize: "1.4rem", fontFamily: "var(--font-display)", fontWeight: 900, marginBottom: "0.5rem" }}>Agreement Already Signed</h2>
         <p style={{ color: "#888", lineHeight: 1.7 }}>This coaching agreement has already been signed. Questions? Email <a href="mailto:richard@richardortizcoaching.com" style={{ color: "#C9A84C" }}>richard@richardortizcoaching.com</a></p>
       </div>
     </div>
@@ -84,7 +84,7 @@ export default function ProposalPage() {
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#000" }}>
       <div style={{ textAlign: "center", maxWidth: 520, padding: "2rem" }}>
         <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎉</div>
-        <h2 style={{ color: "#C9A84C", fontSize: "1.6rem", fontFamily: "Inter Tight,sans-serif", fontWeight: 900, marginBottom: "0.75rem" }}>
+        <h2 style={{ color: "#C9A84C", fontSize: "1.6rem", fontFamily: "var(--font-display)", fontWeight: 900, marginBottom: "0.75rem" }}>
           Welcome, {signedName.split(" ")[0]}!
         </h2>
         <p style={{ color: "#ccc", lineHeight: 1.7, fontSize: "1rem" }}>
@@ -108,7 +108,7 @@ export default function ProposalPage() {
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "2rem 1.5rem" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem", paddingBottom: "2rem", borderBottom: "1px solid rgba(201,168,76,0.3)" }}>
-          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "#C9A84C", letterSpacing: "-0.02em", marginBottom: "0.5rem" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.6rem", color: "#C9A84C", letterSpacing: "-0.02em", marginBottom: "0.5rem" }}>
             RICHARD ORTIZ COACHING
           </h1>
           <p style={{ color: "#888", fontSize: "0.875rem" }}>Personalized Peptide Protocol Agreement</p>
@@ -134,7 +134,7 @@ export default function ProposalPage() {
 
         {/* Protocol */}
         <div style={{ background: "#0d0d0d", border: "1px solid rgba(201,168,76,0.25)", borderRadius: 8, padding: "1.5rem", marginBottom: "2rem" }}>
-          <h2 style={{ color: "#C9A84C", fontFamily: "Inter Tight,sans-serif", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1.25rem" }}>
+          <h2 style={{ color: "#C9A84C", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1.25rem" }}>
             Your Protocol
           </h2>
 
@@ -178,7 +178,7 @@ export default function ProposalPage() {
 
         {/* TOS */}
         <div style={{ marginBottom: "2rem" }}>
-          <h2 style={{ color: "#C9A84C", fontFamily: "Inter Tight,sans-serif", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
+          <h2 style={{ color: "#C9A84C", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
             Terms of Service
           </h2>
           <div style={{ background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "1.25rem", maxHeight: 320, overflowY: "auto" }}>
@@ -190,7 +190,7 @@ export default function ProposalPage() {
 
         {/* Signature */}
         <div style={{ background: "#0d0d0d", border: "1px solid rgba(201,168,76,0.25)", borderRadius: 8, padding: "1.5rem" }}>
-          <h2 style={{ color: "#C9A84C", fontFamily: "Inter Tight,sans-serif", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
+          <h2 style={{ color: "#C9A84C", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
             Electronic Signature
           </h2>
           <p style={{ color: "#888", fontSize: "0.82rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
@@ -234,7 +234,7 @@ export default function ProposalPage() {
             disabled={signing || !signedName.trim() || !agreed}
             style={{
               width: "100%", padding: "0.875rem", background: "#C9A84C", color: "#000",
-              border: "none", borderRadius: 6, fontFamily: "Inter Tight,sans-serif",
+              border: "none", borderRadius: 6, fontFamily: "var(--font-display)",
               fontWeight: 900, fontSize: "1rem", cursor: "pointer", letterSpacing: "-0.01em",
               opacity: (signing || !signedName.trim() || !agreed) ? 0.5 : 1,
             }}

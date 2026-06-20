@@ -152,7 +152,7 @@ export default function RevenuePage() {
           <Link key={card.label} href={card.href} className="stat-card-link" style={{ textDecoration: "none" }}>
             <div className="card stat-card" style={{ padding: "1.1rem 1.25rem", cursor: "pointer" }}>
               <card.icon size={16} style={{ color: card.color, marginBottom: "0.5rem" }} />
-              <div style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--text)", lineHeight: 1 }}>{card.value}</div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.5rem", color: "var(--text)", lineHeight: 1 }}>{card.value}</div>
               <div style={{ color: "var(--text-mute)", fontSize: "0.78rem", marginTop: "0.35rem", fontWeight: 600 }}>{card.label}</div>
             </div>
           </Link>

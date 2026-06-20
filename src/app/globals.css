@@ -1,63 +1,121 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* ── Modern dark palette (warmer black, layered surfaces) ── */
-  --bg: #0A0A0B;
-  --bg-2: #0F0F11;
-  --surface: #141417;        /* cards */
-  --surface-1: #141417;
-  --surface-2: #1C1C21;      /* raised / inputs / hover */
-  --surface-3: #26262D;      /* popovers / active */
-  --gold: #C9A84C;
-  --gold-light: #E8C96A;
-  --gold-dim: rgba(201,168,76,0.12);
-  --text: #F5F5F4;
-  --text-soft: #B4B4B8;
-  --text-mute: #76767E;
-  /* Neutral hairline borders by default — gold is reserved for accent/focus */
-  --border: rgba(255,255,255,0.07);
-  --border-strong: rgba(255,255,255,0.12);
-  --good: #34D399;
-  --warn: #FBBF24;
-  --bad: #F87171;
-  --info: #60A5FA;
-  --radius: 16px;
-  --radius-sm: 10px;
+  /* ── Type ── */
+  --font-display: "Bricolage Grotesque", "Hanken Grotesk", system-ui, sans-serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+
+  /* ── Obsidian canvas + warm-gold accent ── */
+  --bg: #08080A;
+  --bg-2: #0C0C0F;
+  /* translucent glass surfaces (sit over the ambient glow) */
+  --surface: rgba(255, 255, 255, 0.026);
+  --surface-1: rgba(255, 255, 255, 0.026);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --surface-3: rgba(255, 255, 255, 0.085);
+  /* opaque fallbacks for inputs/popovers where blur is unwanted */
+  --solid-1: #131316;
+  --solid-2: #1B1B1F;
+
+  --gold: #D4AF5A;
+  --gold-light: #F1D78A;
+  --gold-deep: #A8842F;
+  --gold-dim: rgba(212, 175, 90, 0.13);
+  --gold-grad: linear-gradient(135deg, #F1D78A 0%, #D4AF5A 48%, #A8842F 100%);
+
+  --text: #F7F6F2;
+  --text-soft: #BAB8B0;
+  --text-mute: #76746E;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
+  --good: #3DDC97;
+  --warn: #F5C451;
+  --bad: #F2766B;
+  --info: #6BA8F5;
+
+  --radius: 18px;
+  --radius-sm: 12px;
   --radius-pill: 999px;
-  --shadow-card: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.22);
-  --shadow-pop: 0 12px 40px rgba(0,0,0,.55);
+
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.3), 0 16px 40px rgba(0, 0, 0, 0.38);
+  --shadow-pop: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --glow-gold: 0 0 0 1px rgba(212, 175, 90, 0.18), 0 14px 50px rgba(212, 175, 90, 0.10);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-body { min-height: 100vh; background: var(--bg); }
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body { min-height: 100vh; background: var(--bg); position: relative; }
 
-::selection { background: var(--gold-dim); }
+/* ── Ambient atmosphere: layered warm glow ── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 600px at 12% -5%, rgba(212, 175, 90, 0.10), transparent 60%),
+    radial-gradient(800px 700px at 100% 0%, rgba(120, 110, 200, 0.05), transparent 55%),
+    radial-gradient(1000px 800px at 50% 120%, rgba(212, 175, 90, 0.05), transparent 60%);
+}
+/* fine grain texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+/* keep app content above the atmosphere */
+#__next, body > div { position: relative; z-index: 1; }
 
+::selection { background: rgba(212, 175, 90, 0.28); color: #fff; }
+
+/* ── Gold utilities ── */
 .gold { color: var(--gold); }
 .gold-border { border: 1px solid var(--border); }
+.gold-text {
+  background: var(--gold-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 
 /* ── Buttons ── */
 .btn-gold, .btn {
-  background: var(--gold);
-  color: #161200;
+  background: var(--gold-grad);
+  color: #1A1400;
+  font-family: var(--font-body);
   font-weight: 700;
-  letter-spacing: 0.01em;
-  padding: 0.7rem 1.4rem;
+  letter-spacing: 0.005em;
+  padding: 0.72rem 1.4rem;
   border: none;
   border-radius: var(--radius-sm);
-  transition: transform .12s ease, background .15s, box-shadow .15s;
+  transition: transform .14s cubic-bezier(.2,.7,.2,1), box-shadow .2s, filter .2s;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(212, 175, 90, 0.22);
 }
-.btn-gold:hover, .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-gold:hover, .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 175, 90, 0.34); filter: brightness(1.05); }
 .btn-gold:active, .btn:active { transform: translateY(0); }
 
 .btn-outline, .btn-ghost {
@@ -65,56 +123,64 @@ body { min-height: 100vh; background: var(--bg); }
   color: var(--text-soft);
   border: 1px solid var(--border);
   font-weight: 600;
-  padding: 0.7rem 1.4rem;
+  padding: 0.72rem 1.4rem;
   border-radius: var(--radius-sm);
-  transition: all 0.15s;
+  transition: all 0.16s;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+  backdrop-filter: blur(8px);
 }
 .btn-outline:hover, .btn-ghost:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-strong); }
 
-/* ── Cards ── */
+/* ── Glass cards ── */
 .card {
-  background: var(--surface);
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.5rem;
   box-shadow: var(--shadow-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 /* ── Pills / chips ── */
 .pill {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  padding: 0.3rem 0.75rem; border-radius: var(--radius-pill);
+  display: inline-flex; align-items: center; gap: 0.38rem;
+  padding: 0.36rem 0.8rem; border-radius: var(--radius-pill);
   font-size: 0.78rem; font-weight: 600; line-height: 1;
   background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border);
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all .14s; backdrop-filter: blur(6px);
 }
-.pill:hover { background: var(--surface-3); color: var(--text); }
-.pill[data-active="true"] { background: var(--gold-dim); color: var(--gold-light); border-color: rgba(201,168,76,0.35); }
+.pill:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-strong); }
+.pill[data-active="true"] { background: var(--gold-dim); color: var(--gold-light); border-color: rgba(212, 175, 90, 0.4); box-shadow: 0 0 0 1px rgba(212,175,90,0.12); }
 
 .chip {
   display: inline-flex; align-items: center; gap: 0.3rem;
-  padding: 0.25rem 0.6rem; border-radius: var(--radius-pill);
+  padding: 0.26rem 0.62rem; border-radius: var(--radius-pill);
   font-size: 0.72rem; font-weight: 600; line-height: 1;
   background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border);
 }
 
-/* ── Skeleton loader ── */
+/* ── Skeleton ── */
 .skeleton {
-  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   border-radius: var(--radius-sm);
 }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+/* ── Entrance motion ── */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.reveal { animation: rise .62s cubic-bezier(.2,.7,.2,1) both; }
+
 .section-num {
-  font-family: "Inter Tight", sans-serif;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   color: var(--gold);
@@ -125,18 +191,20 @@ body { min-height: 100vh; background: var(--bg); }
 
 /* ── Forms ── */
 input, textarea, select {
-  background: var(--surface-2);
+  background: var(--solid-1);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: var(--radius-sm);
-  padding: 0.7rem 0.9rem;
+  padding: 0.72rem 0.95rem;
   width: 100%;
   font-size: 0.95rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--gold);
+  background: var(--solid-2);
   box-shadow: 0 0 0 3px var(--gold-dim);
 }
 input:focus-visible, textarea:focus-visible, select:focus-visible,
@@ -148,13 +216,12 @@ label { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); display: 
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 8px; border: 2px solid var(--bg); }
-::-webkit-scrollbar-thumb:hover { background: #34343c; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); background-clip: padding-box; }
 
 /* ── Mobile polish ── */
 @media (max-width: 600px) {
-  .card { padding: 1.15rem; border-radius: 14px; }
-  /* comfortable tap targets */
-  .pill { padding: 0.45rem 0.85rem; }
-  .btn-gold, .btn, .btn-outline, .btn-ghost { padding: 0.7rem 1.1rem; }
+  .card { padding: 1.2rem; border-radius: 16px; }
+  .pill { padding: 0.46rem 0.85rem; }
+  .btn-gold, .btn, .btn-outline, .btn-ghost { padding: 0.72rem 1.1rem; }
 }
