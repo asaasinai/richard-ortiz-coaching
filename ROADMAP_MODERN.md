@@ -34,7 +34,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | 4.3 | 4 | Revenue: donut by protocol + plain-English margin + date filter | ✅ | PageHeader+back, area-chart trend, billing donut, "product cost/margin" plain language, skeleton |
 | 5.1 | 5 | SMS Builder / Settings / Calculator / Login modern form pass + back arrows | ✅ | SMS+Settings PageHeader/back+plain copy; login "Welcome back"+back-to-site; calculator already had back |
 | 5.2 | 5 | Mobile pass: single-column, 44px targets, back arrow reachable everywhere | ✅ | audited fixed widths (none overflow), global mobile card padding + tap-target rules; all grids collapse to 1col |
-| 5.3 | 5 | Final: `npx tsc --noEmit` clean, empty/loading states, acceptance checklist | ⬜ | HANDOFF.md |
+| 5.3 | 5 | Final: `npx tsc --noEmit` clean, empty/loading states, acceptance checklist | ✅ | tsc clean, 22/22 admin routes force-dynamic, live stats verified, HANDOFF.md written |
 
 ## Human-gated (do NOT auto-run)
 - Deploy: `vercel deploy --prod` after review.

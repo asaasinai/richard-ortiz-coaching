@@ -1,38 +1,45 @@
-# HANDOFF — ROC Admin UX/UI Upgrade
+# ROC Admin — Modern UI Rebuild · HANDOFF
 
-**Branch:** `loop/roc-admin-ux` (local; not pushed) · **Base:** `main` · **Built:** 2026-06-19 (autonomous /loop)
+**Branch:** `loop/roc-admin-modern` · **Spec:** `SPEC_MODERN_UI.md` (live: preview.smashforms.com/sites/roc-admin-modern-spec/)
+**Status:** ✅ All 21 roadmap rows complete. `npx tsc --noEmit` clean. Not deployed (human-gated).
 
-## STATE
-All 22 roadmap rows ✅ (Sprints 1–4). `npx tsc --noEmit` clean on every commit. 18 commits.
-Nothing executed against the live DB; nothing deployed. See ROADMAP.md for the row-by-row table and LOOP_LOG.md for per-iteration detail.
+## What shipped
 
-## LAND HERE
-- Worktree: `/home/marshall/richard-ortiz-coaching` on branch `loop/roc-admin-ux`.
-- Last sha: `git log -1` on that branch. To review: `git diff main...loop/roc-admin-ux`.
-- Repo has a GitHub remote (`asaasinai/richard-ortiz-coaching`); branch is **local only** — `git push -u origin loop/roc-admin-ux` to back it up / open a PR.
+**Design system (new tokens in `globals.css`)** — warmer near-black, layered surfaces (`#141417` → `#1C1C21` → `#26262D`), neutral hairline borders (gold reserved for accent/focus), 16px radii, soft shadows, and reusable `.card / .btn / .pill / .chip / .skeleton` classes. Same black + gold brand, modern execution.
 
-## RUN IT  (⚠ two human-gated steps — the loop did NOT do these)
-1. **Migration (REQUIRED before deploy).** Run `sql/2026-06-19-admin-ux-upgrade.sql` against Neon `neondb` schema `roc` (psql, as migrations always are here). Idempotent. Adds: checkin read/resolve/follow-up cols, `notifications`, `ops_cards`, `lot_transactions`, lot cols on `inventory_batches`, `admin_settings` (+ seeds defaults). The new code assumes these exist; pages degrade gracefully pre-migration (no 500s) but features need it.
-2. **Deploy.** Either merge to `main` (Vercel git integration auto-deploys production) OR `vercel --prod` from the repo with `"target":"production"` (API-triggered deploys default to preview and won't take over richardortizcoaching.com).
-- **Verify locally first:** `npx tsc --noEmit` (the gate — `next build` FAILS locally because NEON_HOST/DATABASE_URL are Vercel-only and the `/admin` server page prerenders DB calls; this is environmental, not a bug). On Vercel the env vars are set, so build/prerender succeed.
+**Shared components**
+- `components/admin/PageHeader.tsx` — back arrow on **every** admin screen (`router.back()` + parent fallback) + plain-language title/subtitle + optional action.
+- `components/admin/Charts.tsx` — hand-rolled SVG kit (Area, Sparkline, Donut, Ring, Bars), animated, zero dependencies.
 
-## WHY / DECISIONS
-- **Reused `roc.inventory_batches` as the FIFO lot ledger** (it already was one — the inventory route computed FIFO cost from it). The spec's `inventory_lots` = this table; added `lot_identifier`/`received_by` cols rather than a duplicate table.
-- **New cross-ref columns are TEXT with `::text` cast joins** — the existing id column types (uuid/serial/text) couldn't be confirmed offline, and this matches the codebase's loose raw-SQL style. If you later want hard FKs, confirm `roc.intakes.id` / `roc.inventory_skus.id` types and tighten.
-- **"Client" = APPROVED intake** in this schema (`client_protocols.client_id = intakes.id`); there is no separate clients table, so intake-approval needs no auto-create step beyond the status change.
-- **Real outbound is NOT triggered by the loop.** Urgent-checkin/new-intake create *in-app* notifications; the pre-existing Resend email path (`sendAdminCheckinUrgent`/`sendAdminIntakeNotify`) was left untouched. SMS is copy-only (SMS Builder). Wiring the settings alert-toggles to actually dispatch email/SMS via Resend/Twilio is a deliberate human-gated step.
-- **FIFO commit is not transactional across calls** (Neon HTTP has no multi-statement txn). Mitigated by an all-or-nothing availability pre-check before any deduction; fine for a single-admin tool. If concurrency grows, move the deduction into one CTE statement.
+**Screens modernized**
+- **Overview** — "Welcome, Richard." greeting, 4 glanceable hero tiles (+ sparkline), plain-English "Today" action list, revenue/client-status donuts, top-protocol bars, area-chart activity.
+- **Sidebar** — grouped Daily / Catalog / Tools, soft gold-dim active state; "Ops Queue → Fulfillment", "Intakes → Applicants".
+- **Clients** — avatar rows, pill filters w/ counts, status chips, skeletons.
+- **Client profile** — avatar + goal chips + week-progress ring + pill status; Check-Ins tab now shows weight/energy/mood trend charts.
+- **Check-Ins** — PageHeader, pill filters, per-client trend arrows, skeleton.
+- **Applicants (intakes)** — avatars, pill filters, `?status=` deep-link; detail page pill back/status, "Applied" framing.
+- **Fulfillment** — PageHeader, pill filters, soft view toggle, refreshed Kanban colors/labels, skeleton.
+- **Inventory** — 3 stock-ring summary cards, pill filters, skeleton, "cost" plain language.
+- **Revenue** — PageHeader, area-chart trend, billing donut, "product cost / margin" plain language, skeleton.
+- **SMS / Settings / Login** — PageHeader + back (SMS, Settings); login "Welcome back" + back-to-site. Calculator already had a back arrow.
+- **Mobile** — global card-padding + tap-target rules; all grids collapse to one column; no fixed-width overflow.
 
-## GOTCHAS
-- Every new `/api/admin/*` route has `export const dynamic = "force-dynamic"` (App Router caches GET handlers otherwise → stale UI). Keep this on any new admin route.
-- `/api/intake` and `/api/checkin` are public POST endpoints (no force-dynamic needed).
-- Local dev can't hit the DB — don't trust a local `next build` failure on `/admin`; use tsc.
+## Data (live prod `roc` schema)
+- Full backup of prior client data → `backups/roc-clientdata-backup-*.json` (gitignored — PII). Restore from there if needed.
+- Purged client data and seeded **5 full demo profiles** (`sql/seed-demo-profiles.mjs`, idempotent):
+  Marcus Bennett (Tirz+BPC, wk6) · Sarah Chen (GHK-Cu+NAD+, wk3) · David Rodriguez (BPC+TB-500, wk8, **urgent flag**) · Emily Watson (Semaglutide, wk1, new) · James Park (CJC+Ipamorelin, wk12, signed).
+- **Verified live:** 5 active clients · 15 check-ins · 1 open urgent · $1,825 MRR · 1 order pending · 4 signed proposals.
 
-## NEXT ACTIONS (ordered)
-1. Run the migration (step 1 above), then deploy (step 2).
-2. Smoke-test post-deploy: submit a low-score check-in → urgent notification appears in the bell + Overview banner; create an Ops card → advance to Packed → confirm FIFO deduction in the SKU lot ledger + `lot_transactions`.
-3. **Deferred / not built (scope gaps, flagged honestly):**
-   - **Ops auto-generation**: the `auto_generate_ops_cards` + `billing_cycle_day` settings persist, but no job creates recurring ops cards yet. Needs a cron/route that, on the billing day, generates a card per active protocol. (Settings UI + storage are ready.)
-   - **Alert dispatch**: email/SMS toggles are stored and read, but a dispatcher that sends on `notify_*` is not wired (see Decisions).
-   - **cmd+k**: searches clients/intakes/inventory; check-in-by-content search not included.
-   - **Kanban drag-drop**: status advances via the card detail button (functional); column drag is a polish item.
+## To deploy (your call)
+DB writes are already live (seed ran against prod). To ship the UI:
+```
+cd ~/richard-ortiz-coaching
+git checkout main && git merge loop/roc-admin-modern   # or open a PR
+vercel deploy --prod                                    # git deploys wedge — use CLI
+```
+(inventory / inventory_batches / admin_settings / users were left untouched. No schema migrations were run.)
+
+## Notes / minor gaps
+- Demo client emails use `@demo.roc` so they never collide with real inboxes or trigger sends.
+- Re-running `sql/seed-demo-profiles.mjs` re-purges + re-seeds (safe, idempotent) — it deletes ALL client rows first, so don't run it once real clients exist without re-checking the backup step.
+- Drag-and-drop between Fulfillment columns is still button-driven (deferred in the prior loop; not in this scope).
