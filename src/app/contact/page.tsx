@@ -17,20 +17,23 @@ export default function ContactPage() {
   return (
     <>
       <Nav />
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        <h1 style={{ fontFamily:"var(--font-display)",fontWeight:900,fontSize:"2.5rem",letterSpacing:"-0.03em" }}>Get In Touch</h1>
-        <p style={{ color:"var(--text-soft)",marginTop:"0.75rem",marginBottom:"2.5rem" }}>Questions before starting? Use the form below.</p>
+      <div className="max-w-3xl mx-auto px-4 py-24 reveal">
+        <h1 style={{ fontFamily:"var(--font-display)",fontWeight:700,fontSize:"clamp(2.4rem,5.5vw,3.4rem)",letterSpacing:"-0.035em",lineHeight:1.05 }}>Get In <span className="gold-text">Touch</span></h1>
+        <p style={{ color:"var(--text-soft)",fontSize:"1.1rem",marginTop:"1rem",marginBottom:"2.75rem" }}>Questions before starting? Use the form below.</p>
         <div style={{ marginBottom:"2rem" }}>
           <div className="card" style={{ display:"flex",gap:"1rem",alignItems:"center" }}>
-            <MessageSquare size={20} style={{ color:"var(--gold)" }} />
-            <div><div style={{ fontSize:"0.75rem",color:"var(--text-mute)",textTransform:"uppercase",letterSpacing:"0.08em" }}>Response Time</div>
-            <span style={{ color:"var(--text)",fontWeight:600,fontSize:"0.9rem" }}>Within 48 hours</span></div>
+            <span style={{ width:44,height:44,borderRadius:13,background:"var(--gold-dim)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+              <MessageSquare size={20} style={{ color:"var(--gold)" }} />
+            </span>
+            <div><div style={{ fontSize:"0.7rem",color:"var(--text-mute)",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600 }}>Response Time</div>
+            <span style={{ color:"var(--text)",fontWeight:600,fontSize:"0.95rem" }}>Within 48 hours</span></div>
           </div>
         </div>
         {sent ? (
-          <div className="card" style={{ textAlign:"center",padding:"3rem" }}>
-            <p style={{ color:"var(--gold)",fontWeight:700,fontSize:"1.1rem" }}>Message sent ✓</p>
-            <p style={{ color:"var(--text-soft)",marginTop:"0.5rem" }}>Richard will get back to you within 48 hours.</p>
+          <div className="card" style={{ position:"relative",overflow:"hidden",textAlign:"center",padding:"3.5rem 2rem",boxShadow:"var(--glow-gold)",borderColor:"rgba(212,175,90,0.3)" }}>
+            <div style={{ position:"absolute",top:-50,left:"50%",transform:"translateX(-50%)",width:240,height:160,background:"radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)",pointerEvents:"none" }} />
+            <p className="gold-text" style={{ fontFamily:"var(--font-display)",fontWeight:700,fontSize:"1.3rem",position:"relative" }}>Message sent ✓</p>
+            <p style={{ color:"var(--text-soft)",marginTop:"0.5rem",position:"relative" }}>Richard will get back to you within 48 hours.</p>
           </div>
         ) : (
           <form onSubmit={submit} className="card flex flex-col gap-4">
