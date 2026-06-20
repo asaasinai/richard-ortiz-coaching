@@ -27,7 +27,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | 2.1 | 2 | Clients list: card/table hybrid, avatars, chips, filter pills + back header | ✅ | colored avatars, pill filters w/ counts, status chips, skeleton loader, mobile-clean |
 | 2.2 | 2 | Client profile: header card + progress ring + chip goals + modern tabs | ✅ | avatar + goal chips + week progress ring + pill status + soft tabs |
 | 2.3 | 2 | Client Check-Ins tab: weight/energy/mood progress charts | ✅ | trend charts atop check-ins tab + friendly empty state |
-| 3.1 | 3 | Check-Ins queue: friendly review cards, trend arrows, slide-over, pills | ⬜ | |
+| 3.1 | 3 | Check-Ins queue: friendly review cards, trend arrows, slide-over, pills | ✅ | PageHeader+back, pill filters w/counts, per-client trend arrows, skeleton, plain helper |
 | 3.2 | 3 | Intakes: "applicants" framing, AI-rec card, approve flow, back header | ⬜ | |
 | 4.1 | 4 | Fulfillment (Ops Queue rename): modern Kanban+list, plain cost | ⬜ | |
 | 4.2 | 4 | Inventory: stock cards + low-stock ring + lot ledger restyle | ⬜ | |

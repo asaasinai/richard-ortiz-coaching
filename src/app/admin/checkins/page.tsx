@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState, Suspense, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AlertTriangle, X, CheckCircle, Mail } from "lucide-react"
+import { AlertTriangle, X, CheckCircle, Mail, ArrowUp, ArrowDown, Download, CheckCheck } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
 
 type Filter = "all" | "unread" | "urgent" | "resolved" | "thisweek"
 
@@ -263,37 +264,36 @@ function CheckInsInner() {
     </div>
   )
 
+  // Per-client progress trend (vs that client's previous check-in in this list)
+  const byClient: Record<string, CheckIn[]> = {}
+  for (const c of [...checkins].sort((a, b) => +new Date(a.submitted_at) - +new Date(b.submitted_at))) {
+    const k = c.client_email || c.id;(byClient[k] ??= []).push(c)
+  }
+  const trendFor = (c: CheckIn): "up" | "down" | null => {
+    const arr = byClient[c.client_email || c.id]; const i = arr.indexOf(c)
+    if (i <= 0) return null
+    const cur = c.data.progressScore ?? c.data.energyScore
+    const prev = arr[i - 1].data.progressScore ?? arr[i - 1].data.energyScore
+    if (cur === undefined || prev === undefined) return null
+    return cur > prev ? "up" : cur < prev ? "down" : null
+  }
+
   return (
     <div>
-      {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.5rem)" }}>Check-Ins</h1>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button onClick={exportCsv}
-            style={{ padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: "var(--surface)", color: "var(--text-mute)", border: "1px solid var(--border)" }}>
-            Export CSV
-          </button>
-          <button onClick={markAllRead}
-            style={{ padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", background: "var(--surface)", color: "var(--text-mute)", border: "1px solid var(--border)" }}>
-            Mark All Read
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Check-Ins" subtitle="Weekly client updates. Read them, reply, and resolve anything urgent." backHref="/admin" backLabel="Overview"
+        action={<>
+          <button onClick={exportCsv} className="btn-ghost" style={{ fontSize: "0.8rem", padding: "0.5rem 0.9rem" }}><Download size={14} /> Export</button>
+          <button onClick={markAllRead} className="btn-ghost" style={{ fontSize: "0.8rem", padding: "0.5rem 0.9rem" }}><CheckCheck size={14} /> Mark all read</button>
+        </>} />
 
-      {/* Filter pill tabs with counts */}
+      {/* Filter pills with counts */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
         {FILTERS.map(f => {
           const n = counts[f.key]
           return (
-            <button key={f.id} onClick={() => setFilter(f.id)} style={{
-              padding: "0.4rem 0.9rem", borderRadius: "var(--radius)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
-              background: filter === f.id ? "var(--gold)" : "var(--surface)",
-              color: filter === f.id ? "#000" : "var(--text-mute)",
-              border: `1px solid ${filter === f.id ? "var(--gold)" : "var(--border)"}`,
-              display: "flex", alignItems: "center", gap: "0.4rem",
-            }}>
-              {f.id === "urgent" && "⚠ "}{f.label}
-              {n !== undefined && <span style={{ fontSize: "0.7rem", opacity: 0.8 }}>{n}</span>}
+            <button key={f.id} className="pill" data-active={filter === f.id} onClick={() => setFilter(f.id)}>
+              {f.id === "urgent" && <AlertTriangle size={12} />}{f.label}
+              {n !== undefined && <span style={{ opacity: 0.6 }}>{n}</span>}
             </button>
           )
         })}
@@ -309,7 +309,11 @@ function CheckInsInner() {
       {/* Desktop: side-by-side layout */}
       <div className="checkin-desktop-layout">
         <div style={{ flex: 1, overflow: "auto" }}>
-          {loading ? <p style={{ color: "var(--text-mute)" }}>Loading...</p> : (
+          {loading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {[0, 1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 66 }} />)}
+            </div>
+          ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {checkins.map(c => {
                 const unread = !c.read
@@ -330,7 +334,8 @@ function CheckInsInner() {
                       <div style={{ fontWeight: unread ? 800 : 600, fontSize: "0.875rem", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                         <span>{c.first_name ? `${c.first_name} ${c.last_name ?? ""}` : (c.client_email || "Unlinked check-in")}</span>
                         {c.first_name && c.client_email && <span style={{ color: "var(--text-mute)", fontWeight: 400, fontSize: "0.78rem" }}>{c.client_email}</span>}
-                        <span style={{ fontSize: "0.64rem", fontWeight: 700, padding: "0.05rem 0.4rem", borderRadius: 4, background: unread ? "rgba(201,168,76,0.18)" : "var(--surface-2)", color: unread ? "var(--gold)" : "var(--text-mute)" }}>{unread ? "NEW" : "SEEN"}</span>
+                        <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.1rem 0.45rem", borderRadius: "var(--radius-pill)", background: unread ? "var(--gold-dim)" : "var(--surface-2)", color: unread ? "var(--gold-light)" : "var(--text-mute)" }}>{unread ? "NEW" : "SEEN"}</span>
+                        {(() => { const t = trendFor(c); return t === "up" ? <ArrowUp size={13} style={{ color: "#34D399" }} /> : t === "down" ? <ArrowDown size={13} style={{ color: "#F87171" }} /> : null })()}
                       </div>
                       <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", fontSize: "0.76rem", color: "var(--text-mute)" }}>
                         {c.data.progressScore !== undefined && <span>Progress <b style={scoreColor(c.data.progressScore)}>{c.data.progressScore}/10</b></span>}
