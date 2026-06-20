@@ -71,10 +71,11 @@ export default function PricingPage() {
     <>
       <Nav />
 
-      <main style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <main style={{ minHeight: "100vh" }}>
         {/* ─── Page header ─── */}
-        <section style={{ padding: "5rem 1.5rem 3.5rem" }}>
-          <div className="max-w-3xl mx-auto text-center">
+        <section style={{ position: "relative", padding: "6.5rem 1.5rem 3.5rem", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(700px 360px at 50% -10%, rgba(212,175,90,0.1), transparent 65%)", pointerEvents: "none" }} />
+          <div className="max-w-3xl mx-auto text-center reveal" style={{ position: "relative" }}>
             <p className="section-num" style={{ marginBottom: "1rem" }}>
               Pricing
             </p>
@@ -131,25 +132,28 @@ export default function PricingPage() {
               alignItems: "start",
             }}
           >
-            {tiers.map((tier) => (
+            {tiers.map((tier, i) => (
               <div
                 key={tier.num}
-                className="card"
+                className="card reveal"
                 style={{
                   position: "relative",
                   border: tier.highlight
-                    ? "2px solid var(--gold)"
+                    ? "1px solid rgba(212,175,90,0.5)"
                     : "1px solid var(--border)",
-                  transform: tier.highlight ? "translateY(-6px)" : "none",
+                  transform: tier.highlight ? "translateY(-8px)" : "none",
                   boxShadow: tier.highlight
-                    ? "0 20px 60px rgba(201, 168, 76, 0.12)"
-                    : "none",
-                  padding: "2rem",
+                    ? "var(--glow-gold), 0 24px 60px rgba(0,0,0,0.4)"
+                    : "var(--shadow-card)",
+                  padding: "2.25rem 2rem",
                   display: "flex",
                   flexDirection: "column",
                   gap: "1.25rem",
+                  overflow: "hidden",
+                  animationDelay: `${0.08 * i}s`,
                 }}
               >
+                {tier.highlight && <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, background: "radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)", pointerEvents: "none" }} />}
                 {/* Most Popular badge */}
                 {tier.badge && (
                   <div
@@ -158,15 +162,16 @@ export default function PricingPage() {
                       top: "-1px",
                       left: "50%",
                       transform: "translateX(-50%) translateY(-50%)",
-                      background: "var(--gold)",
-                      color: "#000",
+                      background: "var(--gold-grad)",
+                      color: "#1A1400",
                       fontSize: "0.7rem",
                       fontWeight: 700,
                       letterSpacing: "0.12em",
                       textTransform: "uppercase",
-                      padding: "0.3rem 0.9rem",
+                      padding: "0.32rem 0.95rem",
                       borderRadius: "999px",
                       whiteSpace: "nowrap",
+                      boxShadow: "0 6px 18px rgba(212,175,90,0.4)",
                     }}
                   >
                     {tier.badge}
@@ -198,13 +203,14 @@ export default function PricingPage() {
                 {/* Price */}
                 <div>
                   <p
+                    className={tier.highlight ? "gold-text" : undefined}
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontWeight: 900,
-                      fontSize: "1.6rem",
-                      color: tier.highlight ? "var(--gold)" : "var(--text)",
+                      fontWeight: 700,
+                      fontSize: "1.7rem",
+                      color: tier.highlight ? undefined : "var(--text)",
                       letterSpacing: "-0.03em",
-                      lineHeight: 1,
+                      lineHeight: 1.1,
                     }}
                   >
                     {tier.price}
@@ -324,23 +330,26 @@ export default function PricingPage() {
         {/* ─── Bottom CTA ─── */}
         <section
           style={{
-            background: "var(--bg-2)",
+            position: "relative",
             borderTop: "1px solid var(--border)",
-            padding: "5rem 1.5rem",
+            padding: "7rem 1.5rem",
+            overflow: "hidden",
           }}
         >
-          <div className="max-w-2xl mx-auto text-center">
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(700px 380px at 50% 0%, rgba(212,175,90,0.12), transparent 65%)", pointerEvents: "none" }} />
+          <div className="max-w-2xl mx-auto text-center" style={{ position: "relative" }}>
             <h2
               style={{
                 fontFamily: "var(--font-display)",
-                fontWeight: 900,
-                fontSize: "clamp(1.6rem, 4vw, 2.4rem)",
+                fontWeight: 700,
+                fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
                 color: "var(--text)",
                 letterSpacing: "-0.03em",
-                marginBottom: "1rem",
+                marginBottom: "1.25rem",
+                lineHeight: 1.05,
               }}
             >
-              Schedule Your Consultation
+              Schedule Your <span className="gold-text">Consultation</span>
             </h2>
             <p
               style={{
