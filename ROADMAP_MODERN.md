@@ -30,7 +30,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | 3.1 | 3 | Check-Ins queue: friendly review cards, trend arrows, slide-over, pills | ✅ | PageHeader+back, pill filters w/counts, per-client trend arrows, skeleton, plain helper |
 | 3.2 | 3 | Intakes: "applicants" framing, AI-rec card, approve flow, back header | ✅ | list→avatars+pill filters+status deep-link+skeleton; detail→pill back/status, "Applied" framing |
 | 4.1 | 4 | Fulfillment (Ops Queue rename): modern Kanban+list, plain cost | ✅ | PageHeader+back, pill filters, soft view toggle, refreshed column colors/labels, skeleton |
-| 4.2 | 4 | Inventory: stock cards + low-stock ring + lot ledger restyle | ⬜ | |
+| 4.2 | 4 | Inventory: stock cards + low-stock ring + lot ledger restyle | ✅ | PageHeader+back, 3 ring stat cards, pill filters, skeleton, "cost" plain language |
 | 4.3 | 4 | Revenue: donut by protocol + plain-English margin + date filter | ⬜ | |
 | 5.1 | 5 | SMS Builder / Settings / Calculator / Login modern form pass + back arrows | ⬜ | |
 | 5.2 | 5 | Mobile pass: single-column, 44px targets, back arrow reachable everywhere | ⬜ | |

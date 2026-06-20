@@ -1,7 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Package, AlertTriangle, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
+import { Package, Plus, X, ChevronDown, ChevronUp } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
+import { Ring } from "@/components/admin/Charts"
 
 interface Batch {
   id: string; qty_received: string; qty_remaining: string; unit_cost: string
@@ -19,9 +21,9 @@ interface SKU {
 }
 
 const STATUS = {
-  ok:       { bg: "rgba(74,222,128,0.12)",  border: "rgba(74,222,128,0.3)",  color: "#4ade80", label: "In Stock" },
-  warning:  { bg: "rgba(251,191,36,0.1)",   border: "rgba(251,191,36,0.3)",  color: "#fbbf24", label: "Order Soon" },
-  critical: { bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.35)",color: "#f87171", label: "Order Now" },
+  ok:       { bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)",  color: "#34D399", label: "In Stock" },
+  warning:  { bg: "rgba(251,191,36,0.1)",   border: "rgba(251,191,36,0.3)",  color: "#FBBF24", label: "Order Soon" },
+  critical: { bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.35)",color: "#F87171", label: "Order Now" },
   unknown:  { bg: "rgba(255,255,255,0.04)", border: "var(--border)",          color: "var(--text-mute)", label: "No Data" },
 }
 
@@ -107,37 +109,41 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem", flexWrap:"wrap", gap:"0.75rem" }}>
-        <div>
-          <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.25rem,4vw,1.75rem)", letterSpacing:"-0.02em", marginBottom:"0.2rem" }}>Inventory</h1>
-          <p style={{ color:"var(--text-mute)", fontSize:"0.875rem" }}>
-            {loading ? "Loading…" : `${totalSkus} SKUs · ${criticalCount} critical · ${warningCount} need ordering`}
-          </p>
+      <PageHeader title="Inventory" subtitle="Your peptide stock. Keep an eye on what's running low and receive new orders here." backHref="/admin" backLabel="Overview"
+        action={<button onClick={() => {
+          const entries = Object.values(skuByPeptide).flatMap(group =>
+            Object.values(group).map(sku => ({ skuId: sku.id, qty: "", cost: "" }))
+          )
+          setBulkEntries(entries.slice(0, 40))
+          setShowBulkReceive(true)
+        }} className="btn-gold" style={{ fontSize:"0.82rem", padding:"0.5rem 0.95rem" }}>
+          <Package size={15} /> Receive order
+        </button>} />
+
+      {/* Stock summary strip */}
+      {!loading && (
+        <div className="inv-summary" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"0.75rem", marginBottom:"1.5rem" }}>
+          <div className="card" style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"1rem 1.25rem" }}>
+            <Ring value={totalSkus - criticalCount - warningCount} max={totalSkus || 1} size={56} color="#34D399" label={`${totalSkus}`} />
+            <div><div style={{ fontWeight:700, fontSize:"0.92rem" }}>Total SKUs</div><div style={{ color:"var(--text-mute)", fontSize:"0.8rem" }}>healthy stock</div></div>
+          </div>
+          <div className="card" style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"1rem 1.25rem" }}>
+            <Ring value={warningCount} max={totalSkus || 1} size={56} color="#FBBF24" label={`${warningCount}`} />
+            <div><div style={{ fontWeight:700, fontSize:"0.92rem" }}>Order soon</div><div style={{ color:"var(--text-mute)", fontSize:"0.8rem" }}>running low</div></div>
+          </div>
+          <div className="card" style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"1rem 1.25rem" }}>
+            <Ring value={criticalCount} max={totalSkus || 1} size={56} color="#F87171" label={`${criticalCount}`} />
+            <div><div style={{ fontWeight:700, fontSize:"0.92rem" }}>Order now</div><div style={{ color:"var(--text-mute)", fontSize:"0.8rem" }}>out / critical</div></div>
+          </div>
         </div>
-        <div style={{ display:"flex", gap:"0.5rem" }}>
-          <button onClick={() => {
-            const entries = Object.values(skuByPeptide).flatMap(group =>
-              Object.values(group).map(sku => ({ skuId: sku.id, qty: "", cost: "" }))
-            )
-            setBulkEntries(entries.slice(0, 40))
-            setShowBulkReceive(true)
-          }} className="btn-outline" style={{ fontSize:"0.875rem" }}>
-            📦 Receive Order
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Filter bar */}
       <div style={{ display:"flex", gap:"0.75rem", marginBottom:"1rem", flexWrap:"wrap", alignItems:"center" }}>
         <input placeholder="Search peptide…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex:1, minWidth:160, maxWidth:280 }}/>
         <div style={{ display:"flex", gap:"0.4rem", flexWrap:"wrap" }}>
           {([["all","All"],["in_stock","In Stock"],["order_soon","Order Soon"],["out_of_stock","Out of Stock"]] as const).map(([val, label]) => (
-            <button key={val} onClick={() => setStockFilter(val)} style={{
-              padding:"0.35rem 0.75rem", borderRadius:"var(--radius)", fontSize:"0.78rem", fontWeight:600, cursor:"pointer",
-              background: stockFilter === val ? "var(--gold)" : "var(--surface-2)",
-              color: stockFilter === val ? "#000" : "var(--text-mute)",
-              border:`1px solid ${stockFilter === val ? "var(--gold)" : "var(--border)"}`,
-            }}>{label}</button>
+            <button key={val} className="pill" data-active={stockFilter === val} onClick={() => setStockFilter(val)}>{label}</button>
           ))}
         </div>
       </div>
@@ -195,7 +201,11 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {loading && <div style={{ color:"var(--text-mute)", padding:"2rem", textAlign:"center" }}>Loading…</div>}
+      {loading && (
+        <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
+          {[0,1,2,3,4,5].map(i => <div key={i} className="skeleton" style={{ height:52 }} />)}
+        </div>
+      )}
 
       {!loading && peptideNames.length === 0 && (
         <div className="card" style={{ textAlign:"center", padding:"3rem" }}>
@@ -257,7 +267,7 @@ export default function InventoryPage() {
                               <span style={{ fontSize:"0.72rem", color:"var(--text-mute)" }}>in stock</span>
                               <span style={{ padding:"0.1rem 0.4rem", borderRadius:3, fontSize:"0.65rem", fontWeight:700, background:st.color, color:"#000" }}>{st.label}</span>
                             </div>
-                            {sku.wholesale_cost !== null && <span style={{ color:"var(--text-mute)", fontSize:"0.78rem" }}>COGS ${Number(sku.wholesale_cost).toFixed(2)}</span>}
+                            {sku.wholesale_cost !== null && <span style={{ color:"var(--text-mute)", fontSize:"0.78rem" }}>cost ${Number(sku.wholesale_cost).toFixed(2)}</span>}
                             {sku.fifo_cost !== null && <span style={{ color:"var(--gold)", fontWeight:700, fontSize:"0.82rem" }}>${Number(sku.fifo_cost).toFixed(2)}/vial</span>}
                             {sku.active_clients > 0 && (
                               <span style={{ fontSize:"0.75rem", color:"var(--text-mute)" }}>{sku.active_clients} client{sku.active_clients !== 1 ? "s" : ""}</span>
@@ -334,6 +344,8 @@ export default function InventoryPage() {
           )
         })}
       </div>
+
+      <style>{`@media (max-width: 700px) { .inv-summary { grid-template-columns: 1fr !important; } }`}</style>
     </div>
   )
 }
