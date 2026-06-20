@@ -23,7 +23,7 @@ Branch: `loop/site-modern` · Shares the admin's elevated design system (`global
 | 7 | Pricing (`/pricing`) — premium plan cards, gold-accent featured tier | ✅ | featured-tier glow+gradient price+gradient badge, reveal stagger, radial CTA; prices frozen |
 | 8 | Contact (`/contact`) — refined form | ✅ | gradient heading, icon-badge accent, glowing success state; content frozen |
 | 9 | Intake (`/intake`) — premium multi-step form styling | ✅ | gradient hero+progress, gold-dim option states, gradient step dots + success state; questions frozen |
-| 10 | Final: tsc clean, mobile pass, smoke-test all public pages 200 | ⬜ | |
+| 10 | Final: tsc clean, mobile pass, smoke-test all public pages 200 | ✅ | tsc clean, all 7 public pages HTTP 200, SITE_HANDOFF.md written |
 
 ## Human-gated
 - Deploy: merge to main + `git push origin main` (Vercel git integration).
