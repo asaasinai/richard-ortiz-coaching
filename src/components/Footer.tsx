@@ -9,11 +9,16 @@ export default function Footer() {
   ].filter(s => s.url)
 
   return (
-    <footer style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", padding: "3rem 1.5rem" }}>
+    <footer style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.015))", borderTop: "1px solid var(--border)", padding: "4rem 1.5rem 3rem" }}>
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
         <div>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 900, color: "var(--text)" }}>RICHARD ORTIZ COACHING</span>
-          <p style={{ color: "var(--text-mute)", fontSize: "0.85rem", marginTop: "0.75rem", lineHeight: 1.7 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.7rem" }}>
+            <span style={{ width: 36, height: 36, borderRadius: 11, background: "var(--gold-grad)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(212,175,90,0.3)" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.05rem", color: "#1A1400" }}>R</span>
+            </span>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.05rem", letterSpacing: "-0.01em", color: "var(--text)" }}>RICHARD ORTIZ COACHING</span>
+          </div>
+          <p style={{ color: "var(--text-mute)", fontSize: "0.85rem", marginTop: "1rem", lineHeight: 1.7 }}>
             Transformation and performance coaching — fat loss, lean muscle, strength, nutrition, recovery, and accountability.
           </p>
           <p style={{ color: "var(--gold)", fontSize: "0.8rem", marginTop: "0.5rem", letterSpacing: "0.05em" }}>

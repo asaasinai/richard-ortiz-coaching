@@ -15,7 +15,7 @@ Branch: `loop/site-modern` · Shares the admin's elevated design system (`global
 |---|-----|--------|-------|
 | F | Sweep remaining `Inter Tight` font refs → var(--font-display) (fix lost headings) | ✅ | spaced variant my admin sweep missed; pdf route left (server font) |
 | 1 | Nav — glass + gold monogram logo lockup + refined links, matching admin chrome | ✅ | glass blur, gold "R" mark + lockup |
-| 2 | Footer — refined, glass, gold accents | ⬜ | |
+| 2 | Footer — refined, glass, gold accents | ✅ | monogram lockup, glass gradient, content frozen |
 | 3 | Home — cinematic hero + premium sections + staggered reveal | ✅ | content frozen verbatim; badge glow, gold-text accents, glow cards, CTA radial |
 | 4 | Program (`/coaching`) — elevated layout + motion | ⬜ | |
 | 5 | Meet Your Coach (`/meet-your-coach`) — editorial portrait treatment | ⬜ | |
