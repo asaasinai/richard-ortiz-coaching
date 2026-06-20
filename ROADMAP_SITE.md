@@ -18,7 +18,7 @@ Branch: `loop/site-modern` · Shares the admin's elevated design system (`global
 | 2 | Footer — refined, glass, gold accents | ✅ | monogram lockup, glass gradient, content frozen |
 | 3 | Home — cinematic hero + premium sections + staggered reveal | ✅ | content frozen verbatim; badge glow, gold-text accents, glow cards, CTA radial |
 | 4 | Program (`/coaching`) — elevated layout + motion | ✅ | gradient hero, icon-badge pillars, glow CTA, reveal stagger; content frozen |
-| 5 | Meet Your Coach (`/meet-your-coach`) — editorial portrait treatment | ⬜ | |
+| 5 | Meet Your Coach (`/meet-your-coach`) — editorial portrait treatment | ✅ | portrait glow, gradient headings, glowing mission card, radial CTA; bio verbatim |
 | 6 | Success Stories (`/success-stories`) — premium testimonial cards | ⬜ | |
 | 7 | Pricing (`/pricing`) — premium plan cards, gold-accent featured tier | ⬜ | |
 | 8 | Contact (`/contact`) — refined form | ⬜ | |

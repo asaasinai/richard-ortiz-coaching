@@ -22,20 +22,23 @@ export default function MeetYourCoachPage() {
     <>
       <Nav />
 
-      <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem", textAlign: "center" }}>
-        <div className="max-w-3xl mx-auto" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <section style={{ position: "relative", padding: "7rem 1.5rem 4rem", textAlign: "center", overflow: "hidden" }}>
+        <div className="max-w-3xl mx-auto reveal" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           <span className="section-num">Meet Your Coach</span>
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-            About Richard Ortiz
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)", letterSpacing: "-0.035em", lineHeight: 1.06 }}>
+            About <span className="gold-text">Richard Ortiz</span>
           </h1>
           {/* Brand badge — swap for the professional portrait when it lands */}
-          <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz — Strength, Longevity, 55"
-            width={1158} height={1383} priority
-            style={{ width: "min(380px, 100%)", height: "auto", marginTop: "2.5rem" }} />
+          <div style={{ position: "relative", marginTop: "2.75rem" }}>
+            <div style={{ position: "absolute", inset: "-10%", background: "radial-gradient(circle at 50% 45%, rgba(212,175,90,0.26), transparent 62%)", filter: "blur(8px)", pointerEvents: "none" }} />
+            <Image src="/richard-ortiz-badge.jpeg" alt="Richard Ortiz — Strength, Longevity, 55"
+              width={1158} height={1383} priority
+              style={{ width: "min(380px, 100%)", height: "auto", position: "relative", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,0.55)" }} />
+          </div>
         </div>
       </section>
 
-      <section style={{ background: "var(--bg-2)", padding: "4rem 1.5rem 5rem" }}>
+      <section style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.012))", padding: "4.5rem 1.5rem 5.5rem", borderTop: "1px solid var(--border)" }}>
         <div className="mx-auto" style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "65ch" }}>
           <p style={para}>
             At 55 years old, Richard Ortiz isn&rsquo;t teaching a lifestyle he once lived&mdash;he&rsquo;s living it every day.
@@ -93,8 +96,9 @@ export default function MeetYourCoachPage() {
           </p>
 
           <p style={para}>His mission is simple:</p>
-          <div className="card" style={{ borderLeft: "3px solid var(--gold)", padding: "1.75rem" }}>
-            <p style={{ color: "var(--text)", lineHeight: 1.7, fontWeight: 600, fontSize: "1.3rem", fontStyle: "italic", fontFamily: "var(--font-display)" }}>
+          <div className="card" style={{ position: "relative", overflow: "hidden", padding: "2rem", boxShadow: "var(--glow-gold)", borderColor: "rgba(212,175,90,0.3)" }}>
+            <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, background: "radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)", pointerEvents: "none" }} />
+            <p style={{ color: "var(--text)", lineHeight: 1.55, fontWeight: 600, fontSize: "1.3rem", fontStyle: "italic", fontFamily: "var(--font-display)", position: "relative" }}>
               To help people become stronger in body, mind, and spirit so they can live healthier, more fulfilling
               lives and become the person God created them to be.
             </p>
@@ -119,10 +123,11 @@ export default function MeetYourCoachPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: "var(--bg)", padding: "5rem 1.5rem", textAlign: "center" }}>
-        <div className="max-w-3xl mx-auto">
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
-            Ready to reach your next level?
+      <section style={{ position: "relative", padding: "7rem 1.5rem", textAlign: "center", overflow: "hidden", borderTop: "1px solid var(--border)" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(700px 380px at 50% 0%, rgba(212,175,90,0.12), transparent 65%)", pointerEvents: "none" }} />
+        <div className="max-w-3xl mx-auto" style={{ position: "relative" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(2rem,4.5vw,3rem)", letterSpacing: "-0.03em", marginBottom: "1.5rem", lineHeight: 1.05 }}>
+            Ready to reach your <span className="gold-text">next level?</span>
           </h2>
           <Link href="/intake" className="btn-gold">Start Intake</Link>
         </div>
