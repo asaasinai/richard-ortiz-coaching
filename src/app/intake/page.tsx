@@ -496,7 +496,6 @@ function OptionGrid(props: OptionGridProps) {
               display: "flex",
               alignItems: "center",
               gap: "0.6rem",
-              transition: "all 0.14s",
               boxShadow: active ? "0 0 0 1px rgba(212,175,90,0.15)" : "none",
               transition: "all 0.15s ease",
               width: "100%",
