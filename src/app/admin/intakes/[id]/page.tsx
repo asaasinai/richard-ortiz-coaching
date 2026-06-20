@@ -36,12 +36,6 @@ interface AiRec {
   alternatives: { peptide: string; vial_size_mg: number; rationale: string }[]
 }
 
-const statusColor = (s: string) => ({
-  PENDING:  { bg:"rgba(201,168,76,0.15)",  color:"var(--gold)" },
-  APPROVED: { bg:"rgba(74,222,128,0.15)",  color:"#4ade80" },
-  FLAGGED:  { bg:"rgba(248,113,113,0.15)", color:"#f87171" },
-}[s] ?? { bg:"transparent", color:"var(--text-mute)" })
-
 const proposalStatusColor = (s: string) => ({
   draft:   { bg:"rgba(255,255,255,0.08)", color:"var(--text-mute)" },
   sent:    { bg:"rgba(201,168,76,0.15)", color:"var(--gold)" },
@@ -350,31 +344,30 @@ export default function IntakeDetailPage() {
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Back */}
+      <button onClick={() => router.push("/admin/intakes")} style={{ display: "inline-flex", alignItems: "center", gap: "0.2rem", background: "transparent", border: "1px solid var(--border)", borderRadius: "var(--radius-pill)", color: "var(--text-mute)", fontSize: "0.82rem", fontWeight: 600, padding: "0.35rem 0.85rem 0.35rem 0.6rem", cursor: "pointer", marginBottom: "1rem" }}>
+        <ArrowLeft size={15}/> Applicants
+      </button>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        <button onClick={() => router.push("/admin/intakes")} style={{ background: "none", border: "none", color: "var(--text-mute)", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem" }}>
-          <ArrowLeft size={16}/> Back
-        </button>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,4vw,1.5rem)", marginBottom: "0.2rem" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 800, fontSize: "clamp(1.3rem,4vw,1.6rem)", letterSpacing: "-0.01em", marginBottom: "0.2rem" }}>
             {intake.first_name} {intake.last_name}
           </h1>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.85rem", color: "var(--text-mute)", marginTop: "0.3rem" }}>
             <a href={`mailto:${intake.email}`} style={{ color: "var(--gold)" }}>{intake.email}</a>
             {intake.phone && <a href={`tel:${intake.phone}`} style={{ color: "var(--text-mute)" }}>{intake.phone}</a>}
-            <span>Submitted {new Date(intake.submitted_at).toLocaleDateString()}</span>
+            <span>Applied {new Date(intake.submitted_at).toLocaleDateString()}</span>
           </div>
         </div>
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
           {["APPROVED","PENDING","FLAGGED"].map(s => (
-            <button key={s} onClick={() => updateStatus(s)} style={{
-              padding: "0.25rem 0.65rem", borderRadius: 3, fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
-              ...statusColor(s), border: `1px solid ${statusColor(s).color}`,
-              opacity: intake.status === s ? 1 : 0.45,
-            }}>{s}</button>
+            <button key={s} onClick={() => updateStatus(s)} className="pill" data-active={intake.status === s} style={{ fontSize: "0.72rem" }}>
+              {s === "APPROVED" ? "Approve" : s === "PENDING" ? "Pending" : "Flag"}
+            </button>
           ))}
           {currentProposal && (
-            <span style={{ padding: "0.25rem 0.65rem", borderRadius: 3, fontSize: "0.72rem", fontWeight: 700, ...proposalStatusColor(currentProposal.status) }}>
+            <span className="chip" style={{ ...proposalStatusColor(currentProposal.status), border: "none" }}>
               Proposal: {currentProposal.status}
             </span>
           )}
