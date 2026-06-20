@@ -43,15 +43,17 @@ export default function Nav() {
   }
 
   return (
-    <nav style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }} className="sticky top-0 z-50">
+    <nav style={{ background: "rgba(8,8,10,0.6)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }} className="sticky top-0 z-50">
       {/* nav frame stays wider than page content so the link cluster never collides with the logo */}
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-8">
-        <Link href="/" className="flex items-center gap-3" style={{ whiteSpace: "nowrap" }}>
-          <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "var(--text)" }}>
-            RICHARD ORTIZ
+      <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between gap-8">
+        <Link href="/" className="flex items-center gap-2.5" style={{ whiteSpace: "nowrap", textDecoration: "none" }}>
+          <span style={{ width: 34, height: 34, borderRadius: 11, background: "var(--gold-grad)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(212,175,90,0.35)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1rem", color: "#1A1400" }}>R</span>
           </span>
-          <span style={{ width: 1, height: 20, background: "var(--border)" }} />
-          <span style={{ fontSize: "0.75rem", color: "var(--gold)", letterSpacing: "0.1em", textTransform: "uppercase" }}>COACHING</span>
+          <span style={{ lineHeight: 1.05 }}>
+            <span style={{ display: "block", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.95rem", letterSpacing: "-0.01em", color: "var(--text)" }}>RICHARD ORTIZ</span>
+            <span style={{ display: "block", fontSize: "0.58rem", color: "var(--gold)", letterSpacing: "0.24em", textTransform: "uppercase", fontWeight: 600 }}>Coaching</span>
+          </span>
         </Link>
 
         {/* Desktop (lg+: six items + CTA need the room; md was overflowing) */}

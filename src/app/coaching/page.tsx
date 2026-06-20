@@ -42,7 +42,7 @@ export default function CoachingPage() {
       <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem" }}>
         <div className="max-w-5xl mx-auto">
           <span className="section-num">Coaching</span>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 720 }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 720 }}>
             A complete transformation system — built around your life.
           </h1>
           <p style={{ color: "var(--text-soft)", fontSize: "1.05rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 560 }}>
@@ -57,14 +57,14 @@ export default function CoachingPage() {
       <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem" }}>
         <div className="max-w-5xl mx-auto">
           <span className="section-num">The PHAS3 System</span>
-          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2.5rem" }}>
             Train. Recover. Optimize.
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {pillarsDeep.map(p => (
               <div key={p.title} className="card">
                 <p.icon size={26} style={{ color: "var(--gold)", marginBottom: "1rem" }} />
-                <h3 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.4rem", marginBottom: "0.6rem" }}>{p.title}</h3>
+                <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.4rem", marginBottom: "0.6rem" }}>{p.title}</h3>
                 <p style={{ color: "var(--text-soft)", fontSize: "0.95rem", lineHeight: 1.7 }}>{p.body}</p>
               </div>
             ))}
@@ -76,7 +76,7 @@ export default function CoachingPage() {
       <section style={{ background: "var(--bg)", padding: "5rem 1.5rem" }}>
         <div className="max-w-5xl mx-auto">
           <span className="section-num">What&apos;s Included</span>
-          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "2rem" }}>
             Everything you need. Nothing you don&apos;t.
           </h2>
           <div className="grid md:grid-cols-2 gap-4" style={{ maxWidth: 860 }}>
@@ -93,7 +93,7 @@ export default function CoachingPage() {
       {/* CTA */}
       <section style={{ background: "var(--bg-2)", padding: "5rem 1.5rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
-          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Welcome to the Next Level.
           </h2>
           <p style={{ color: "var(--text-soft)", lineHeight: 1.75, marginBottom: "2rem" }}>

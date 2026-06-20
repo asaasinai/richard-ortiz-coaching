@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 // Bio copy supplied by Richard 2026-06-12 — used verbatim. Edit only on his word.
 const para = { color: "var(--text-soft)", lineHeight: 1.85, fontSize: "1rem" } as const
 const pillarHead = {
-  fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.2rem",
+  fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.2rem",
   color: "var(--gold)", marginTop: "0.5rem",
 } as const
 
@@ -25,7 +25,7 @@ export default function MeetYourCoachPage() {
       <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           <span className="section-num">Meet Your Coach</span>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
             About Richard Ortiz
           </h1>
           {/* Brand badge — swap for the professional portrait when it lands */}
@@ -75,7 +75,7 @@ export default function MeetYourCoachPage() {
           </p>
 
           <p style={para}>Together, these principles form the foundation of the PHAS3 System:</p>
-          <p style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.4rem", color: "var(--text)" }}>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.4rem", color: "var(--text)" }}>
             Train. Recover. Optimize.
           </p>
 
@@ -94,7 +94,7 @@ export default function MeetYourCoachPage() {
 
           <p style={para}>His mission is simple:</p>
           <div className="card" style={{ borderLeft: "3px solid var(--gold)", padding: "1.75rem" }}>
-            <p style={{ color: "var(--text)", lineHeight: 1.7, fontWeight: 600, fontSize: "1.3rem", fontStyle: "italic", fontFamily: "Inter Tight, sans-serif" }}>
+            <p style={{ color: "var(--text)", lineHeight: 1.7, fontWeight: 600, fontSize: "1.3rem", fontStyle: "italic", fontFamily: "var(--font-display)" }}>
               To help people become stronger in body, mind, and spirit so they can live healthier, more fulfilling
               lives and become the person God created them to be.
             </p>
@@ -105,10 +105,10 @@ export default function MeetYourCoachPage() {
             like yourself again, Richard is committed to helping you reach your next level.
           </p>
 
-          <p style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.4rem", color: "var(--text)", textAlign: "center", marginTop: "1rem" }}>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.4rem", color: "var(--text)", textAlign: "center", marginTop: "1rem" }}>
             Train. Recover. Optimize.
           </p>
-          <p style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.1rem", color: "var(--gold)", textAlign: "center" }}>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.1rem", color: "var(--gold)", textAlign: "center" }}>
             Welcome to the Next Level.
           </p>
 
@@ -121,7 +121,7 @@ export default function MeetYourCoachPage() {
       {/* CTA */}
       <section style={{ background: "var(--bg)", padding: "5rem 1.5rem", textAlign: "center" }}>
         <div className="max-w-3xl mx-auto">
-          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "2rem", letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Ready to reach your next level?
           </h2>
           <Link href="/intake" className="btn-gold">Start Intake</Link>

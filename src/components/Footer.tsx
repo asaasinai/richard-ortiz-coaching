@@ -12,7 +12,7 @@ export default function Footer() {
     <footer style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", padding: "3rem 1.5rem" }}>
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
         <div>
-          <span style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, color: "var(--text)" }}>RICHARD ORTIZ COACHING</span>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 900, color: "var(--text)" }}>RICHARD ORTIZ COACHING</span>
           <p style={{ color: "var(--text-mute)", fontSize: "0.85rem", marginTop: "0.75rem", lineHeight: 1.7 }}>
             Transformation and performance coaching — fat loss, lean muscle, strength, nutrition, recovery, and accountability.
           </p>

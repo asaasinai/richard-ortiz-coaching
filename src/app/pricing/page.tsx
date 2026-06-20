@@ -80,7 +80,7 @@ export default function PricingPage() {
             </p>
             <h1
               style={{
-                fontFamily: "Inter Tight, sans-serif",
+                fontFamily: "var(--font-display)",
                 fontWeight: 900,
                 fontSize: "clamp(2rem, 5vw, 3rem)",
                 letterSpacing: "-0.03em",
@@ -94,7 +94,7 @@ export default function PricingPage() {
             <p
               style={{
                 color: "var(--gold)",
-                fontFamily: "Inter Tight, sans-serif",
+                fontFamily: "var(--font-display)",
                 fontWeight: 700,
                 letterSpacing: "0.18em",
                 fontSize: "0.85rem",
@@ -183,7 +183,7 @@ export default function PricingPage() {
                   </span>
                   <h2
                     style={{
-                      fontFamily: "Inter Tight, sans-serif",
+                      fontFamily: "var(--font-display)",
                       fontWeight: 900,
                       fontSize: "1.25rem",
                       color: "var(--text)",
@@ -199,7 +199,7 @@ export default function PricingPage() {
                 <div>
                   <p
                     style={{
-                      fontFamily: "Inter Tight, sans-serif",
+                      fontFamily: "var(--font-display)",
                       fontWeight: 900,
                       fontSize: "1.6rem",
                       color: tier.highlight ? "var(--gold)" : "var(--text)",
@@ -289,7 +289,7 @@ export default function PricingPage() {
                 {/* Differentiator */}
                 <p
                   style={{
-                    fontFamily: "Inter Tight, sans-serif",
+                    fontFamily: "var(--font-display)",
                     fontWeight: 700,
                     fontSize: "0.82rem",
                     color: "var(--gold)",
@@ -332,7 +332,7 @@ export default function PricingPage() {
           <div className="max-w-2xl mx-auto text-center">
             <h2
               style={{
-                fontFamily: "Inter Tight, sans-serif",
+                fontFamily: "var(--font-display)",
                 fontWeight: 900,
                 fontSize: "clamp(1.6rem, 4vw, 2.4rem)",
                 color: "var(--text)",

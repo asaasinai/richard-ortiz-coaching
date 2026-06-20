@@ -27,7 +27,7 @@ export default function SuccessStoriesPage() {
       <section style={{ background: "var(--bg)", padding: "6rem 1.5rem 4rem" }}>
         <div className="max-w-5xl mx-auto">
           <span className="section-num">Success Stories</span>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 700 }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(2.2rem, 5vw, 3.25rem)", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 700 }}>
             Real people. Real transformations.
           </h1>
           <p style={{ color: "var(--text-soft)", fontSize: "1.05rem", lineHeight: 1.75, marginTop: "1.5rem", maxWidth: 540 }}>
@@ -42,7 +42,7 @@ export default function SuccessStoriesPage() {
             /* Designed empty state — never a blank page, never fake testimonials */
             <div className="card" style={{ textAlign: "center", padding: "4rem 2rem", maxWidth: 640, margin: "0 auto" }}>
               <TrendingUp size={36} style={{ color: "var(--gold)", margin: "0 auto 1.25rem" }} />
-              <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.5rem", marginBottom: "0.75rem" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.5rem", marginBottom: "0.75rem" }}>
                 Client transformations coming soon.
               </h2>
               <p style={{ color: "var(--text-soft)", lineHeight: 1.75, marginBottom: "1.5rem" }}>
@@ -88,7 +88,7 @@ export default function SuccessStoriesPage() {
                   <div style={{ padding: "clamp(1.25rem, 4vw, 2rem)" }}>
                     {/* Name + metrics row */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "0.75rem", marginBottom: "0.75rem" }}>
-                      <h3 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
+                      <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.3rem", margin: 0 }}>
                         {s.name}{s.age ? `, ${s.age}` : ""}
                       </h3>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
@@ -102,7 +102,7 @@ export default function SuccessStoriesPage() {
                       </div>
                     </div>
 
-                    <p style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem", lineHeight: 1.3 }}>
+                    <p style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem", lineHeight: 1.3 }}>
                       &ldquo;{s.headline}&rdquo;
                     </p>
 

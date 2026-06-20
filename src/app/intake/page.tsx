@@ -265,7 +265,7 @@ export default function IntakePage() {
           }}>
             <CheckCircle size={36} color="#000" />
           </div>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
             You&apos;re on deck.
           </h1>
           <p style={{ color: "var(--text-soft)", marginTop: "1rem", lineHeight: 1.75, fontSize: "1rem" }}>
@@ -344,7 +344,7 @@ export default function IntakePage() {
   function renderQuestionLabel() {
     if (currentStepDef === CONTACT_STEP) {
       return (
-        <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+        <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
           Contact Info
         </span>
       )
@@ -357,10 +357,10 @@ export default function IntakePage() {
     const isMulti = !isFollowUp && q.kind === "multi"
     return (
       <>
-        <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+        <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
           Question {num} / {QUESTIONS.length}
         </span>
-        <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.25rem,3.5vw,1.6rem)", letterSpacing: "-0.02em", marginTop: "0.4rem", lineHeight: 1.25 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.25rem,3.5vw,1.6rem)", letterSpacing: "-0.02em", marginTop: "0.4rem", lineHeight: 1.25 }}>
           {text}
         </h2>
         {isMulti && (
@@ -382,7 +382,7 @@ export default function IntakePage() {
       {/* Hero strip */}
       <div style={{ background: "var(--bg-2)", borderBottom: "1px solid var(--border)", padding: "2.5rem 1.5rem 0" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.6rem,4vw,2.25rem)", letterSpacing: "-0.02em" }}>
             Start Your Intake
           </h1>
           <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginTop: "0.4rem" }}>

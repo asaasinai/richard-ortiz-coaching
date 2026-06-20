@@ -62,7 +62,7 @@ function CheckInForm() {
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
         <AlertCircle size={48} style={{ color: "var(--gold)", margin: "0 auto 1rem" }} />
-        <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.5rem" }}>Link Expired or Invalid</h2>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.5rem" }}>Link Expired or Invalid</h2>
         <p style={{ color: "var(--text-soft)", marginTop: "0.75rem", lineHeight: 1.7 }}>
           This check-in link is no longer valid. It may have already been used or expired.
           Contact Richard if you need a new one.
@@ -78,7 +78,7 @@ function CheckInForm() {
         <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
           <CheckCircle size={36} color="#000" />
         </div>
-        <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.75rem" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.75rem" }}>
           {alreadyDone ? "Already submitted!" : "Check-in complete!"}
         </h2>
         <p style={{ color: "var(--text-soft)", marginTop: "0.75rem", lineHeight: 1.7 }}>
@@ -95,8 +95,8 @@ function CheckInForm() {
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1rem 4rem" }}>
       {/* Header */}
       <div style={{ marginBottom: "2rem" }}>
-        <span style={{ color: "var(--gold)", fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "0.8rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>Day 1 Check-In</span>
-        <h1 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.5rem,4vw,2rem)", letterSpacing: "-0.02em", marginTop: "0.3rem" }}>
+        <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.8rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>Day 1 Check-In</span>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.5rem,4vw,2rem)", letterSpacing: "-0.02em", marginTop: "0.3rem" }}>
           How are you feeling?
         </h1>
         <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginTop: "0.4rem", lineHeight: 1.6 }}>
@@ -119,7 +119,7 @@ function CheckInForm() {
                 minWidth: 52, height: 52, borderRadius: "50%",
                 background: "var(--gold)", color: "#000",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "1.4rem",
+                fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "1.4rem",
                 flexShrink: 0,
               }}>
                 {scores[q.id]}
@@ -178,7 +178,7 @@ export default function NextDayCheckinPage() {
       <Nav />
       <div style={{ background: "var(--bg-2)", borderBottom: "1px solid var(--border)", padding: "2.5rem 1.5rem 1.5rem" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <h2 style={{ fontFamily: "Inter Tight, sans-serif", fontWeight: 900, fontSize: "clamp(1.4rem,3.5vw,1.8rem)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(1.4rem,3.5vw,1.8rem)" }}>
             Next-Day Protocol Check-In
           </h2>
           <p style={{ color: "var(--text-soft)", fontSize: "0.875rem", marginTop: "0.35rem" }}>
