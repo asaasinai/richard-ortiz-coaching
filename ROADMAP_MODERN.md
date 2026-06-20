@@ -32,7 +32,7 @@ Branch: `loop/roc-admin-modern` · Spec: `SPEC_MODERN_UI.md` · DB schema: `roc`
 | 4.1 | 4 | Fulfillment (Ops Queue rename): modern Kanban+list, plain cost | ✅ | PageHeader+back, pill filters, soft view toggle, refreshed column colors/labels, skeleton |
 | 4.2 | 4 | Inventory: stock cards + low-stock ring + lot ledger restyle | ✅ | PageHeader+back, 3 ring stat cards, pill filters, skeleton, "cost" plain language |
 | 4.3 | 4 | Revenue: donut by protocol + plain-English margin + date filter | ✅ | PageHeader+back, area-chart trend, billing donut, "product cost/margin" plain language, skeleton |
-| 5.1 | 5 | SMS Builder / Settings / Calculator / Login modern form pass + back arrows | ⬜ | |
+| 5.1 | 5 | SMS Builder / Settings / Calculator / Login modern form pass + back arrows | ✅ | SMS+Settings PageHeader/back+plain copy; login "Welcome back"+back-to-site; calculator already had back |
 | 5.2 | 5 | Mobile pass: single-column, 44px targets, back arrow reachable everywhere | ⬜ | |
 | 5.3 | 5 | Final: `npx tsc --noEmit` clean, empty/loading states, acceptance checklist | ⬜ | HANDOFF.md |
 

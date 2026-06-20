@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Copy, CheckCircle, ClipboardList } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
 
 const TEMPLATES = [
   {
@@ -61,8 +62,7 @@ export default function AdminSMSPage() {
 
   return (
     <div style={{ maxWidth:900 }}>
-      <h1 style={{ fontFamily:"Inter Tight,sans-serif", fontWeight:900, fontSize:"clamp(1.25rem,4vw,1.5rem)", marginBottom:"0.25rem" }}>SMS Builder</h1>
-      <p style={{ color:"var(--text-mute)", fontSize:"0.875rem", marginBottom:"1.5rem" }}>PHI-free templates only. Copy to clipboard — send manually via your phone.</p>
+      <PageHeader title="SMS Builder" subtitle="Pick a template, fill it in, and copy it. Send from your own phone — no health info included." backHref="/admin" backLabel="Overview" />
 
       {recipient && (
         <div style={{ background:"rgba(201,168,76,0.08)", border:"1px solid var(--gold)", borderRadius:"var(--radius)", padding:"0.6rem 0.9rem", marginBottom:"1.25rem", fontSize:"0.84rem" }}>

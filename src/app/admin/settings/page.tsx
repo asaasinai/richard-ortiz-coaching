@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Check } from "lucide-react"
+import PageHeader from "@/components/admin/PageHeader"
 
 type Settings = Record<string, string>
 
@@ -55,7 +56,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div style={{ maxWidth: 620 }}>
-      <h1 style={{ fontFamily: "Inter Tight,sans-serif", fontWeight: 900, fontSize: "1.5rem", marginBottom: "1.5rem" }}>Settings</h1>
+      <PageHeader title="Settings" subtitle="Control your alerts and the rules that flag check-ins, stock, and orders." backHref="/admin" backLabel="Overview" />
 
       <Section title="Alerts">{TOGGLES.map(t => <Toggle key={t.key} k={t.key} label={t.label} />)}</Section>
 
