@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, AlertTriangle, Mail, Trash2, Pencil } from "lucide-react"
 import EditDetailsModal from "@/components/admin/EditDetailsModal"
-import ProtocolWorkspace from "@/components/admin/ProtocolWorkspace"
+import ProposalLog from "@/components/admin/ProposalLog"
 import { Ring } from "@/components/admin/Charts"
 
 const initials = (f: string, l: string) => `${(f||"?")[0] ?? ""}${(l||"")[0] ?? ""}`.toUpperCase()
@@ -330,7 +330,7 @@ export default function ClientDetailPage() {
 
           {/* PROTOCOL */}
           {tab==="protocol" && client && (
-            <ProtocolWorkspace clientId={id} clientEmail={client.email} onChanged={load} />
+            <ProposalLog clientId={id} clientEmail={client.email} firstName={client.first_name} lastName={client.last_name} />
           )}
 
           {/* CHECK-INS */}

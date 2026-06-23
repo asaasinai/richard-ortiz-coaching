@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { Plus, X, Copy, Check, MessageSquare, FileSignature } from "lucide-react"
 
 interface Sku { id: string; peptide_name: string; strength: string; strength_unit: string; retail_price: string | null }
@@ -17,10 +18,19 @@ const blankLine = (): Line => ({
 const FREQUENCIES = ["Daily", "5x / week", "3x / week", "2x / week", "Weekly", "Every other day"]
 
 export default function ProposalBuilderPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "3rem", textAlign: "center", color: "var(--text-mute)" }}>Loading…</div>}>
+      <ProposalBuilder />
+    </Suspense>
+  )
+}
+
+function ProposalBuilder() {
+  const params = useSearchParams()
   const [skus, setSkus] = useState<Sku[]>([])
-  const [first, setFirst] = useState("")
-  const [last, setLast] = useState("")
-  const [email, setEmail] = useState("")
+  const [first, setFirst] = useState(params.get("first") ?? "")
+  const [last, setLast] = useState(params.get("last") ?? "")
+  const [email, setEmail] = useState(params.get("email") ?? "")
   const [lines, setLines] = useState<Line[]>([blankLine()])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")

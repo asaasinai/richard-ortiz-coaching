@@ -55,16 +55,27 @@ export interface NotificationRow {
   created_at: string
 }
 
+// Exclude notifications whose referenced record no longer exists (e.g. a
+// check-in or intake was deleted) so the bell never shows a ghost "1 alert,
+// nothing there". NULL ref / other ref types always pass.
+const LIVE_REF = `(
+  n.ref_id IS NULL OR n.ref_type IS NULL
+  OR (n.ref_type = 'checkin' AND EXISTS (SELECT 1 FROM roc.checkins c WHERE c.id::text = n.ref_id))
+  OR (n.ref_type = 'intake'  AND EXISTS (SELECT 1 FROM roc.intakes i WHERE i.id::text = n.ref_id))
+  OR n.ref_type NOT IN ('checkin','intake')
+)`
+
 export async function getNotifications(limit = 20): Promise<{ rows: NotificationRow[]; unread: number }> {
   try {
     const [list, unread] = await Promise.all([
       query<NotificationRow>(
-        `SELECT id, type, ref_id, ref_type, message, read, resolved, created_at
-         FROM roc.notifications WHERE resolved = false
-         ORDER BY created_at DESC LIMIT $1`,
+        `SELECT n.id, n.type, n.ref_id, n.ref_type, n.message, n.read, n.resolved, n.created_at
+         FROM roc.notifications n
+         WHERE n.resolved = false AND ${LIVE_REF}
+         ORDER BY n.created_at DESC LIMIT $1`,
         [limit]
       ),
-      query<{ n: string }>(`SELECT COUNT(*) AS n FROM roc.notifications WHERE read = false AND resolved = false`),
+      query<{ n: string }>(`SELECT COUNT(*) AS n FROM roc.notifications n WHERE n.read = false AND n.resolved = false AND ${LIVE_REF}`),
     ])
     return { rows: list.rows, unread: Number(unread.rows[0]?.n ?? 0) }
   } catch {

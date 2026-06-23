@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Pencil } from "lucide-react"
 import EditDetailsModal from "@/components/admin/EditDetailsModal"
-import ProtocolWorkspace from "@/components/admin/ProtocolWorkspace"
+import ProposalLog from "@/components/admin/ProposalLog"
 
 interface Intake {
   id: string; first_name: string; last_name: string; email: string; phone?: string
@@ -173,8 +173,8 @@ export default function IntakeDetailPage() {
         )}
       </div>
 
-      {/* AI rec + multi-protocol builder + optional proposal (shared with Clients) */}
-      <ProtocolWorkspace clientId={id} clientEmail={intake.email} onChanged={load} />
+      {/* Proposals log — building happens in the external Proposal Builder form */}
+      <ProposalLog clientId={id} clientEmail={intake.email} firstName={intake.first_name} lastName={intake.last_name} />
 
       <style>{`
         .intake-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }

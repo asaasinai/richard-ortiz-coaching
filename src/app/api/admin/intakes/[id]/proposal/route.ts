@@ -58,10 +58,11 @@ export async function GET(
   const result = await query(
     `SELECT id, status, created_at, sent_at, signed_at, signed_name, proposal_token,
             protocol_snapshot, tos_text
-     FROM roc.proposals WHERE intake_id = $1 ORDER BY created_at DESC LIMIT 1`,
+     FROM roc.proposals WHERE intake_id = $1 ORDER BY created_at DESC`,
     [id]
   )
-  return NextResponse.json({ proposal: result.rows[0] ?? null })
+  // proposal = latest (back-compat); proposals = full log for the record.
+  return NextResponse.json({ proposal: result.rows[0] ?? null, proposals: result.rows })
 }
 
 export async function POST(
