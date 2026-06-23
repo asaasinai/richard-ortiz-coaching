@@ -25,10 +25,12 @@ export async function POST(req: NextRequest) {
 
     // Fire emails (non-blocking — don't fail the request if email fails)
     if (email) {
-      Promise.allSettled([
+      // Await — on Vercel serverless the function freezes after the response
+      // returns, so a fire-and-forget send often never completes.
+      await Promise.allSettled([
         sendIntakeConfirmation(email, firstName),
         sendAdminIntakeNotify(intakeId, firstName, lastName, email),
-      ]).catch(console.error)
+      ])
     }
 
     // Activity log

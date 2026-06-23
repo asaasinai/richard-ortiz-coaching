@@ -17,7 +17,9 @@ interface Client {
 }
 interface CheckIn {
   id: string; submitted_at: string; urgent_flag: boolean; client_email: string
-  data: { weight?: string; bodyFat?: string; musclePct?: string; energyScore?: number; moodScore?: number; sideEffects?: string[]; sideEffectsOther?: string; missedDoses?: string; reason?: string; notes?: string }
+  data: { weight?: string; bodyFat?: string; musclePct?: string; energyScore?: number; moodScore?: number; sideEffects?: string[]; sideEffectsOther?: string; missedDoses?: string; reason?: string; notes?: string
+    // Next-day (Day-1) check-ins share this feed, tagged with checkin_type.
+    checkin_type?: string; appetite?: number; cravings?: number; fullness?: number; energy?: number; focus?: number; nausea?: number; bloating?: number; hydration?: number; protein_goal?: number; overall?: number }
 }
 interface Protocol {
   peptide: string; dose_amount: string; dose_unit: string; frequency_days: string
@@ -355,16 +357,30 @@ export default function ClientDetailPage() {
               {checkins.slice().reverse().map(c=>(
                 <div key={c.id} style={{ background:"var(--surface)", border:`1px solid ${c.urgent_flag?"rgba(248,113,113,0.4)":"var(--border)"}`, borderRadius:"var(--radius)", padding:"1rem" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.5rem", flexWrap:"wrap", gap:"0.3rem" }}>
-                    <span style={{ fontWeight:700, fontSize:"0.875rem" }}>{new Date(c.submitted_at).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})}</span>
+                    <span style={{ fontWeight:700, fontSize:"0.875rem", display:"flex", alignItems:"center", gap:"0.4rem" }}>
+                      {new Date(c.submitted_at).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})}
+                      {c.data.checkin_type==="next_day" && <span style={{ fontSize:"0.62rem", fontWeight:700, padding:"0.1rem 0.45rem", borderRadius:"var(--radius-pill)", background:"rgba(96,165,250,0.15)", color:"#93c5fd" }}>DAY-1</span>}
+                    </span>
                     {c.urgent_flag && <span style={{ display:"flex", alignItems:"center", gap:"0.3rem", color:"#f87171", fontSize:"0.78rem", fontWeight:700 }}><AlertTriangle size={12}/> Urgent</span>}
                   </div>
-                  <div style={{ display:"flex", gap:"1rem", flexWrap:"wrap", fontSize:"0.82rem", color:"var(--text-mute)" }}>
-                    {c.data.weight && <span>⚖ {c.data.weight} lbs</span>}
-                    {c.data.bodyFat && <span>Body Fat {c.data.bodyFat}%</span>}
-                    {c.data.energyScore !== undefined && <span>Energy {c.data.energyScore}/10</span>}
-                    {c.data.moodScore !== undefined && <span>Mood {c.data.moodScore}/10</span>}
-                    {c.data.missedDoses && c.data.missedDoses!=="0" && <span>Missed {c.data.missedDoses} dose(s)</span>}
-                  </div>
+                  {c.data.checkin_type==="next_day" ? (
+                    <div style={{ display:"flex", gap:"0.9rem", flexWrap:"wrap", fontSize:"0.82rem", color:"var(--text-mute)" }}>
+                      {c.data.appetite !== undefined && <span>Appetite {c.data.appetite}/10</span>}
+                      {c.data.cravings !== undefined && <span>Cravings {c.data.cravings}/10</span>}
+                      {c.data.energy !== undefined && <span>Energy {c.data.energy}/10</span>}
+                      {c.data.focus !== undefined && <span>Focus {c.data.focus}/10</span>}
+                      {c.data.nausea !== undefined && <span>Nausea {c.data.nausea}/10</span>}
+                      {c.data.overall !== undefined && <span>Overall {c.data.overall}/10</span>}
+                    </div>
+                  ) : (
+                    <div style={{ display:"flex", gap:"1rem", flexWrap:"wrap", fontSize:"0.82rem", color:"var(--text-mute)" }}>
+                      {c.data.weight && <span>⚖ {c.data.weight} lbs</span>}
+                      {c.data.bodyFat && <span>Body Fat {c.data.bodyFat}%</span>}
+                      {c.data.energyScore !== undefined && <span>Energy {c.data.energyScore}/10</span>}
+                      {c.data.moodScore !== undefined && <span>Mood {c.data.moodScore}/10</span>}
+                      {c.data.missedDoses && c.data.missedDoses!=="0" && <span>Missed {c.data.missedDoses} dose(s)</span>}
+                    </div>
+                  )}
                   {c.data.notes && <p style={{ marginTop:"0.35rem", fontSize:"0.82rem", color:"var(--text-soft)", lineHeight:1.55 }}>{c.data.notes}</p>}
                 </div>
               ))}
