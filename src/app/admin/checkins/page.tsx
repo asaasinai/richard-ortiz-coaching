@@ -29,8 +29,28 @@ interface CheckIn {
     sideEffects?: string[]
     missedDoses?: string
     notes?: string
+    // Next-day (Day-1) check-ins land in the same queue, tagged with this type.
+    checkin_type?: string
+    appetite?: number
+    cravings?: number
+    fullness?: number
+    energy?: number
+    focus?: number
+    nausea?: number
+    bloating?: number
+    hydration?: number
+    protein_goal?: number
+    overall?: number
   }
 }
+
+// Labels for the 10 next-day (Day-1) metrics.
+const NEXTDAY_FIELDS: [keyof CheckIn["data"], string][] = [
+  ["appetite", "Appetite"], ["cravings", "Cravings"], ["fullness", "Fullness"],
+  ["energy", "Energy"], ["focus", "Focus"], ["nausea", "Nausea"],
+  ["bloating", "Bloating"], ["hydration", "Hydration"], ["protein_goal", "Protein goal"],
+  ["overall", "Overall"],
+]
 
 interface Counts { all?: string; unread?: string; urgent?: string; resolved?: string; thisweek?: string; dismissed?: string }
 
@@ -213,9 +233,18 @@ function CheckInsInner() {
         </div>
       )}
 
-      {scoreBar("Overall Progress", selected.data.progressScore)}
-      {scoreBar("Energy Level", selected.data.energyScore)}
-      {scoreBar("Mood & Wellbeing", selected.data.moodScore)}
+      {selected.data.checkin_type === "next_day" ? (
+        <>
+          <p style={{ fontSize: "0.72rem", color: "var(--gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.5rem" }}>Day-1 Protocol Check-In</p>
+          {NEXTDAY_FIELDS.map(([k, label]) => scoreBar(label, selected.data[k] as number | undefined))}
+        </>
+      ) : (
+        <>
+          {scoreBar("Overall Progress", selected.data.progressScore)}
+          {scoreBar("Energy Level", selected.data.energyScore)}
+          {scoreBar("Mood & Wellbeing", selected.data.moodScore)}
+        </>
+      )}
       {selected.data.weight && <p style={{ fontSize: "0.82rem", marginTop: "0.75rem" }}><span style={{ color: "var(--text-mute)" }}>Weight: </span>{selected.data.weight} lbs</p>}
       {(selected.data.sideEffects?.length ?? 0) > 0 && (
         <div style={{ marginTop: "0.75rem" }}>
@@ -346,12 +375,23 @@ function CheckInsInner() {
                         <span>{c.first_name ? `${c.first_name} ${c.last_name ?? ""}` : (c.client_email || "Unlinked check-in")}</span>
                         {c.first_name && c.client_email && <span style={{ color: "var(--text-mute)", fontWeight: 400, fontSize: "0.78rem" }}>{c.client_email}</span>}
                         <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.1rem 0.45rem", borderRadius: "var(--radius-pill)", background: unread ? "var(--gold-dim)" : "var(--surface-2)", color: unread ? "var(--gold-light)" : "var(--text-mute)" }}>{unread ? "NEW" : "SEEN"}</span>
+                        {c.data.checkin_type === "next_day" && <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.1rem 0.45rem", borderRadius: "var(--radius-pill)", background: "rgba(96,165,250,0.15)", color: "#93c5fd" }}>DAY-1</span>}
                         {(() => { const t = trendFor(c); return t === "up" ? <ArrowUp size={13} style={{ color: "#34D399" }} /> : t === "down" ? <ArrowDown size={13} style={{ color: "#F87171" }} /> : null })()}
                       </div>
                       <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", fontSize: "0.76rem", color: "var(--text-mute)" }}>
-                        {c.data.progressScore !== undefined && <span>Progress <b style={scoreColor(c.data.progressScore)}>{c.data.progressScore}/10</b></span>}
-                        {c.data.energyScore !== undefined && <span>Energy <b style={scoreColor(c.data.energyScore)}>{c.data.energyScore}/10</b></span>}
-                        {c.data.moodScore !== undefined && <span>Mood <b style={scoreColor(c.data.moodScore)}>{c.data.moodScore}/10</b></span>}
+                        {c.data.checkin_type === "next_day" ? (
+                          <>
+                            {c.data.overall !== undefined && <span>Overall <b style={scoreColor(c.data.overall)}>{c.data.overall}/10</b></span>}
+                            {c.data.energy !== undefined && <span>Energy <b style={scoreColor(c.data.energy)}>{c.data.energy}/10</b></span>}
+                            {c.data.nausea !== undefined && <span>Nausea <b style={scoreColor(10 - c.data.nausea)}>{c.data.nausea}/10</b></span>}
+                          </>
+                        ) : (
+                          <>
+                            {c.data.progressScore !== undefined && <span>Progress <b style={scoreColor(c.data.progressScore)}>{c.data.progressScore}/10</b></span>}
+                            {c.data.energyScore !== undefined && <span>Energy <b style={scoreColor(c.data.energyScore)}>{c.data.energyScore}/10</b></span>}
+                            {c.data.moodScore !== undefined && <span>Mood <b style={scoreColor(c.data.moodScore)}>{c.data.moodScore}/10</b></span>}
+                          </>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.35rem", flexShrink: 0 }}>

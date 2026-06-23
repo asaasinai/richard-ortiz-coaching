@@ -54,10 +54,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Always notify the coach on every check-in; client gets a confirmation.
-    Promise.allSettled([
+    // IMPORTANT: await — on Vercel serverless the function freezes after the
+    // response returns, so a fire-and-forget send often never completes.
+    await Promise.allSettled([
       email ? sendCheckinConfirmation(email, firstName) : Promise.resolve(),
       sendAdminCheckin(clientName, email, data, isUrgent),
-    ]).catch(console.error)
+    ])
 
     await query(
       `INSERT INTO roc.activity_log (action, details) VALUES ('checkin_submitted', $1)`,

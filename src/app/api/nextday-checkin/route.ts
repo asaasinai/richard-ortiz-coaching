@@ -1,6 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { sendNextDayCheckinConfirmation, sendAdminNextDayCheckin } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
+
+type Scores = Record<string, number>
+
+// Surface a next-day check-in in the unified admin Check-Ins queue (roc.checkins),
+// tagged so the admin UI renders the next-day metrics. week_number = 0
+// distinguishes it from the 2-week check-in (default 2).
+async function addToCheckinQueue(email: string, clientName: string, scores: Scores) {
+  const overall = Number(scores.overall)
+  const nausea = Number(scores.nausea)
+  const isUrgent = (!Number.isNaN(overall) && overall <= 3) || (!Number.isNaN(nausea) && nausea >= 8)
+  const data = { checkin_type: "next_day", clientName, clientEmail: email, ...scores }
+  const res = await query<{ id: string }>(
+    `INSERT INTO roc.checkins (data, urgent_flag, client_email, week_number)
+     VALUES ($1, $2, $3, 0) RETURNING id`,
+    [JSON.stringify(data), isUrgent ? "true" : "false", email],
+  )
+  const id = res.rows[0]?.id
+  const who = clientName || email || "A client"
+  await createNotification({
+    type: isUrgent ? "urgent_checkin" : "checkin_submitted",
+    refId: id, refType: "checkin",
+    message: `Day-1 check-in from ${who}${isUrgent ? " (flagged)" : ""}`,
+  }).catch(() => {})
+}
 
 // GET — validate token (called on page load)
 export async function GET(req: NextRequest) {
@@ -22,7 +47,9 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// POST — save check-in responses
+// POST — save check-in responses.
+// Two modes: tokenized (per-client link, single-use) OR default (no token —
+// client self-identifies with name + email, matched to their record).
 export async function POST(req: NextRequest) {
   try {
     const { token, scores, clientName = "", clientEmail = "" } = await req.json()
@@ -42,8 +69,9 @@ export async function POST(req: NextRequest) {
       ).catch(() => ({ rows: [] as { id: string; first_name: string; last_name: string }[] }))
       const m = matched.rows[0]
       const clientId = m?.id ?? `unmatched:${email}`
-      const firstName = m?.first_name ?? (String(clientName).trim().split(" ")[0] || "")
-      const lastName = m?.last_name ?? (String(clientName).trim().split(" ").slice(1).join(" ") || "")
+      const fullName = String(clientName).trim() || `${m?.first_name ?? ""} ${m?.last_name ?? ""}`.trim()
+      const firstName = m?.first_name ?? (fullName.split(" ")[0] || "")
+      const lastName = m?.last_name ?? (fullName.split(" ").slice(1).join(" ") || "")
 
       await query(
         `INSERT INTO roc.nextday_checkins
@@ -58,10 +86,14 @@ export async function POST(req: NextRequest) {
         ],
       )
 
-      Promise.allSettled([
+      // Surface in the admin Check-Ins queue.
+      await addToCheckinQueue(email, fullName, scores).catch(e => console.error("[nextday queue]", e))
+
+      // Await sends — serverless freezes after the response returns.
+      await Promise.allSettled([
         email ? sendNextDayCheckinConfirmation(email, firstName) : Promise.resolve(),
         sendAdminNextDayCheckin(clientId, firstName, lastName, email, scores),
-      ]).catch(console.error)
+      ])
 
       await query(
         `INSERT INTO roc.activity_log (action, details) VALUES ('nextday_checkin_submitted', $1)`,
@@ -114,13 +146,14 @@ export async function POST(req: NextRequest) {
       [token]
     )
 
-    // Fire emails
-    if (email) {
-      Promise.allSettled([
-        sendNextDayCheckinConfirmation(email, firstName),
-        sendAdminNextDayCheckin(client_id, firstName, lastName, email, scores),
-      ]).catch(console.error)
-    }
+    // Surface in the admin Check-Ins queue.
+    await addToCheckinQueue(email, `${firstName} ${lastName}`.trim(), scores).catch(e => console.error("[nextday queue]", e))
+
+    // Await sends — serverless freezes after the response returns.
+    await Promise.allSettled([
+      email ? sendNextDayCheckinConfirmation(email, firstName) : Promise.resolve(),
+      sendAdminNextDayCheckin(client_id, firstName, lastName, email, scores),
+    ])
 
     await query(
       `INSERT INTO roc.activity_log (action, details) VALUES ('nextday_checkin_submitted', $1)`,
