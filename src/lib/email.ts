@@ -48,10 +48,6 @@ export async function sendIntakeConfirmation(to: string, firstName: string) {
   })
 }
 
-// Humanize an intake answer key ("primaryGoal" -> "Primary Goal").
-function humanizeKey(k: string): string {
-  return k.replace(/([A-Z])/g, " $1").replace(/[_-]/g, " ").replace(/^./, s => s.toUpperCase()).trim()
-}
 function renderIntakeValue(v: unknown): string {
   if (v === null || v === undefined || v === "") return ""
   if (Array.isArray(v)) return v.join(", ")
@@ -68,14 +64,6 @@ export async function sendAdminIntakeNotify(
   data?: Record<string, unknown>,
 ) {
   const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://richardortizcoaching.com"
-  // Render every answered field from the intake form. Skip the contact fields
-  // (shown at top) and empties.
-  const skip = new Set(["firstName", "lastName", "email", "phone", "source"])
-  const rows = Object.entries(data ?? {})
-    .filter(([k, v]) => !skip.has(k) && renderIntakeValue(v) !== "")
-    .map(([k, v]) =>
-      `<tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888;vertical-align:top;white-space:nowrap">${humanizeKey(k)}</td><td style="padding:0.4rem 0;font-weight:600;color:#111">${renderIntakeValue(v)}</td></tr>`)
-    .join("")
   const phone = renderIntakeValue(data?.phone)
 
   await send({
@@ -89,11 +77,8 @@ export async function sendAdminIntakeNotify(
           <tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Email</td><td><a href="mailto:${email}" style="color:#0a58ca">${email}</a></td></tr>
           ${phone ? `<tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Phone</td><td>${phone}</td></tr>` : ""}
         </table>
-        ${rows ? `
-        <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#C9A84C;margin:0 0 0.35rem">Intake Answers</p>
-        <table style="width:100%;border-collapse:collapse;border-top:1px solid #eee">${rows}</table>` : ""}
-        <p style="margin-top:1.5rem"><a href="${SITE}/admin/intakes/${intakeId}" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">Review Intake →</a></p>
-        <p style="color:#aaa;font-size:0.72rem;margin-top:0.75rem">Opens the client's record directly (sign in to admin if prompted).</p>
+        <p style="margin-top:1.5rem"><a href="${SITE}/admin/clients/${intakeId}" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">View Client Record →</a></p>
+        <p style="color:#aaa;font-size:0.72rem;margin-top:0.75rem">Opens the full record with all intake answers (sign in to admin if prompted).</p>
       </div>`,
   })
 }
