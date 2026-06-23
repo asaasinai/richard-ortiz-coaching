@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { getSetting } from "@/lib/settings"
-import { renderTemplate } from "@/lib/email-templates"
+import { renderTemplate, protocolSummaryHtml } from "@/lib/email-templates"
 
 async function sendEmail(payload: { to: string; subject: string; html: string }) {
   const RESEND_KEY = process.env.RESEND_API_KEY
@@ -78,10 +78,14 @@ export async function POST(
       getSetting("email_welcome_body"),
       getSetting("admin_email"),
     ])
+    const snap = (proposal.protocol_snapshot ?? {}) as Record<string, unknown>
     const vars = {
       first_name: proposal.first_name, last_name: proposal.last_name,
       client_email: proposal.client_email, signed_name: body.signed_name.trim(),
       admin_url: adminUrl,
+      // Full proposal contents for the coach email.
+      protocol_summary: protocolSummaryHtml(snap),
+      total_monthly: Number(snap.total_monthly ?? snap.monthly_rate ?? 0),
     }
 
     // Coach notification

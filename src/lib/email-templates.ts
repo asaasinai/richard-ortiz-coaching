@@ -77,13 +77,18 @@ const WELCOME_BODY = `<div style="font-family:Inter,sans-serif;max-width:580px;m
 </div>`
 
 // ── Coach notification — sent to the admin when a client signs ───────────────
-const COACH_NOTIFY_SUBJECT = `✅ {{first_name}} {{last_name}} signed their agreement`
-const COACH_NOTIFY_BODY = `<div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
-  <h2 style="color:#C9A84C">Agreement Signed!</h2>
-  <p><strong>{{signed_name}}</strong> ({{client_email}}) just signed their coaching agreement.</p>
-  <p style="margin:1.5rem 0">
-    <a href="{{admin_url}}" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">View Intake &rarr;</a>
+const COACH_NOTIFY_SUBJECT = `✅ Proposal Signed — {{first_name}} {{last_name}}`
+const COACH_NOTIFY_BODY = `<div style="font-family:Inter,sans-serif;max-width:580px;margin:0 auto;background:#000;color:#fff;padding:2rem;border-radius:8px">
+  <h2 style="color:#C9A84C;margin-top:0">Proposal Signed ✅</h2>
+  <p style="color:#ccc;line-height:1.7"><strong style="color:#fff">{{signed_name}}</strong> ({{client_email}}) just signed their proposal.</p>
+  <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#C9A84C;margin:1.5rem 0 0.5rem">Signed Proposal</p>
+  <div style="background:#0b0b0b;border:1px solid #222;border-radius:6px;padding:1rem">{{protocol_summary}}</div>
+  <p style="margin:1.5rem 0 0">
+    <a href="{{admin_url}}" style="background:#C9A84C;color:#000;padding:0.75rem 1.5rem;border-radius:4px;text-decoration:none;font-weight:700;display:inline-block">View Full Intake &amp; Record &rarr;</a>
   </p>
+  <p style="color:#666;font-size:0.72rem;margin-top:0.75rem">Opens {{first_name}}'s record directly (sign in to admin if prompted).</p>
+  <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
+  <p style="color:#555;font-size:0.75rem">Richard Ortiz Coaching</p>
 </div>`
 
 // Keys merged into the settings DEFAULTS so they're editable in Settings.
