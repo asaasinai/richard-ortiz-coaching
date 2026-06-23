@@ -42,7 +42,6 @@ export async function sendIntakeConfirmation(to: string, firstName: string) {
         <h1 style="color:#C9A84C;font-size:1.4rem;margin-bottom:0.5rem">Intake Received ✓</h1>
         <p style="color:#ccc;line-height:1.7">Hi ${firstName},</p>
         <p style="color:#ccc;line-height:1.7">Your intake form has been received. Richard will review it and reach out within <strong style="color:#fff">48 hours</strong> to schedule your initial consult.</p>
-        <p style="color:#ccc;line-height:1.7">In the meantime, browse the <a href="https://richardortizcoaching.com/peptides" style="color:#C9A84C">Peptide Library</a> or <a href="https://richardortizcoaching.com/protocols" style="color:#C9A84C">Dosage Protocols</a>.</p>
         <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
         <p style="color:#888;font-size:0.8rem">Richard Ortiz Coaching — for educational and coaching purposes only. Not medical advice.</p>
       </div>`,
@@ -77,6 +76,38 @@ export async function sendCheckinConfirmation(to: string, firstName: string) {
         <p style="color:#ccc;line-height:1.7">Your 2-week check-in has been logged. Richard will review your progress and follow up within <strong style="color:#fff">24 hours</strong>.</p>
         <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0"/>
         <p style="color:#888;font-size:0.8rem">Richard Ortiz Coaching</p>
+      </div>`,
+  })
+}
+
+// Coach notification fired on EVERY 2-week check-in (urgent or not).
+export async function sendAdminCheckin(
+  clientName: string,
+  clientEmail: string,
+  data: Record<string, unknown>,
+  isUrgent: boolean,
+) {
+  const fields: [string, unknown][] = [
+    ["Weight", data.weight], ["Body Fat %", data.bodyFat], ["Muscle %", data.musclePct],
+    ["Energy", data.energyScore != null ? `${data.energyScore}/10` : ""],
+    ["Mood", data.moodScore != null ? `${data.moodScore}/10` : ""],
+    ["Side effects", Array.isArray(data.sideEffects) ? (data.sideEffects as string[]).join(", ") : ""],
+    ["Missed doses", data.missedDoses],
+    ["Notes", data.notes],
+  ]
+  const rows = fields
+    .filter(([, v]) => v != null && String(v).trim() !== "")
+    .map(([k, v]) => `<tr><td style="padding:0.35rem 0;color:#888">${k}</td><td style="font-weight:600">${String(v)}</td></tr>`)
+    .join("")
+  await send({
+    to: ADMIN,
+    subject: `${isUrgent ? "⚠️ " : ""}2-Week Check-In: ${clientName || clientEmail}`,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:1.5rem">
+        <h2 style="color:${isUrgent ? "red" : "#C9A84C"}">${isUrgent ? "Urgent " : ""}2-Week Check-In</h2>
+        <p><strong>${clientName || "Client"}</strong> (${clientEmail || "no email"}) submitted a check-in.</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:0.75rem">${rows}</table>
+        <p style="margin-top:1.5rem"><a href="https://richardortizcoaching.com/admin/checkins" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">Review Check-In →</a></p>
       </div>`,
   })
 }

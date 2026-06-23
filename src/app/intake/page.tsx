@@ -546,6 +546,9 @@ function ContactField({ label, id, type = "text", value, onChange, autoComplete 
         id={id} name={id} type={type}
         value={value}
         autoComplete={autoComplete}
+        // Stop password managers (1Password/LastPass) + Chrome saved-credential
+        // autofill from injecting an overlay on this passwordless contact form.
+        data-1p-ignore data-lpignore="true" data-form-type="other"
         onChange={e => onChange(e.target.value)}
         style={{ marginTop: "0.35rem" }}
       />

@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, Package, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, Package, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
 import NotificationBell from "@/components/admin/NotificationBell"
 import CommandPalette from "@/components/admin/CommandPalette"
 
@@ -23,6 +23,7 @@ const GROUPS: NavGroup[] = [
     { href: "/admin/revenue",   label: "Revenue",     icon: DollarSign },
   ]},
   { title: "Tools", items: [
+    { href: "/admin/quick-proposal", label: "New Proposal", icon: FileSignature },
     { href: "/admin/sms",      label: "SMS Builder", icon: MessageSquare },
     { href: "/calculator",     label: "Calculator",  icon: Calculator },
     { href: "/admin/settings", label: "Settings",    icon: Settings },

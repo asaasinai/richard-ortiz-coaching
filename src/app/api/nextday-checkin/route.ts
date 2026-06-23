@@ -25,9 +25,50 @@ export async function GET(req: NextRequest) {
 // POST — save check-in responses
 export async function POST(req: NextRequest) {
   try {
-    const { token, scores } = await req.json()
-    if (!token || !scores) {
-      return NextResponse.json({ ok: false, error: "token and scores required" }, { status: 400 })
+    const { token, scores, clientName = "", clientEmail = "" } = await req.json()
+    if (!scores) {
+      return NextResponse.json({ ok: false, error: "scores required" }, { status: 400 })
+    }
+
+    // ── Default mode (no token): match by email, save, notify coach ──
+    if (!token) {
+      const email = String(clientEmail).trim()
+      if (!email) {
+        return NextResponse.json({ ok: false, error: "name and email required" }, { status: 400 })
+      }
+      const matched = await query<{ id: string; first_name: string; last_name: string }>(
+        `SELECT id, first_name, last_name FROM roc.intakes WHERE lower(email) = lower($1) ORDER BY submitted_at DESC LIMIT 1`,
+        [email],
+      ).catch(() => ({ rows: [] as { id: string; first_name: string; last_name: string }[] }))
+      const m = matched.rows[0]
+      const clientId = m?.id ?? `unmatched:${email}`
+      const firstName = m?.first_name ?? (String(clientName).trim().split(" ")[0] || "")
+      const lastName = m?.last_name ?? (String(clientName).trim().split(" ").slice(1).join(" ") || "")
+
+      await query(
+        `INSERT INTO roc.nextday_checkins
+           (client_id, client_email, appetite, cravings, fullness, energy, focus,
+            nausea, bloating, hydration, protein_goal, overall, raw_data)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+        [
+          clientId, email,
+          scores.appetite, scores.cravings, scores.fullness, scores.energy, scores.focus,
+          scores.nausea, scores.bloating, scores.hydration, scores.protein_goal, scores.overall,
+          JSON.stringify(scores),
+        ],
+      )
+
+      Promise.allSettled([
+        email ? sendNextDayCheckinConfirmation(email, firstName) : Promise.resolve(),
+        sendAdminNextDayCheckin(clientId, firstName, lastName, email, scores),
+      ]).catch(console.error)
+
+      await query(
+        `INSERT INTO roc.activity_log (action, details) VALUES ('nextday_checkin_submitted', $1)`,
+        [JSON.stringify({ clientId, email, matched: Boolean(m), mode: "default" })],
+      ).catch(() => {})
+
+      return NextResponse.json({ ok: true })
     }
 
     // Look up protocol by token

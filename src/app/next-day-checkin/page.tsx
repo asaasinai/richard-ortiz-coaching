@@ -27,13 +27,18 @@ const defaultScores = (): Scores =>
 function CheckInForm() {
   const params = useSearchParams()
   const token = params.get("token") ?? ""
+  // No token = default link: client self-identifies with name + email.
+  const isDefault = !token
   const [scores, setScores] = useState<Scores>(defaultScores())
+  const [clientName, setClientName] = useState("")
+  const [clientEmail, setClientEmail] = useState("")
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error" | "invalid">("idle")
   const [alreadyDone, setAlreadyDone] = useState(false)
 
-  // Validate token on load
+  // Validate the token on load — only in tokenized mode. The default link skips
+  // validation and asks for name + email instead.
   useEffect(() => {
-    if (!token) { setStatus("invalid"); return }
+    if (!token) return
     fetch(`/api/nextday-checkin?token=${encodeURIComponent(token)}`)
       .then(r => r.json())
       .then(d => {
@@ -45,12 +50,15 @@ function CheckInForm() {
 
   const set = (id: ScoreKey, v: number) => setScores(p => ({ ...p, [id]: v }))
 
+  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clientEmail.trim())
+  const canSubmit = status !== "saving" && (!isDefault || (clientName.trim().length > 1 && emailOk))
+
   const submit = async () => {
     setStatus("saving")
     const res = await fetch("/api/nextday-checkin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, scores }),
+      body: JSON.stringify({ token, scores, clientName: clientName.trim(), clientEmail: clientEmail.trim() }),
     })
     const data = await res.json()
     if (data.ok) { setStatus("done"); return }
@@ -86,7 +94,7 @@ function CheckInForm() {
             ? "You've already submitted your next-day check-in. Richard will review your data."
             : "Thanks — Richard will review your responses and reach out if any adjustments are needed to your protocol."}
         </p>
-        <a href="/dashboard" className="btn-outline" style={{ display: "inline-block", marginTop: "1.5rem" }}>Back to Dashboard</a>
+        <a href="/" className="btn-outline" style={{ display: "inline-block", marginTop: "1.5rem" }}>Done</a>
       </div>
     </div>
   )
@@ -105,6 +113,31 @@ function CheckInForm() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {isDefault && (
+          <div className="card" style={{ padding: "1.25rem 1.5rem" }}>
+            <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text)" }}>Your details</p>
+            <p style={{ color: "var(--text-mute)", fontSize: "0.78rem", margin: "0.15rem 0 0.85rem" }}>
+              Enter your name and the email on file so we can match this to your record.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              <div>
+                <label>Full Name *</label>
+                <input type="text" placeholder="First and last name" value={clientName}
+                  autoComplete="name" data-1p-ignore data-lpignore="true"
+                  onChange={e => setClientName(e.target.value)} />
+              </div>
+              <div>
+                <label>Email *</label>
+                <input type="email" placeholder="you@email.com" value={clientEmail}
+                  autoComplete="email" data-1p-ignore data-lpignore="true"
+                  onChange={e => setClientEmail(e.target.value)} />
+                {clientEmail.trim() && !emailOk && (
+                  <p style={{ color: "#f87171", fontSize: "0.78rem", marginTop: "0.35rem" }}>Enter a valid email.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {QUESTIONS.map((q, i) => (
           <div key={q.id} className="card" style={{ padding: "1.25rem 1.5rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.85rem", gap: "1rem", flexWrap: "wrap" }}>
@@ -156,9 +189,9 @@ function CheckInForm() {
       <div style={{ marginTop: "1.75rem", display: "flex", justifyContent: "flex-end" }}>
         <button
           onClick={submit}
-          disabled={status === "saving"}
+          disabled={!canSubmit}
           className="btn-gold"
-          style={{ minWidth: 160, opacity: status === "saving" ? 0.6 : 1 }}
+          style={{ minWidth: 160, opacity: canSubmit ? 1 : 0.5 }}
         >
           {status === "saving" ? "Submitting…" : "Submit Check-In"}
         </button>
