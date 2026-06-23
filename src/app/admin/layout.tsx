@@ -23,7 +23,7 @@ const GROUPS: NavGroup[] = [
     { href: "/admin/revenue",   label: "Revenue",     icon: DollarSign },
   ]},
   { title: "Tools", items: [
-    { href: "/admin/quick-proposal", label: "New Proposal", icon: FileSignature },
+    { href: "/proposal-builder", label: "New Proposal", icon: FileSignature },
     { href: "/admin/sms",      label: "SMS Builder", icon: MessageSquare },
     { href: "/calculator",     label: "Calculator",  icon: Calculator },
     { href: "/admin/settings", label: "Settings",    icon: Settings },
