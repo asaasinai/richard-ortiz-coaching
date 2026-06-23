@@ -54,7 +54,7 @@ function IntakesInner() {
 
       {/* Filter pills */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-        {[["all", "All"], ["PENDING", "Pending"], ["APPROVED", "Approved"], ["FLAGGED", "Flagged"]].map(([val, label]) => (
+        {[["all", "All"], ["PENDING", "Pending"], ["FLAGGED", "Flagged"]].map(([val, label]) => (
           <button key={val} className="pill" data-active={filter === val} onClick={() => setFilter(val)}>
             {label} <span style={{ opacity: 0.6 }}>{countFor(val)}</span>
           </button>

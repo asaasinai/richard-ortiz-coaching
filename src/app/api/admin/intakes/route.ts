@@ -18,9 +18,12 @@ export async function GET(req: NextRequest) {
             cp.billing_status AS protocol_billing_status,
             cp.monthly_rate   AS protocol_monthly_rate,
             (cp.client_id IS NOT NULL) AS has_protocol,
-            -- A person becomes a client the moment they accept (sign) a proposal.
-            -- Until then they stay in the Applicants pipeline.
-            EXISTS (SELECT 1 FROM roc.proposals p WHERE p.intake_id = i.id AND p.signed_at IS NOT NULL) AS is_client
+            -- A person becomes a client the moment the coach APPROVES them
+            -- (or they sign a proposal). Approved/signed records leave the
+            -- Applicants pipeline and show under Clients.
+            (i.status = 'APPROVED'
+             OR EXISTS (SELECT 1 FROM roc.proposals p WHERE p.intake_id = i.id AND p.signed_at IS NOT NULL)
+            ) AS is_client
      FROM roc.intakes i
      LEFT JOIN roc.client_protocols cp ON cp.client_id = i.id
      ${where}

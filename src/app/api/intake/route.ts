@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       // returns, so a fire-and-forget send often never completes.
       await Promise.allSettled([
         sendIntakeConfirmation(email, firstName),
-        sendAdminIntakeNotify(intakeId, firstName, lastName, email),
+        sendAdminIntakeNotify(intakeId, firstName, lastName, email, data),
       ])
     }
 

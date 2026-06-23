@@ -45,6 +45,9 @@ export default function IntakeDetailPage() {
       body: JSON.stringify({ id, status }),
     })
     setIntake(p => p ? { ...p, status } : p)
+    // Approving moves the record out of Applicants and into Clients — take the
+    // coach straight to the client record.
+    if (status === "APPROVED") router.push(`/admin/clients/${id}`)
   }
 
   if (loading) return (
