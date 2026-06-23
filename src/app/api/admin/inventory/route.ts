@@ -53,8 +53,14 @@ export async function GET(req: NextRequest) {
         COUNT(*) AS active_clients,
         SUM(
           (CASE
-             WHEN cp.frequency_days IS NOT NULL AND cp.frequency_days != '[]'
-             THEN jsonb_array_length(cp.frequency_days::jsonb)::numeric
+             -- Defensive: frequency_days is free-form TEXT and some rows hold
+             -- non-JSON values (e.g. {"Mon"}). Only count when it's a valid
+             -- JSON array, otherwise fall back to 7 — never let a bad row 500
+             -- the whole inventory endpoint.
+             WHEN cp.frequency_days IS NOT NULL AND cp.frequency_days <> '' AND cp.frequency_days <> '[]'
+                  AND pg_input_is_valid(cp.frequency_days, 'jsonb')
+                  AND jsonb_typeof(cp.frequency_days::jsonb) = 'array'
+             THEN GREATEST(jsonb_array_length(cp.frequency_days::jsonb), 1)::numeric
              ELSE 7
            END)
           * COALESCE(NULLIF(cp.dose_amount, '')::numeric, 0)
