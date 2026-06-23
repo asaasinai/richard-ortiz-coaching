@@ -212,6 +212,13 @@ button:focus-visible, a:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
+/* Native dropdown popup: force opaque dark bg + light text so options
+   aren't rendered light-on-white (invisible) in the open <select> list. */
+select option,
+select optgroup {
+  background-color: var(--solid-1);
+  color: var(--text);
+}
 label { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); display: block; margin-bottom: 0.4rem; }
 
 /* ── Scrollbar ── */
