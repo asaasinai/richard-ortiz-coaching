@@ -132,11 +132,16 @@ export default function PricingPage() {
                   display: "flex",
                   flexDirection: "column",
                   gap: "1.25rem",
-                  overflow: "hidden",
                   animationDelay: `${0.08 * i}s`,
                 }}
               >
-                {tier.highlight && <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, background: "radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)", pointerEvents: "none" }} />}
+                {/* Glow blob clipped to the card so it doesn't spill, while the
+                    card itself stays unclipped so the badge isn't cut off. */}
+                {tier.highlight && (
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden", pointerEvents: "none" }}>
+                    <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, background: "radial-gradient(circle, rgba(212,175,90,0.16), transparent 70%)" }} />
+                  </div>
+                )}
                 {/* Most Popular badge */}
                 {tier.badge && (
                   <div
