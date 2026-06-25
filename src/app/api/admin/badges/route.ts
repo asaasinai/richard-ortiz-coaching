@@ -2,12 +2,14 @@ import { NextResponse } from "next/server"
 import { query } from "@/lib/db"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
 
 async function count(sql: string): Promise<number> {
   try { return Number(((await query<{ n: string }>(sql)).rows[0]?.n) ?? 0) } catch { return 0 }
 }
 
-// Live counts for sidebar nav badges.
+// Live counts for sidebar nav badges. Never cache — these must reflect the DB.
 export async function GET() {
   const [pendingOps, unreadCheckins, pendingIntakes, lowStock] = await Promise.all([
     count(`SELECT COUNT(*) n FROM roc.ops_cards WHERE status = 'pending'`),
@@ -15,5 +17,8 @@ export async function GET() {
     count(`SELECT COUNT(*) n FROM roc.intakes WHERE status = 'PENDING'`),
     count(`SELECT COUNT(*) n FROM roc.inventory_skus WHERE units_in_stock <= COALESCE(reorder_point,0) OR units_in_stock = 0`),
   ])
-  return NextResponse.json({ pending_ops: pendingOps, unread_checkins: unreadCheckins, pending_intakes: pendingIntakes, low_stock: lowStock })
+  return NextResponse.json(
+    { pending_ops: pendingOps, unread_checkins: unreadCheckins, pending_intakes: pendingIntakes, low_stock: lowStock },
+    { headers: { "Cache-Control": "no-store, max-age=0" } },
+  )
 }
