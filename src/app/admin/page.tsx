@@ -1,5 +1,5 @@
 import { query } from "@/lib/db"
-import { Users, Activity, AlertTriangle, DollarSign, ClipboardList, ListChecks, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Users, Activity, AlertTriangle, DollarSign, ClipboardList, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import Link from "next/link"
 import OverviewActivity from "@/components/admin/OverviewActivity"
 import { Donut, Bars, Sparkline } from "@/components/admin/Charts"
@@ -15,7 +15,7 @@ const n = (rows: Row[], key = "n") => Number((rows[0]?.[key] as string) ?? 0)
 async function getStats() {
   const [
     intakes, checkins, urgent, activeClients, intakeDelta, checkinDelta,
-    opsPending, lowStock, mrr, byProtocol, statusBreak, ckSeries,
+    opsPending, lowStock, mrr, byProtocol, statusBreak, ckSeries, collected,
   ] = await Promise.all([
     safe(`SELECT COUNT(*) n, COUNT(*) FILTER (WHERE status='PENDING') pending FROM roc.intakes`),
     safe(`SELECT COUNT(*) n, COUNT(*) FILTER (WHERE read=false) unread, COUNT(*) FILTER (WHERE submitted_at > NOW()-INTERVAL '7 days') week FROM roc.checkins`),
@@ -29,12 +29,13 @@ async function getStats() {
     safe(`SELECT peptide, COALESCE(SUM(monthly_rate),0) rev FROM roc.client_protocols WHERE billing_status='active' GROUP BY peptide ORDER BY rev DESC LIMIT 6`),
     safe(`SELECT status, COUNT(*) c FROM roc.intakes GROUP BY status`),
     safe(`SELECT to_char(date_trunc('week', submitted_at),'MM/DD') wk, COUNT(*) c FROM roc.checkins WHERE submitted_at > NOW()-INTERVAL '56 days' GROUP BY 1 ORDER BY 1`),
+    safe(`SELECT COALESCE(SUM(COALESCE((protocol_snapshot->>'total_monthly')::numeric,(protocol_snapshot->>'monthly_rate')::numeric,0)),0) n FROM roc.proposals WHERE paid_at IS NOT NULL`),
   ])
   return {
     totalIntakes: n(intakes), pendingIntakes: n(intakes, "pending"),
     totalCheckins: n(checkins), unreadCheckins: n(checkins, "unread"), weekCheckins: n(checkins, "week"),
     urgentFlags: n(urgent), activeClients: n(activeClients),
-    opsPending: n(opsPending), lowStock: n(lowStock), mrr: n(mrr),
+    opsPending: n(opsPending), lowStock: n(lowStock), mrr: n(mrr), collected: n(collected),
     intakeThis: n(intakeDelta, "this"), intakePrev: n(intakeDelta, "prev"),
     checkinThis: n(checkinDelta, "this"), checkinPrev: n(checkinDelta, "prev"),
     byProtocol: byProtocol.map(r => ({ label: String(r.peptide ?? "—"), value: Math.round(Number(r.rev)) })),
@@ -61,13 +62,12 @@ export default async function AdminOverview() {
       foot: deltaWords(s.checkinThis, s.checkinPrev), spark: s.ckSeries },
     { icon: AlertTriangle, label: "Needs your attention", value: s.urgentFlags, color: "#F87171", href: "/admin/checkins?filter=urgent",
       foot: s.urgentFlags ? "urgent check-in flagged" : "all clear", spark: null },
-    { icon: DollarSign, label: "Monthly revenue", value: `$${s.mrr.toLocaleString()}`, color: "var(--gold)", href: "/admin/revenue",
-      foot: "recurring from active protocols", spark: null },
+    { icon: DollarSign, label: "Revenue collected", value: `$${s.collected.toLocaleString()}`, color: "var(--gold)", href: "/admin/revenue",
+      foot: "from paid proposals", spark: null },
   ]
 
   const secondary = [
     { icon: ClipboardList, label: "New applicants", value: s.pendingIntakes, href: "/admin/intakes?status=PENDING", color: "#FBBF24" },
-    { icon: ListChecks, label: "To fulfill", value: s.opsPending, href: "/admin/ops-queue?filter=pending", color: "#FBBF24" },
     { icon: Activity, label: "Unread check-ins", value: s.unreadCheckins, href: "/admin/checkins?filter=unread", color: "#34D399" },
   ]
 
@@ -75,7 +75,6 @@ export default async function AdminOverview() {
     s.urgentFlags > 0 && { color: "#F87171", text: `${s.urgentFlags} client${s.urgentFlags > 1 ? "s" : ""} flagged something urgent`, cta: "Review now", href: "/admin/checkins?filter=urgent" },
     s.pendingIntakes > 0 && { color: "var(--gold)", text: `${s.pendingIntakes} new applicant${s.pendingIntakes > 1 ? "s are" : " is"} waiting on you`, cta: "Review", href: "/admin/intakes?status=PENDING" },
     s.unreadCheckins > 0 && { color: "#34D399", text: `${s.unreadCheckins} check-in${s.unreadCheckins > 1 ? "s" : ""} you haven't read yet`, cta: "Open", href: "/admin/checkins?filter=unread" },
-    s.opsPending > 0 && { color: "#FBBF24", text: `${s.opsPending} order${s.opsPending > 1 ? "s" : ""} ready to ship`, cta: "Fulfill", href: "/admin/ops-queue?filter=pending" },
   ].filter(Boolean) as { color: string; text: string; cta: string; href: string }[]
 
   const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })

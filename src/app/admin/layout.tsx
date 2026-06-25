@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, DollarSign, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
 import NotificationBell from "@/components/admin/NotificationBell"
 import CommandPalette from "@/components/admin/CommandPalette"
 
@@ -18,16 +18,15 @@ const GROUPS: NavGroup[] = [
     { href: "/admin/intakes",   label: "Applicants",  icon: ClipboardList,  badge: "pending_intakes", badgeColor: "var(--gold)" },
   ]},
   { title: "Catalog", items: [
-    { href: "/admin/ops-queue", label: "Fulfillment", icon: ListChecks,     badge: "pending_ops",     badgeColor: "#FBBF24" },
-    // Inventory management is hidden — peptides are pre-dosed and stocked outside the system.
-    // Re-enable by restoring this nav item when inventory is brought back in-system.
+    // Fulfillment + Inventory are hidden for now — peptides are pre-dosed and
+    // stocked/fulfilled outside the system. Restore these nav items to re-enable.
+    // { href: "/admin/ops-queue", label: "Fulfillment", icon: ListChecks,     badge: "pending_ops",     badgeColor: "#FBBF24" },
     // { href: "/admin/inventory", label: "Inventory",   icon: Package,        badge: "low_stock",       badgeColor: "#F87171" },
     { href: "/admin/revenue",   label: "Revenue",     icon: DollarSign },
   ]},
   { title: "Tools", items: [
     { href: "/proposal-builder", label: "New Proposal", icon: FileSignature },
     { href: "/admin/sms",      label: "SMS Builder", icon: MessageSquare },
-    { href: "/calculator",     label: "Calculator",  icon: Calculator },
     { href: "/admin/settings", label: "Settings",    icon: Settings },
   ]},
 ]

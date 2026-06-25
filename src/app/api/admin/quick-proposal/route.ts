@@ -141,13 +141,13 @@ export async function POST(req: NextRequest) {
 
     // 5) Create the proposal (status 'sent' — the coach is texting the link directly).
     const token = randomBytes(32).toString("hex")
-    await query(
+    const propIns = await query<{ id: string }>(
       `INSERT INTO roc.proposals (intake_id, protocol_snapshot, tos_text, status, proposal_token, sent_at)
-       VALUES ($1, $2, $3, 'sent', $4, NOW())`,
+       VALUES ($1, $2, $3, 'sent', $4, NOW()) RETURNING id`,
       [clientId, JSON.stringify(snapshot), tosText, token],
     )
 
-    return NextResponse.json({ ok: true, token, url: `/proposal/${token}` })
+    return NextResponse.json({ ok: true, id: propIns.rows[0]?.id, token, url: `/proposal/${token}` })
   } catch (err) {
     console.error("[quick-proposal]", err)
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 })

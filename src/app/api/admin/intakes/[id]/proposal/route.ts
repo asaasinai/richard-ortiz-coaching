@@ -57,7 +57,7 @@ export async function GET(
   const { id } = params
   const result = await query(
     `SELECT id, status, created_at, sent_at, signed_at, signed_name, proposal_token,
-            protocol_snapshot, tos_text
+            protocol_snapshot, tos_text, paid_at
      FROM roc.proposals WHERE intake_id = $1 ORDER BY created_at DESC`,
     [id]
   )

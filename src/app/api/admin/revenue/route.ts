@@ -131,10 +131,25 @@ export async function GET() {
       LIMIT 12
     `)
 
+    // Realized revenue = collected from PAID proposals (coach marks paid after
+    // the client signs). Each paid proposal's total counts as money in.
+    let collected = 0, paidCount = 0
+    try {
+      const paid = await query<{ collected: string; cnt: string }>(`
+        SELECT COALESCE(SUM(COALESCE((protocol_snapshot->>'total_monthly')::numeric,
+                                     (protocol_snapshot->>'monthly_rate')::numeric, 0)), 0) collected,
+               COUNT(*) cnt
+        FROM roc.proposals WHERE paid_at IS NOT NULL`)
+      collected = Number(paid.rows[0]?.collected ?? 0)
+      paidCount = Number(paid.rows[0]?.cnt ?? 0)
+    } catch { /* paid_at column not migrated yet — degrade to 0 */ }
+
     return NextResponse.json({
       ok: true,
       mrr,
       arr,
+      collected,
+      paidCount,
       byStatus,
       activeCount: byStatus["active"] ?? 0,
       avgMargin: Math.round(avgMargin * 10) / 10,

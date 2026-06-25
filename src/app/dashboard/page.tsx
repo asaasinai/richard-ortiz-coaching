@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import Link from "next/link"
-import { Calendar, ArrowRight, Beaker, Trash2, Calculator } from "lucide-react"
+import { Calendar, ArrowRight, Beaker, Trash2 } from "lucide-react"
 
 interface CheckIn {
   id: string
@@ -216,15 +216,6 @@ export default function DashboardPage() {
                 <p style={{ color:"var(--text-mute)", fontSize:"0.875rem" }}>No protocol assigned yet. Your coach will assign one after reviewing your intake.</p>
               </div>
             )}
-
-            {/* Your Tools */}
-            <div className="card" style={{ marginBottom:"1.5rem" }}>
-              <div style={{ fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--text-mute)", marginBottom:"0.75rem" }}>Your Tools</div>
-              <Link href="/calculator" style={{ display:"inline-flex", alignItems:"center", gap:"0.6rem",
-                color:"var(--gold)", fontSize:"0.9rem", fontWeight:700 }} className="hover:underline">
-                <Calculator size={18}/> Dose Calculator <ArrowRight size={14}/>
-              </Link>
-            </div>
 
             {/* Weight trend */}
             {weightVals.length >= 2 && (

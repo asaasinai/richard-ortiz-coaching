@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
-import { FileSignature, ExternalLink, Plus, CheckCircle, Clock, FileText } from "lucide-react"
+import { FileSignature, ExternalLink, Plus, CheckCircle, Clock, FileText, Trash2, DollarSign } from "lucide-react"
 
 interface SnapLine { peptide?: string; monthly_rate?: string | number }
 interface Proposal {
@@ -11,6 +11,7 @@ interface Proposal {
   signed_at: string | null
   signed_name: string | null
   proposal_token: string
+  paid_at: string | null
   protocol_snapshot: { lines?: SnapLine[]; total_monthly?: number; monthly_rate?: number } | null
 }
 
@@ -35,6 +36,29 @@ export default function ProposalLog({
   }, [clientId])
 
   useEffect(() => { load() }, [load])
+
+  const [busy, setBusy] = useState<string>("")
+
+  // Mark a signed proposal paid (or undo). Paid proposals count as revenue.
+  const togglePaid = async (p: Proposal) => {
+    setBusy(p.id)
+    const paid = !p.paid_at
+    setProposals(ps => ps.map(x => x.id === p.id ? { ...x, paid_at: paid ? new Date().toISOString() : null } : x))
+    try {
+      await fetch(`/api/admin/proposals/${p.id}/mark-paid`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paid }),
+      })
+    } catch { /* optimistic; reload on next mount */ } finally { setBusy("") }
+  }
+
+  // Delete an old or duplicate proposal.
+  const del = async (p: Proposal) => {
+    if (!confirm("Delete this proposal? This can't be undone.")) return
+    setBusy(p.id)
+    setProposals(ps => ps.filter(x => x.id !== p.id))
+    try { await fetch(`/api/admin/proposals/${p.id}`, { method: "DELETE" }) }
+    catch { /* optimistic */ } finally { setBusy("") }
+  }
 
   // Open the external proposal builder, pre-filling the client.
   const builderUrl = `/proposal-builder?${new URLSearchParams({
@@ -81,6 +105,11 @@ export default function ProposalLog({
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.66rem", fontWeight: 700, padding: "0.12rem 0.5rem", borderRadius: "var(--radius-pill)", background: chip.bg, color: chip.color }}>
                       <chip.Icon size={11} /> {chip.label}
                     </span>
+                    {p.paid_at && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.66rem", fontWeight: 700, padding: "0.12rem 0.5rem", borderRadius: "var(--radius-pill)", background: "rgba(52,211,153,0.16)", color: "#34D399" }}>
+                        <DollarSign size={11} /> Paid
+                      </span>
+                    )}
                     {total(p) > 0 && <span className="gold-text" style={{ fontWeight: 700, fontSize: "0.85rem" }}>${total(p)}</span>}
                   </div>
                   <p style={{ fontSize: "0.84rem", fontWeight: 600, wordBreak: "break-word" }}>{peptides(p) || "—"}</p>
@@ -89,10 +118,24 @@ export default function ProposalLog({
                     {new Date(when).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </p>
                 </div>
-                <a href={`/proposal/${p.proposal_token}`} target="_blank" rel="noopener noreferrer" className="btn-outline"
-                  style={{ display: "inline-flex", gap: "0.35rem", alignItems: "center", whiteSpace: "nowrap", fontSize: "0.8rem" }}>
-                  View <ExternalLink size={13} />
-                </a>
+                <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+                  {/* Once the client has signed, the coach can mark the order paid → counts as revenue. */}
+                  {p.status === "signed" && (
+                    <button onClick={() => togglePaid(p)} disabled={busy === p.id}
+                      className={p.paid_at ? "btn-outline" : "btn-gold"}
+                      style={{ display: "inline-flex", gap: "0.35rem", alignItems: "center", whiteSpace: "nowrap", fontSize: "0.8rem" }}>
+                      <DollarSign size={13} /> {p.paid_at ? "Paid ✓" : "Mark Paid"}
+                    </button>
+                  )}
+                  <a href={`/proposal/${p.proposal_token}`} target="_blank" rel="noopener noreferrer" className="btn-outline"
+                    style={{ display: "inline-flex", gap: "0.35rem", alignItems: "center", whiteSpace: "nowrap", fontSize: "0.8rem" }}>
+                    View <ExternalLink size={13} />
+                  </a>
+                  <button onClick={() => del(p)} disabled={busy === p.id} title="Delete proposal"
+                    style={{ background: "none", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "#f87171", cursor: "pointer", padding: "0.45rem 0.55rem", display: "inline-flex", alignItems: "center" }}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             )
           })}

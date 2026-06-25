@@ -15,6 +15,7 @@ interface ClientRevRow {
 
 interface RevenueData {
   mrr: number; arr: number; activeCount: number; avgMargin?: number
+  collected?: number; paidCount?: number
   byStatus: Record<string, number>
   clients: ClientRevRow[]
   byProtocol?: { peptide: string; avg_margin: number; clients: number; mrr: number }[]
@@ -144,8 +145,8 @@ export default function RevenuePage() {
       {/* Top KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
         {[
-          { icon: DollarSign, label: "Avg Monthly",    value: fmt(data.mrr),              color: "var(--gold)", href: "#billing" },
-          { icon: TrendingUp, label: "ARR",            value: fmt(data.arr),              color: "#4ade80",     href: "#billing" },
+          { icon: DollarSign, label: `Collected${data.paidCount ? ` · ${data.paidCount} paid` : ""}`, value: fmt(data.collected ?? 0), color: "#34D399", href: "#billing" },
+          { icon: TrendingUp, label: "Projected ARR", value: fmt(data.arr),              color: "#4ade80",     href: "#billing" },
           { icon: Users,      label: "Active Clients", value: String(data.activeCount),   color: "#60a5fa",     href: "/admin/clients?status=APPROVED" },
           { icon: Percent,    label: "Avg Margin",     value: marginAvg !== null ? `${marginAvg.toFixed(1)}%` : "—", color: "#c084fc", href: "#by-protocol" },
         ].map(card => (

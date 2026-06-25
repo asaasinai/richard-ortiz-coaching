@@ -1,7 +1,7 @@
 "use client"
 import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { Plus, X, Copy, Check, MessageSquare, FileSignature } from "lucide-react"
+import { Plus, X, Copy, Check, MessageSquare, FileSignature, Mail } from "lucide-react"
 import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
 interface Line {
@@ -34,7 +34,10 @@ function ProposalBuilder() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [link, setLink] = useState("")
+  const [pid, setPid] = useState("")
   const [copied, setCopied] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
 
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
   const linesOk = lines.some(l => l.peptide.trim())
@@ -66,6 +69,8 @@ function ProposalBuilder() {
       const d = await res.json()
       if (!d.ok) { setError(d.error || "Something went wrong"); return }
       setLink(`${window.location.origin}${d.url}`)
+      setPid(d.id || "")
+      setSent(false)
     } catch (e) {
       setError(String(e))
     } finally {
@@ -75,6 +80,22 @@ function ProposalBuilder() {
 
   const copy = () => {
     navigator.clipboard.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800) })
+  }
+
+  // Email the proposal link to the client (uses the editable proposal template).
+  const sendToClient = async () => {
+    if (!pid) return
+    setSending(true); setError("")
+    try {
+      const res = await fetch(`/api/admin/proposals/${pid}/send`, { method: "POST" })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || d.error) { setError(d.error || "Could not send email"); return }
+      setSent(true)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -100,10 +121,18 @@ function ProposalBuilder() {
                 {copied ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
               </button>
             </div>
-            <a href={`sms:?&body=${encodeURIComponent(`Hi ${first}, here's your coaching proposal — review & sign here: ${link}`)}`}
-              className="btn-gold" style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
-              <MessageSquare size={15} /> Text to client
-            </a>
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <button onClick={sendToClient} disabled={sending || sent || !pid}
+                className="btn-gold" style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center", opacity: (sending || sent || !pid) ? 0.6 : 1 }}>
+                {sent ? <><Check size={15} /> Sent ✓</> : <><Mail size={15} /> {sending ? "Sending…" : "Send to client"}</>}
+              </button>
+              <a href={`sms:?&body=${encodeURIComponent(`Hi ${first}, here's your coaching proposal — review & sign here: ${link}`)}`}
+                className="btn-outline" style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
+                <MessageSquare size={15} /> Text to client
+              </a>
+            </div>
+            {sent && <p style={{ color: "#34D399", fontSize: "0.8rem", marginTop: "0.6rem" }}>Proposal emailed to {email}.</p>}
+            {error && <p style={{ color: "#f87171", fontSize: "0.8rem", marginTop: "0.6rem" }}>{error}</p>}
             <div style={{ marginTop: "1.25rem" }}>
               <button onClick={() => { setLink(""); setLines([blankLine()]); setFirst(""); setLast(""); setEmail("") }}
                 className="btn-ghost" style={{ fontSize: "0.85rem" }}>+ Build another</button>
