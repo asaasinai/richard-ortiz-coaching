@@ -153,7 +153,7 @@ export default function ProposalPage() {
                   <div key={i} style={{ marginBottom: "1rem", paddingBottom: i < lines.length - 1 ? "1rem" : 0, borderBottom: i < lines.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
                       <p style={{ fontWeight: 700, fontSize: "1rem" }}>
-                        {ln.peptide}{ln.strength ? ` (${ln.strength}${ln.strength_unit ?? "mg"} vial · the manufacturer)` : ""}
+                        {ln.peptide}{ln.strength ? ` (${ln.strength}${ln.strength_unit ?? "mg"} syringe · the manufacturer)` : ""}
                       </p>
                       {ln.monthly_rate != null && Number(ln.monthly_rate) > 0 && (
                         <span style={{ color: "#C9A84C", fontWeight: 700, whiteSpace: "nowrap" }}>${Number(ln.monthly_rate)}</span>
@@ -179,7 +179,7 @@ export default function ProposalPage() {
               <div style={{ marginBottom: "1rem" }}>
                 <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.2rem" }}>Primary</p>
                 <p style={{ fontWeight: 700, fontSize: "1rem" }}>
-                  {ss("peptide")} ({ss("sku_strength") ?? ss("vialSize")}mg vial · the manufacturer)
+                  {ss("peptide")} ({ss("sku_strength") ?? ss("vialSize")}mg syringe · the manufacturer)
                 </p>
                 {ss("dose_amount") && (
                   <p style={{ color: "#ccc", fontSize: "0.875rem", marginTop: "0.2rem" }}>

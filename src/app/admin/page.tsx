@@ -1,5 +1,5 @@
 import { query } from "@/lib/db"
-import { Users, Activity, AlertTriangle, DollarSign, ClipboardList, Package, ListChecks, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Users, Activity, AlertTriangle, DollarSign, ClipboardList, ListChecks, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import Link from "next/link"
 import OverviewActivity from "@/components/admin/OverviewActivity"
 import { Donut, Bars, Sparkline } from "@/components/admin/Charts"
@@ -69,7 +69,6 @@ export default async function AdminOverview() {
     { icon: ClipboardList, label: "New applicants", value: s.pendingIntakes, href: "/admin/intakes?status=PENDING", color: "#FBBF24" },
     { icon: ListChecks, label: "To fulfill", value: s.opsPending, href: "/admin/ops-queue?filter=pending", color: "#FBBF24" },
     { icon: Activity, label: "Unread check-ins", value: s.unreadCheckins, href: "/admin/checkins?filter=unread", color: "#34D399" },
-    { icon: Package, label: "Low on stock", value: s.lowStock, href: "/admin/inventory?filter=order-soon", color: "#F87171" },
   ]
 
   const today = [
@@ -77,7 +76,6 @@ export default async function AdminOverview() {
     s.pendingIntakes > 0 && { color: "var(--gold)", text: `${s.pendingIntakes} new applicant${s.pendingIntakes > 1 ? "s are" : " is"} waiting on you`, cta: "Review", href: "/admin/intakes?status=PENDING" },
     s.unreadCheckins > 0 && { color: "#34D399", text: `${s.unreadCheckins} check-in${s.unreadCheckins > 1 ? "s" : ""} you haven't read yet`, cta: "Open", href: "/admin/checkins?filter=unread" },
     s.opsPending > 0 && { color: "#FBBF24", text: `${s.opsPending} order${s.opsPending > 1 ? "s" : ""} ready to ship`, cta: "Fulfill", href: "/admin/ops-queue?filter=pending" },
-    s.lowStock > 0 && { color: "#F87171", text: `${s.lowStock} item${s.lowStock > 1 ? "s" : ""} running low on stock`, cta: "Reorder", href: "/admin/inventory?filter=order-soon" },
   ].filter(Boolean) as { color: string; text: string; cta: string; href: string }[]
 
   const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })

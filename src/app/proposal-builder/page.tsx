@@ -1,17 +1,17 @@
 "use client"
-import { useState, useEffect, Suspense } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Plus, X, Copy, Check, MessageSquare, FileSignature } from "lucide-react"
+import { PEPTIDE_NAMES } from "@/lib/peptides-data"
 
-interface Sku { id: string; peptide_name: string; strength: string; strength_unit: string; retail_price: string | null }
 interface Line {
-  sku_id: string; peptide: string; strength: string; strength_unit: string
+  peptide: string
   dose_amount: string; dose_unit: string; frequency: string
   duration_weeks: string; rate: string; coach_notes: string
 }
 
 const blankLine = (): Line => ({
-  sku_id: "", peptide: "", strength: "", strength_unit: "mg",
+  peptide: "",
   dose_amount: "", dose_unit: "mg", frequency: "", duration_weeks: "", rate: "", coach_notes: "",
 })
 
@@ -27,7 +27,6 @@ export default function ProposalBuilderPage() {
 
 function ProposalBuilder() {
   const params = useSearchParams()
-  const [skus, setSkus] = useState<Sku[]>([])
   const [first, setFirst] = useState(params.get("first") ?? "")
   const [last, setLast] = useState(params.get("last") ?? "")
   const [email, setEmail] = useState(params.get("email") ?? "")
@@ -37,30 +36,12 @@ function ProposalBuilder() {
   const [link, setLink] = useState("")
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    fetch("/api/admin/inventory").then(r => r.json()).then(d => setSkus(d.skus ?? [])).catch(() => {})
-  }, [])
-
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
   const linesOk = lines.some(l => l.peptide.trim())
   const canSubmit = !saving && first.trim() && emailOk && linesOk
 
   const setLine = (i: number, patch: Partial<Line>) =>
     setLines(prev => prev.map((l, x) => x === i ? { ...l, ...patch } : l))
-
-  const pickSku = (i: number, skuId: string) => {
-    const s = skus.find(x => String(x.id) === skuId)
-    if (!s) { setLine(i, { sku_id: "", peptide: "" }); return }
-    setLine(i, {
-      sku_id: String(s.id),
-      peptide: s.peptide_name,
-      strength: s.strength,
-      strength_unit: s.strength_unit,
-      dose_unit: s.strength_unit || "mg",
-      // Prefill the rate from retail price if set (coach can override).
-      rate: s.retail_price != null && s.retail_price !== "" ? String(Number(s.retail_price)) : "",
-    })
-  }
 
   const total = lines.reduce((s, l) => s + Number(l.rate || 0), 0)
 
@@ -72,8 +53,8 @@ function ProposalBuilder() {
         body: JSON.stringify({
           first_name: first, last_name: last, email,
           lines: lines.filter(l => l.peptide.trim()).map(l => ({
-            sku_id: l.sku_id || null, peptide: l.peptide,
-            strength: l.strength || null, strength_unit: l.strength_unit || "mg",
+            sku_id: null, peptide: l.peptide,
+            strength: null, strength_unit: null,
             dose_amount: l.dose_amount || null, dose_unit: l.dose_unit || null,
             frequency: l.frequency || null,
             duration_weeks: l.duration_weeks ? Number(l.duration_weeks) : null,
@@ -159,12 +140,10 @@ function ProposalBuilder() {
                 </div>
 
                 <label>Peptide *</label>
-                <select value={l.sku_id} onChange={e => pickSku(i, e.target.value)} style={{ marginBottom: "0.6rem" }}>
+                <select value={l.peptide} onChange={e => setLine(i, { peptide: e.target.value })} style={{ marginBottom: "0.6rem" }}>
                   <option value="">Select peptide…</option>
-                  {skus.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.peptide_name} — {s.strength}{s.strength_unit}{s.retail_price ? ` ($${Number(s.retail_price)})` : ""}
-                    </option>
+                  {PEPTIDE_NAMES.map(name => (
+                    <option key={name} value={name}>{name}</option>
                   ))}
                 </select>
 
@@ -184,8 +163,8 @@ function ProposalBuilder() {
                   <div><label>Duration (weeks)</label><input type="number" min={1} value={l.duration_weeks} onChange={e => setLine(i, { duration_weeks: e.target.value })} placeholder="12" autoComplete="off" /></div>
                 </div>
 
-                <label>Rate (per order, $)</label>
-                <input type="number" min={0} value={l.rate} onChange={e => setLine(i, { rate: e.target.value })} placeholder="0" autoComplete="off" style={{ marginBottom: "0.6rem" }} />
+                <label>Price (per order, $)</label>
+                <input type="number" min={0} value={l.rate} onChange={e => setLine(i, { rate: e.target.value })} placeholder="Enter price" autoComplete="off" style={{ marginBottom: "0.6rem" }} />
 
                 <label>Coach notes (optional)</label>
                 <textarea rows={2} value={l.coach_notes} onChange={e => setLine(i, { coach_notes: e.target.value })} placeholder="Titration, timing, guidance…" />

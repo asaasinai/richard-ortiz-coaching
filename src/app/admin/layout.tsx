@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, Package, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, Calculator, DollarSign, ListChecks, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
 import NotificationBell from "@/components/admin/NotificationBell"
 import CommandPalette from "@/components/admin/CommandPalette"
 
@@ -19,7 +19,9 @@ const GROUPS: NavGroup[] = [
   ]},
   { title: "Catalog", items: [
     { href: "/admin/ops-queue", label: "Fulfillment", icon: ListChecks,     badge: "pending_ops",     badgeColor: "#FBBF24" },
-    { href: "/admin/inventory", label: "Inventory",   icon: Package,        badge: "low_stock",       badgeColor: "#F87171" },
+    // Inventory management is hidden — peptides are pre-dosed and stocked outside the system.
+    // Re-enable by restoring this nav item when inventory is brought back in-system.
+    // { href: "/admin/inventory", label: "Inventory",   icon: Package,        badge: "low_stock",       badgeColor: "#F87171" },
     { href: "/admin/revenue",   label: "Revenue",     icon: DollarSign },
   ]},
   { title: "Tools", items: [

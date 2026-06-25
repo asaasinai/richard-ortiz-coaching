@@ -24,15 +24,8 @@ export async function GET(req: NextRequest) {
     }
   } catch { /* degrade */ }
 
-  // Inventory / peptides
-  try {
-    const skus = await query<{ id: string; peptide_name: string; strength: string; strength_unit: string }>(
-      `SELECT id, peptide_name, strength, strength_unit FROM roc.inventory_skus
-       WHERE peptide_name ILIKE $1 ORDER BY peptide_name LIMIT 6`, [like])
-    for (const s of skus.rows) {
-      results.push({ type: "Inventory", label: `${s.peptide_name} ${s.strength}${s.strength_unit}`, sublabel: "Lot ledger", href: `/admin/inventory/${s.id}` })
-    }
-  } catch { /* degrade */ }
+  // Inventory search is disabled while inventory management is hidden (peptides
+  // are pre-dosed and stocked outside the system). Re-enable when it returns.
 
   return NextResponse.json({ results })
 }

@@ -1,11 +1,11 @@
 "use client"
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Users, Package, CornerDownLeft } from "lucide-react"
+import { Search, Users, CornerDownLeft } from "lucide-react"
 
 interface Result { type: string; label: string; sublabel: string; href: string }
 
-const TYPE_ICON: Record<string, typeof Users> = { Client: Users, Inventory: Package }
+const TYPE_ICON: Record<string, typeof Users> = { Client: Users }
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -49,7 +49,7 @@ export default function CommandPalette() {
       <div onClick={e => e.stopPropagation()} style={{ width: 560, maxWidth: "92%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 20px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.85rem 1rem", borderBottom: "1px solid var(--border)" }}>
           <Search size={17} style={{ color: "var(--text-mute)" }} />
-          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search clients, intakes, inventory…"
+          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search clients, intakes…"
             style={{ flex: 1, background: "none", border: "none", outline: "none", color: "var(--text)", fontSize: "0.95rem" }} />
           <kbd style={{ fontSize: "0.66rem", color: "var(--text-mute)", border: "1px solid var(--border)", borderRadius: 4, padding: "0.1rem 0.35rem" }}>ESC</kbd>
         </div>
