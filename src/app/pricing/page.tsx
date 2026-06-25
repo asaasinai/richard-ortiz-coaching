@@ -19,9 +19,7 @@ const tiers = [
     features: [
       "Product Included",
       "Recommended Dosing Protocol",
-      "Reconstitution Instructions",
-      "Protocol Guide",
-      "Basic Support",
+      "Bi-Monthly Check-Ins with Coach",
     ],
     differentiator: "You follow the protocol.",
     highlight: false,
