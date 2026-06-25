@@ -20,6 +20,7 @@ const tiers = [
       "Product Included",
       "Recommended Dosing Protocol",
       "Twice-Monthly Check-Ins with Coach",
+      "Monthly Protocol Adjustments",
       "Accountability & Support",
     ],
     differentiator: "You follow the protocol.",

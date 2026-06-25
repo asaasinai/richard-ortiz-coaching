@@ -23,7 +23,7 @@ const pillars = [
 const steps = [
   { icon: ClipboardList, title: "Start Your Intake", body: "Tell us about your goals, history, and lifestyle through a structured intake." },
   { icon: FileText, title: "Get Your Custom Plan", body: "Richard builds a personalized training, nutrition, and recovery plan around your life." },
-  { icon: CalendarCheck, title: "Check In Every Two Weeks", body: "Structured check-ins track weight, energy, and progress so nothing drifts." },
+  { icon: CalendarCheck, title: "Structured Check-Ins", body: "Structured check-ins track weight, energy, and progress so nothing drifts." },
   { icon: RefreshCw, title: "Adjust & Stay Accountable", body: "Your plan evolves with your results. Accountability keeps you moving forward." },
 ]
 
