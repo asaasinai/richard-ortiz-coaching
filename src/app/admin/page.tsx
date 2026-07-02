@@ -4,7 +4,11 @@ import Link from "next/link"
 import OverviewActivity from "@/components/admin/OverviewActivity"
 import { Donut, Bars, Sparkline } from "@/components/admin/Charts"
 
+// Full no-cache trio — force-dynamic alone has served stale counts before
+// (see the badge-cache incident); never let the overview snapshot.
 export const dynamic = "force-dynamic"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
 
 type Row = Record<string, unknown>
 async function safe<T = Row>(sql: string): Promise<T[]> {
