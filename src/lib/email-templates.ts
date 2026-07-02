@@ -57,6 +57,12 @@ const PROPOSAL_BODY = `<div style="font-family:Inter,sans-serif;max-width:580px;
     <p style="color:#C9A84C;font-weight:700;margin:0 0 0.75rem">Your Protocol Summary</p>
     {{protocol_summary}}
   </div>
+  <div style="background:#111;border:1px solid #333;border-radius:6px;padding:1.25rem;margin:1.5rem 0">
+    <p style="color:#C9A84C;font-weight:700;margin:0 0 0.75rem">Payment Instructions</p>
+    <p style="color:#ccc;margin:0.3rem 0"><strong style="color:#fff">Venmo:</strong> <a href="https://venmo.com/u/Richard-Ortiz-78" style="color:#C9A84C;text-decoration:none">@Richard-Ortiz-78</a></p>
+    <p style="color:#ccc;margin:0.3rem 0"><strong style="color:#fff">Zelle:</strong> Ricardo Ortiz &middot; 661-425-3534</p>
+    <p style="color:#888;font-size:0.8rem;margin:0.75rem 0 0">Please include your full name in the payment note so we can match it to your protocol.</p>
+  </div>
   <p style="margin:1.75rem 0;text-align:center">
     <a href="{{proposal_url}}" style="background:#C9A84C;color:#000;padding:0.85rem 2rem;border-radius:4px;text-decoration:none;font-weight:700;font-size:1rem;display:inline-block">Review &amp; Sign Agreement &rarr;</a>
   </p>
