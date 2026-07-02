@@ -226,3 +226,33 @@ export async function sendContactNotification(name: string, email: string, messa
       </div>`,
   })
 }
+
+// Daily coaching-schedule digest — one email listing what's due today plus
+// anything overdue (check-ins + payment renewals). Sent by the schedule cron.
+export async function sendAdminScheduleDigest(
+  to: string,
+  dueToday: { type: string; client_name: string; detail: string; rate: number | null; days_overdue: number }[],
+  overdue: { type: string; client_name: string; detail: string; rate: number | null; days_overdue: number }[],
+) {
+  const label = (t: string) => t === "renewal_due" ? "💰 Renewal" : t === "protocol_end" ? "🏁 Protocol ends" : "📋 Check-in"
+  const row = (i: { type: string; client_name: string; detail: string; rate: number | null; days_overdue: number }, red = false) => `
+    <tr>
+      <td style="padding:0.4rem 0.75rem 0.4rem 0;white-space:nowrap;color:${red ? "#ef4444" : "#888"}">${label(i.type)}${red ? ` · ${i.days_overdue}d late` : ""}</td>
+      <td style="font-weight:600">${i.client_name}</td>
+      <td style="color:#888">${i.detail}${i.rate ? ` — <span style="color:#C9A84C;font-weight:700">$${i.rate}</span>` : ""}</td>
+    </tr>`
+  const section = (title: string, items: typeof dueToday, red = false) => items.length ? `
+    <p style="font-weight:700;color:${red ? "#ef4444" : "#C9A84C"};margin:1.25rem 0 0.25rem">${title}</p>
+    <table style="width:100%;border-collapse:collapse">${items.map(i => row(i, red)).join("")}</table>` : ""
+  await send({
+    to,
+    subject: `Coaching Schedule — ${dueToday.length} due today${overdue.length ? `, ${overdue.length} overdue` : ""}`,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:1.5rem">
+        <h2 style="color:#C9A84C">Today's Coaching Schedule</h2>
+        ${section("⚠️ Overdue", overdue, true)}
+        ${section("Due Today", dueToday)}
+        <p style="margin-top:1.5rem"><a href="https://richardortizcoaching.com/admin/schedule" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">Open Schedule →</a></p>
+      </div>`,
+  })
+}

@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/nextday-trigger",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/schedule-alerts",
+      "schedule": "0 15 * * *"
     }
   ]
 }

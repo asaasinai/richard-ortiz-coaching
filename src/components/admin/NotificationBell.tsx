@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, AlertTriangle, ClipboardList, Package, Clock, Activity } from "lucide-react"
+import { Bell, AlertTriangle, ClipboardList, Package, Clock, Activity, CalendarDays, DollarSign } from "lucide-react"
 
 interface Notif {
   id: string
@@ -19,6 +19,8 @@ const ICONS: Record<string, { icon: typeof Bell; color: string }> = {
   low_stock:         { icon: Package,       color: "#f59e0b" },
   ops_overdue:       { icon: Clock,         color: "#f59e0b" },
   checkin_submitted: { icon: Activity,      color: "#3b82f6" },
+  checkin_due:       { icon: CalendarDays,  color: "#60a5fa" },
+  renewal_due:       { icon: DollarSign,    color: "var(--gold)" },
 }
 
 function deeplink(nf: Notif): string {
@@ -27,6 +29,7 @@ function deeplink(nf: Notif): string {
     case "intake":    return nf.ref_id ? `/admin/intakes/${nf.ref_id}` : "/admin/intakes"
     case "inventory": return nf.ref_id ? `/admin/inventory/${nf.ref_id}` : "/admin/inventory"
     case "ops":       return nf.ref_id ? `/admin/ops-queue/${nf.ref_id}` : "/admin/ops-queue"
+    case "schedule":  return "/admin/schedule"
     default:          return "/admin"
   }
 }

@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, DollarSign, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature } from "lucide-react"
+import { Users, ClipboardList, Activity, MessageSquare, Settings, Menu, X, DollarSign, LayoutDashboard, PanelLeftClose, PanelLeft, Search, FileSignature, CalendarDays } from "lucide-react"
 import NotificationBell from "@/components/admin/NotificationBell"
 import CommandPalette from "@/components/admin/CommandPalette"
 
@@ -13,6 +13,7 @@ interface NavGroup { title: string; items: NavItem[] }
 const GROUPS: NavGroup[] = [
   { title: "Daily", items: [
     { href: "/admin",           label: "Overview",    icon: LayoutDashboard },
+    { href: "/admin/schedule",  label: "Schedule",    icon: CalendarDays },
     { href: "/admin/checkins",  label: "Check-Ins",   icon: Activity,       badge: "unread_checkins", badgeColor: "#34D399" },
     { href: "/admin/clients",   label: "Clients",     icon: Users },
     { href: "/admin/intakes",   label: "Applicants",  icon: ClipboardList,  badge: "pending_intakes", badgeColor: "var(--gold)" },

@@ -6,8 +6,10 @@ export type NotificationType =
   | "low_stock"
   | "ops_overdue"
   | "checkin_submitted"
+  | "checkin_due"
+  | "renewal_due"
 
-export type RefType = "checkin" | "intake" | "inventory" | "ops"
+export type RefType = "checkin" | "intake" | "inventory" | "ops" | "schedule"
 
 // Create a notification. Dedupes on (type, ref_id) for unresolved rows via the
 // partial unique index in the migration — ON CONFLICT keeps it idempotent.
