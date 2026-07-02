@@ -67,7 +67,7 @@ export default function IntakeDetailPage() {
   const currentProposal = proposals[0] ?? null
 
   const fieldGroups: { label: string; keys: string[] }[] = [
-    { label: "Personal", keys: ["ageRange","age","gender","weight","height","bmi"] },
+    { label: "Personal", keys: ["ageRange","age","gender","weight","currentWeight","goalWeight","height","heightFt","heightIn","bodyFat","bmi"] },
     { label: "Goals & Struggles", keys: ["primaryGoals","goals","biggestStruggles","struggles","primaryConcern"] },
     { label: "Health History", keys: ["healthHistory","currentMedications","medications","allergies","priorPeptideExperience","priorPeptides","medicalConditions"] },
     { label: "Lifestyle", keys: ["exerciseFrequency","exercise","sleepHours","sleep","stressLevel","stress","dietType","diet","nutrition"] },
@@ -79,6 +79,7 @@ export default function IntakeDetailPage() {
     if (v === null || v === undefined || v === "") return ""
     if (Array.isArray(v)) return v.join(", ")
     if (typeof v === "boolean") return v ? "Yes" : "No"
+    if (typeof v === "object") return "" // nested blobs (photos, rawAnswers) have their own UI
     return String(v)
   }
 

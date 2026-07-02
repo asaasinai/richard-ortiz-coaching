@@ -174,15 +174,17 @@ function buildSteps(answers: Answers): Array<{ questionIdx: number; isFollowUp?:
   return steps
 }
 
+const STATS_STEP = "stats" as const
 const PHOTO_STEP = "photos" as const
 const CONTACT_STEP = "contact" as const
-type StepDef = { questionIdx: number; isFollowUp?: boolean } | typeof PHOTO_STEP | typeof CONTACT_STEP
+type StepDef = { questionIdx: number; isFollowUp?: boolean } | typeof STATS_STEP | typeof PHOTO_STEP | typeof CONTACT_STEP
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function IntakePage() {
   const [answers, setAnswers] = useState<Answers>({})
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phone: "" })
+  const [stats, setStats] = useState({ currentWeight: "", goalWeight: "", heightFt: "", heightIn: "", bodyFat: "" })
   const [photos, setPhotos] = useState<PhotoSet>(EMPTY_PHOTOS)
   const [photoConsent, setPhotoConsent] = useState(false)
   const [step, setStep] = useState(0)
@@ -190,7 +192,7 @@ export default function IntakePage() {
   const [saving, setSaving] = useState(false)
 
   const quizSteps = buildSteps(answers)
-  const allSteps: StepDef[] = [...quizSteps, PHOTO_STEP, CONTACT_STEP]
+  const allSteps: StepDef[] = [...quizSteps, STATS_STEP, PHOTO_STEP, CONTACT_STEP]
   const totalSteps = allSteps.length
   const currentStepDef = allSteps[step]
 
@@ -207,6 +209,10 @@ export default function IntakePage() {
   }, [])
 
   const canAdvance = (): boolean => {
+    if (currentStepDef === STATS_STEP) {
+      const num = (s: string) => s.trim() !== "" && !isNaN(Number(s)) && Number(s) > 0
+      return num(stats.currentWeight) && num(stats.goalWeight) && num(stats.heightFt) // body fat optional
+    }
     if (currentStepDef === PHOTO_STEP) return true // photos are optional
     if (currentStepDef === CONTACT_STEP) {
       return contact.firstName.trim() !== "" && contact.email.trim() !== ""
@@ -226,7 +232,7 @@ export default function IntakePage() {
 
   const handleNext = () => {
     if (step < totalSteps - 1) {
-      const freshSteps: StepDef[] = [...buildSteps(answers), PHOTO_STEP, CONTACT_STEP]
+      const freshSteps: StepDef[] = [...buildSteps(answers), STATS_STEP, PHOTO_STEP, CONTACT_STEP]
       const nextStep = step + 1
       if (nextStep < freshSteps.length) setStep(nextStep)
     }
@@ -251,6 +257,10 @@ export default function IntakePage() {
         phone: contact.phone,
         ...flatAnswers,
         rawAnswers: answers,
+        currentWeight: stats.currentWeight,
+        goalWeight: stats.goalWeight,
+        height: stats.heightFt ? `${stats.heightFt}'${stats.heightIn || 0}"` : "",
+        bodyFat: stats.bodyFat,
         photos,
         photoConsent,
       }),
@@ -293,6 +303,32 @@ export default function IntakePage() {
 
   // ── Current question ────────────────────────────────────────────────────────
   function renderQuestion() {
+    if (currentStepDef === STATS_STEP) {
+      const setStat = (k: keyof typeof stats) => (v: string) => setStats(p => ({ ...p, [k]: v }))
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", lineHeight: 1.6 }}>
+            These numbers set your baseline so your protocol targets real, measurable progress.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <ContactField label="Current Weight (lbs) *" id="currentWeight" type="number" value={stats.currentWeight} onChange={setStat("currentWeight")} />
+            <ContactField label="Goal Weight (lbs) *" id="goalWeight" type="number" value={stats.goalWeight} onChange={setStat("goalWeight")} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-soft)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Height *</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginTop: "0.35rem" }}>
+              <input id="heightFt" type="number" placeholder="ft" min={3} max={8} value={stats.heightFt}
+                data-1p-ignore data-lpignore="true" data-form-type="other"
+                onChange={e => setStat("heightFt")(e.target.value)} />
+              <input id="heightIn" type="number" placeholder="in" min={0} max={11} value={stats.heightIn}
+                data-1p-ignore data-lpignore="true" data-form-type="other"
+                onChange={e => setStat("heightIn")(e.target.value)} />
+            </div>
+          </div>
+          <ContactField label="Body Fat % (optional)" id="bodyFat" type="number" value={stats.bodyFat} onChange={setStat("bodyFat")} />
+        </div>
+      )
+    }
     if (currentStepDef === PHOTO_STEP) {
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -362,6 +398,13 @@ export default function IntakePage() {
   }
 
   function renderQuestionLabel() {
+    if (currentStepDef === STATS_STEP) {
+      return (
+        <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Your Stats
+        </span>
+      )
+    }
     if (currentStepDef === PHOTO_STEP) {
       return (
         <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>

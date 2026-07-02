@@ -422,6 +422,7 @@ export default function ClientDetailPage() {
                 <div className="client-intake-grid">
                   {Object.entries(intake).map(([k,v]) => {
                     if (v===null || v===undefined || v==="") return null
+                    if (typeof v==="object" && !Array.isArray(v)) return null // nested blobs (photos, rawAnswers) have their own UI
                     const display = Array.isArray(v) ? v.join(", ") : typeof v==="boolean" ? (v?"Yes":"No") : String(v)
                     if (!display) return null
                     const label = k.replace(/([A-Z])/g," $1").replace(/^./, s=>s.toUpperCase())
