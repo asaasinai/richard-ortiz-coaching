@@ -69,7 +69,7 @@ export default function IntakeDetailPage() {
   const fieldGroups: { label: string; keys: string[] }[] = [
     { label: "Personal", keys: ["ageRange","age","gender","weight","currentWeight","goalWeight","height","heightFt","heightIn","bodyFat","bmi"] },
     { label: "Goals & Struggles", keys: ["primaryGoals","goals","biggestStruggles","struggles","primaryConcern"] },
-    { label: "Health History", keys: ["healthHistory","currentMedications","medications","allergies","priorPeptideExperience","priorPeptides","medicalConditions"] },
+    { label: "Health History", keys: ["healthHistory","currentMedications","medications","allergies","priorPeptideExperience","priorPeptides","medicalConditions","optimizationTools","compoundsUsed"] },
     { label: "Lifestyle", keys: ["exerciseFrequency","exercise","sleepHours","sleep","stressLevel","stress","dietType","diet","nutrition"] },
     { label: "Contact Preferences", keys: ["preferredContact","contactMethod","bestTimeToReach","howHeard","howDidYouHear"] },
   ]

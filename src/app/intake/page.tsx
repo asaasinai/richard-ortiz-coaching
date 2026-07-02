@@ -12,6 +12,9 @@ type Option = { label: string; value: string }
 interface SingleQuestion {
   kind: "single"
   id: string; num: number; text: string; options: Option[]
+  // Free-text follow-up shown inline when a specific option is picked
+  // (manual type-in, not another option grid).
+  textFollowUp?: { trigger: string; id: string; label: string; placeholder?: string }
 }
 interface MultiQuestion {
   kind: "multi"
@@ -128,6 +131,12 @@ const QUESTIONS: Question[] = [
       { label: "Curious but unsure", value: "curious" },
       { label: "Not right now",      value: "not-now" },
     ],
+    textFollowUp: {
+      trigger: "already-using",
+      id: "compoundsUsed",
+      label: "What compound(s) have you used?",
+      placeholder: "e.g. BPC-157, Semaglutide, TB-500…",
+    },
   },
   {
     kind: "single",
@@ -227,7 +236,15 @@ export default function IntakePage() {
       const sel = (answers[q.id] as string[] | undefined) ?? []
       return sel.length > 0
     }
-    return !!(answers[q.id] as string | undefined)
+    const picked = answers[q.id] as string | undefined
+    if (!picked) return false
+    // Free-text follow-up (e.g. "what compounds have you used") must be filled
+    // when its trigger option is selected.
+    const tf = (q as SingleQuestion).textFollowUp
+    if (tf && picked === tf.trigger) {
+      return ((answers[tf.id] as string | undefined) ?? "").trim() !== ""
+    }
+    return true
   }
 
   const handleNext = () => {
@@ -387,13 +404,36 @@ export default function IntakePage() {
       )
     }
 
+    const tf = (q as SingleQuestion).textFollowUp
     return (
-      <OptionGrid
-        options={q.options}
-        selected={answers[q.id] as string | undefined}
-        onSelect={v => pickSingle(q.id, v)}
-        multi={false}
-      />
+      <>
+        <OptionGrid
+          options={q.options}
+          selected={answers[q.id] as string | undefined}
+          onSelect={v => {
+            pickSingle(q.id, v)
+            // Leaving the trigger option discards the stale follow-up text
+            if (tf && v !== tf.trigger) setAnswers(prev => { const n = { ...prev }; delete n[tf.id]; return n })
+          }}
+          multi={false}
+        />
+        {tf && answers[q.id] === tf.trigger && (
+          <div style={{ marginTop: "1rem" }}>
+            <label htmlFor={tf.id} style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-soft)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              {tf.label} *
+            </label>
+            <textarea
+              id={tf.id}
+              rows={3}
+              placeholder={tf.placeholder}
+              value={(answers[tf.id] as string | undefined) ?? ""}
+              data-1p-ignore data-lpignore="true" data-form-type="other"
+              onChange={e => pickSingle(tf.id, e.target.value)}
+              style={{ marginTop: "0.35rem", width: "100%" }}
+            />
+          </div>
+        )}
+      </>
     )
   }
 
