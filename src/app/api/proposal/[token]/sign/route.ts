@@ -10,7 +10,7 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `Richard Ortiz Coaching <${FROM}>`, to: [payload.to], subject: payload.subject, html: payload.html }),
+    body: JSON.stringify({ from: `Richard Ortiz Coaching <${FROM}>`, to: payload.to.split(",").map(s => s.trim()).filter(Boolean), subject: payload.subject, html: payload.html }),
   })
   if (!res.ok) console.error("[email] Resend error:", res.status, await res.text())
 }

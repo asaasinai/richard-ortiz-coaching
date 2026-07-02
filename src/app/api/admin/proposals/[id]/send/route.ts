@@ -12,7 +12,7 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `Richard Ortiz Coaching <${FROM}>`, to: [payload.to], subject: payload.subject, html: payload.html }),
+    body: JSON.stringify({ from: `Richard Ortiz Coaching <${FROM}>`, to: payload.to.split(",").map(s => s.trim()).filter(Boolean), subject: payload.subject, html: payload.html }),
   })
   if (!res.ok) console.error("[email] Resend error:", res.status, await res.text())
 }
@@ -66,7 +66,8 @@ export async function POST(
       client_email: proposal.client_email, proposal_url: proposalUrl,
       protocol_summary: protocolSummaryHtml(snapshot),
       total_monthly: Number((snapshot as Record<string, unknown>).total_monthly ?? 0),
-      admin_email: adminEmail || "richard@richardortizcoaching.com",
+      // Client-facing display — first address only, even when alerts fan out to a list
+      admin_email: (adminEmail || "richard@richardortizcoaching.com").split(",")[0].trim(),
     }
     await sendEmail({
       to: proposal.client_email,

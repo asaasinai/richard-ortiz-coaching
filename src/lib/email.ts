@@ -22,7 +22,8 @@ async function send(payload: EmailPayload) {
     },
     body: JSON.stringify({
       from: `Richard Ortiz Coaching <${FROM}>`,
-      to: [payload.to],
+      // Comma-separated recipients supported (e.g. coach + Rich on all alerts)
+      to: payload.to.split(",").map(s => s.trim()).filter(Boolean),
       subject: payload.subject,
       html: payload.html,
     }),
