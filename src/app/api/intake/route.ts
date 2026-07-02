@@ -17,6 +17,20 @@ export async function POST(req: NextRequest) {
     )
     const intakeId = (result.rows[0] as { id: string }).id
 
+    // Baseline progress photos (optional) — uploaded client-direct to Vercel
+    // Blob before submit; we index the URLs here. Degrade-safe.
+    const photos = (data.photos ?? {}) as Record<string, string | null>
+    for (const kind of ["front", "side", "back"] as const) {
+      const url = photos[kind]
+      if (url && email) {
+        await query(
+          `INSERT INTO roc.client_photos (client_email, client_id, source, kind, url, marketing_consent)
+           VALUES ($1, $2, 'intake', $3, $4, $5)`,
+          [email, intakeId, kind, url, data.photoConsent ? "true" : "false"],
+        ).catch(err => console.error("[intake] photo save", err))
+      }
+    }
+
     // In-app admin notification (degrade-safe; lights up bell + overview banner)
     await createNotification({
       type: "new_intake", refId: intakeId, refType: "intake",

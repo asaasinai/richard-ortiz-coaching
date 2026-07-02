@@ -3,9 +3,10 @@ import { useState, useEffect } from "react"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import PhotoUpload, { EMPTY_PHOTOS, type PhotoSet } from "@/components/PhotoUpload"
 
 const SIDE_EFFECTS = ["Injection site redness","Nausea","Fatigue","Headache","Water retention","Elevated heart rate","Flushing","Hunger changes","Sleep disturbance","None","Other"]
-const STEPS = ["You","Progress","Side Effects","Adherence","Notes"]
+const STEPS = ["You","Progress","Photos","Side Effects","Adherence","Notes"]
 
 export default function CheckInPage() {
   const [step, setStep] = useState(0)
@@ -19,6 +20,8 @@ export default function CheckInPage() {
     notes:"",
     urgentFlag:false,
   })
+  const [photos, setPhotos] = useState<PhotoSet>(EMPTY_PHOTOS)
+  const [photoConsent, setPhotoConsent] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   // Prefill email if the client happens to be logged into the dashboard — but
@@ -43,7 +46,7 @@ export default function CheckInPage() {
     await fetch("/api/checkin", {
       method:"POST",
       headers:{"Content-Type":"application/json","x-user-email": data.clientEmail.trim()},
-      body: JSON.stringify({ ...data, clientEmail: data.clientEmail.trim(), clientName: data.clientName.trim() })
+      body: JSON.stringify({ ...data, clientEmail: data.clientEmail.trim(), clientName: data.clientName.trim(), photos, photoConsent })
     })
     setSubmitted(true)
   }
@@ -86,6 +89,14 @@ export default function CheckInPage() {
       </div>
       {slider("Energy Level","energyScore")}
       {slider("Mood & Wellbeing","moodScore")}
+    </div>,
+
+    <div key="photos" className="flex flex-col gap-4">
+      <p style={{color:"var(--text-soft)",fontSize:"0.9rem",lineHeight:1.6}}>
+        Snap your progress photos — front, side, and back, same lighting and angle as last time
+        if you can. <strong style={{color:"var(--text)"}}>Optional</strong> — skip if you&apos;d rather not this round.
+      </p>
+      <PhotoUpload photos={photos} onChange={setPhotos} consent={photoConsent} onConsent={setPhotoConsent}/>
     </div>,
 
     <div key="se" className="flex flex-col gap-4">

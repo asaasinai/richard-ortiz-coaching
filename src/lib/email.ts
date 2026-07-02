@@ -48,6 +48,13 @@ export async function sendIntakeConfirmation(to: string, firstName: string) {
   })
 }
 
+// How many progress photos (front/side/back) came with a submission payload.
+function countPhotos(data?: Record<string, unknown>): number {
+  const photos = data?.photos
+  if (!photos || typeof photos !== "object") return 0
+  return Object.values(photos as Record<string, unknown>).filter(v => typeof v === "string" && v).length
+}
+
 function renderIntakeValue(v: unknown): string {
   if (v === null || v === undefined || v === "") return ""
   if (Array.isArray(v)) return v.join(", ")
@@ -65,6 +72,7 @@ export async function sendAdminIntakeNotify(
 ) {
   const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://richardortizcoaching.com"
   const phone = renderIntakeValue(data?.phone)
+  const photoCount = countPhotos(data)
 
   await send({
     to: ADMIN,
@@ -76,6 +84,7 @@ export async function sendAdminIntakeNotify(
           <tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Name</td><td style="font-weight:600">${firstName} ${lastName}</td></tr>
           <tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Email</td><td><a href="mailto:${email}" style="color:#0a58ca">${email}</a></td></tr>
           ${phone ? `<tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Phone</td><td>${phone}</td></tr>` : ""}
+          ${photoCount ? `<tr><td style="padding:0.4rem 0.75rem 0.4rem 0;color:#888">Photos</td><td>📸 ${photoCount} baseline photo${photoCount > 1 ? "s" : ""} — view in record</td></tr>` : ""}
         </table>
         <p style="margin-top:1.5rem"><a href="${SITE}/admin/clients/${intakeId}" style="background:#C9A84C;color:#000;padding:0.6rem 1.25rem;border-radius:4px;text-decoration:none;font-weight:700">View Client Record →</a></p>
         <p style="color:#aaa;font-size:0.72rem;margin-top:0.75rem">Opens the full record with all intake answers (sign in to admin if prompted).</p>
@@ -113,6 +122,8 @@ export async function sendAdminCheckin(
     ["Missed doses", data.missedDoses],
     ["Notes", data.notes],
   ]
+  const photoCount = countPhotos(data)
+  if (photoCount) fields.push(["Photos", `📸 ${photoCount} progress photo${photoCount > 1 ? "s" : ""} — view in record`])
   const rows = fields
     .filter(([, v]) => v != null && String(v).trim() !== "")
     .map(([k, v]) => `<tr><td style="padding:0.35rem 0;color:#888">${k}</td><td style="font-weight:600">${String(v)}</td></tr>`)

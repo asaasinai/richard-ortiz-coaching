@@ -39,6 +39,20 @@ export async function POST(req: NextRequest) {
     )
     const checkinId = (result.rows[0] as { id: string }).id
 
+    // Progress photos (optional) — uploaded client-direct to Vercel Blob
+    // before submit; we index the URLs here. Degrade-safe.
+    const photos = (data.photos ?? {}) as Record<string, string | null>
+    for (const kind of ["front", "side", "back"] as const) {
+      const url = photos[kind]
+      if (url && email) {
+        await query(
+          `INSERT INTO roc.client_photos (client_email, checkin_id, source, kind, url, marketing_consent)
+           VALUES ($1, $2, 'checkin', $3, $4, $5)`,
+          [email, checkinId, kind, url, data.photoConsent ? "true" : "false"],
+        ).catch(err => console.error("[checkin] photo save", err))
+      }
+    }
+
     // In-app admin notification feed (degrade-safe; pre-migration → no-op)
     const who = clientName || email || "A client"
     if (isUrgent) {

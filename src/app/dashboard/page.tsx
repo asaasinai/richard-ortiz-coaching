@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import Link from "next/link"
-import { Calendar, ArrowRight, Beaker, Trash2 } from "lucide-react"
+import { Calendar, ArrowRight, Beaker, Trash2, Camera } from "lucide-react"
+import PhotoTimeline, { type TimelinePhoto } from "@/components/PhotoTimeline"
 
 interface CheckIn {
   id: string
@@ -131,6 +132,7 @@ export default function DashboardPage() {
   const [clientEmail, setClientEmail] = useState<string|null>(null)
   const [clientName,  setClientName]  = useState("")
   const [checkins,    setCheckins]    = useState<CheckIn[]>([])
+  const [photos,      setPhotos]      = useState<TimelinePhoto[]>([])
   const [protocol,    setProtocol]    = useState<Protocol|null>(null)
   const [loading,     setLoading]     = useState(true)
   const [showDelete,  setShowDelete]  = useState(false)
@@ -154,6 +156,10 @@ export default function DashboardPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+    fetch(`/api/photos?email=${encodeURIComponent(clientEmail)}`)
+      .then(r => r.json())
+      .then(d => setPhotos(d.photos ?? []))
+      .catch(() => {})
   }, [clientEmail])
 
   const signOut = () => { sessionStorage.clear(); router.push("/auth/signin") }
@@ -240,6 +246,20 @@ export default function DashboardPage() {
                     <Spark values={moodVals} color="#4ade80" h={40} kind="avg" unit="/10"/>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Progress photos */}
+            {photos.length > 0 && (
+              <div className="card" style={{ marginBottom:"1.5rem" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"1.25rem" }}>
+                  <Camera size={16} style={{ color:"var(--gold)" }}/>
+                  <h2 style={{ fontWeight:700, fontSize:"0.95rem" }}>Progress Photos</h2>
+                </div>
+                <PhotoTimeline photos={photos}/>
+                <p style={{ fontSize:"0.72rem", color:"var(--text-mute)", marginTop:"1rem", lineHeight:1.55 }}>
+                  Visible only to you and your coach. Never shared without your consent.
+                </p>
               </div>
             )}
 

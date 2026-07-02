@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { deleteClientPhotos } from "@/lib/photos"
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -16,7 +17,8 @@ export async function DELETE(req: NextRequest) {
     }
     const clientId = (found.rows[0] as { id: string }).id
 
-    // Delete in order: checkins, protocols, intake
+    // Delete in order: photos (incl. blob files), checkins, protocols, intake
+    await deleteClientPhotos(email)
     await query("DELETE FROM roc.checkins WHERE client_email = $1", [email])
     await query("DELETE FROM roc.client_protocols WHERE client_id = $1", [clientId])
     await query("DELETE FROM roc.intakes WHERE id = $1", [clientId])

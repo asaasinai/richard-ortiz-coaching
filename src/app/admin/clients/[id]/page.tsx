@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, AlertTriangle, Mail, Trash2, Pencil } from "lucide-react"
 import EditDetailsModal from "@/components/admin/EditDetailsModal"
 import ProposalLog from "@/components/admin/ProposalLog"
+import PhotoTimeline, { type TimelinePhoto } from "@/components/PhotoTimeline"
 import { Ring } from "@/components/admin/Charts"
 
 const initials = (f: string, l: string) => `${(f||"?")[0] ?? ""}${(l||"")[0] ?? ""}`.toUpperCase()
@@ -95,16 +96,17 @@ export default function ClientDetailPage() {
   const router = useRouter()
   const [client, setClient] = useState<Client | null>(null)
   const [checkins, setCheckins] = useState<CheckIn[]>([])
+  const [photos, setPhotos] = useState<TimelinePhoto[]>([])
   const [protocol, setProtocol] = useState<Protocol | null>(null)
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [orders, setOrders] = useState<OpsCardLite[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<"overview"|"protocol"|"checkins"|"intake"|"proposals"|"orders"|"billing">("overview")
+  const [tab, setTab] = useState<"overview"|"protocol"|"checkins"|"photos"|"intake"|"proposals"|"orders"|"billing">("overview")
 
   // Deep-link support: ?tab=billing (from revenue page)
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get("tab")
-    if (t && ["overview","protocol","checkins","intake","proposals","orders","billing"].includes(t)) setTab(t as typeof tab)
+    if (t && ["overview","protocol","checkins","photos","intake","proposals","orders","billing"].includes(t)) setTab(t as typeof tab)
   }, [])
 
   const [pForm, setPForm] = useState({ peptide:"", doseAmount:"", doseUnit:"mg", frequencyDays:[] as string[], notes:"", monthlyRate:"", billingStatus:"active", durationWeeks:"" })
@@ -134,6 +136,10 @@ export default function ClientDetailPage() {
     if (intakeRes.intake?.email) {
       const allCheckins = checkinRes.checkins ?? []
       setCheckins(allCheckins.filter((c: CheckIn) => c.client_email === intakeRes.intake.email))
+      fetch(`/api/photos?email=${encodeURIComponent(intakeRes.intake.email)}`)
+        .then(r => r.json())
+        .then(d => setPhotos(d.photos ?? []))
+        .catch(() => {})
     }
 
     if (protoRes.protocol) {
@@ -197,6 +203,7 @@ export default function ClientDetailPage() {
     { id:"overview",   label:"Overview" },
     { id:"protocol",   label:"Protocol" },
     { id:"checkins",   label:`Check-Ins (${checkins.length})` },
+    { id:"photos",     label:`Photos (${photos.length})` },
     { id:"intake",     label:"Intake" },
     { id:"orders",     label:`Orders (${orders.length})` },
     { id:"billing",    label:"Billing" },
@@ -385,6 +392,25 @@ export default function ClientDetailPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* PHOTOS */}
+          {tab==="photos" && (
+            photos.length === 0 ? (
+              <div style={{ textAlign:"center", padding:"2.5rem 1rem", color:"var(--text-mute)" }}>
+                <p style={{ fontSize:"0.95rem" }}>No progress photos yet.</p>
+                <p style={{ fontSize:"0.82rem", marginTop:"0.35rem" }}>They&apos;ll appear here when {client.first_name} uploads photos at intake or a check-in.</p>
+              </div>
+            ) : (
+              <div>
+                <PhotoTimeline photos={photos}/>
+                <p style={{ fontSize:"0.72rem", color:"var(--text-mute)", marginTop:"1rem" }}>
+                  {photos.some(p => p.marketing_consent)
+                    ? "✓ Client opted in to before/after marketing use on at least one upload."
+                    : "Client has NOT consented to marketing use — coaching review only."}
+                </p>
+              </div>
+            )
           )}
 
           {/* INTAKE */}

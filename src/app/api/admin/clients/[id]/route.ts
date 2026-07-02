@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { deleteClientPhotos } from "@/lib/photos"
 
 export const dynamic = "force-dynamic"
 
@@ -18,6 +19,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await query(`DELETE FROM roc.proposals WHERE intake_id::text = $1::text`, [id]).catch(() => {})
     await query(`DELETE FROM roc.client_protocols WHERE client_id::text = $1::text`, [id]).catch(() => {})
     if (email) await query(`DELETE FROM roc.checkins WHERE lower(client_email) = lower($1)`, [email]).catch(() => {})
+    if (email) await deleteClientPhotos(email).catch(() => {})
     await query(`DELETE FROM roc.notifications WHERE ref_id::text = $1::text`, [id]).catch(() => {})
     await query(`DELETE FROM roc.intakes WHERE id::text = $1::text`, [id])
 

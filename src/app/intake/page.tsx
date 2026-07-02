@@ -3,6 +3,7 @@ import { useState, useCallback } from "react"
 import Nav from "@/components/Nav"
 import Footer from "@/components/Footer"
 import { ChevronRight, ChevronLeft, CheckCircle } from "lucide-react"
+import PhotoUpload, { EMPTY_PHOTOS, type PhotoSet } from "@/components/PhotoUpload"
 
 // ─── Question definitions ─────────────────────────────────────────────────────
 
@@ -173,20 +174,23 @@ function buildSteps(answers: Answers): Array<{ questionIdx: number; isFollowUp?:
   return steps
 }
 
+const PHOTO_STEP = "photos" as const
 const CONTACT_STEP = "contact" as const
-type StepDef = { questionIdx: number; isFollowUp?: boolean } | typeof CONTACT_STEP
+type StepDef = { questionIdx: number; isFollowUp?: boolean } | typeof PHOTO_STEP | typeof CONTACT_STEP
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function IntakePage() {
   const [answers, setAnswers] = useState<Answers>({})
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phone: "" })
+  const [photos, setPhotos] = useState<PhotoSet>(EMPTY_PHOTOS)
+  const [photoConsent, setPhotoConsent] = useState(false)
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const quizSteps = buildSteps(answers)
-  const allSteps: StepDef[] = [...quizSteps, CONTACT_STEP]
+  const allSteps: StepDef[] = [...quizSteps, PHOTO_STEP, CONTACT_STEP]
   const totalSteps = allSteps.length
   const currentStepDef = allSteps[step]
 
@@ -203,6 +207,7 @@ export default function IntakePage() {
   }, [])
 
   const canAdvance = (): boolean => {
+    if (currentStepDef === PHOTO_STEP) return true // photos are optional
     if (currentStepDef === CONTACT_STEP) {
       return contact.firstName.trim() !== "" && contact.email.trim() !== ""
     }
@@ -221,7 +226,7 @@ export default function IntakePage() {
 
   const handleNext = () => {
     if (step < totalSteps - 1) {
-      const freshSteps: StepDef[] = [...buildSteps(answers), CONTACT_STEP]
+      const freshSteps: StepDef[] = [...buildSteps(answers), PHOTO_STEP, CONTACT_STEP]
       const nextStep = step + 1
       if (nextStep < freshSteps.length) setStep(nextStep)
     }
@@ -246,6 +251,8 @@ export default function IntakePage() {
         phone: contact.phone,
         ...flatAnswers,
         rawAnswers: answers,
+        photos,
+        photoConsent,
       }),
     })
     setSaving(false)
@@ -286,6 +293,18 @@ export default function IntakePage() {
 
   // ── Current question ────────────────────────────────────────────────────────
   function renderQuestion() {
+    if (currentStepDef === PHOTO_STEP) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", lineHeight: 1.6 }}>
+            Baseline photos help your coach measure real progress. Take them in good lighting —
+            front, side, and back. <strong style={{ color: "var(--text)" }}>Optional</strong> — you can skip
+            this step and add them later.
+          </p>
+          <PhotoUpload photos={photos} onChange={setPhotos} consent={photoConsent} onConsent={setPhotoConsent} />
+        </div>
+      )
+    }
     if (currentStepDef === CONTACT_STEP) {
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -343,6 +362,13 @@ export default function IntakePage() {
   }
 
   function renderQuestionLabel() {
+    if (currentStepDef === PHOTO_STEP) {
+      return (
+        <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Progress Photos <span style={{ color: "var(--text-mute)", fontWeight: 600 }}>· Optional</span>
+        </span>
+      )
+    }
     if (currentStepDef === CONTACT_STEP) {
       return (
         <span style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase" }}>
