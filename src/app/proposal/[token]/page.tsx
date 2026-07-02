@@ -216,6 +216,29 @@ export default function ProposalPage() {
           )}
         </div>
 
+        {/* Payment instructions */}
+        <div style={{ background: "#0d0d0d", border: "1px solid rgba(201,168,76,0.25)", borderRadius: 8, padding: "1.5rem", marginBottom: "2rem" }}>
+          <h2 style={{ color: "#C9A84C", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
+            Payment Instructions
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div>
+              <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.25rem" }}>Venmo</p>
+              <a href="https://venmo.com/u/Richard-Ortiz-78" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", borderBottom: "1px solid rgba(201,168,76,0.5)" }}>
+                @Richard-Ortiz-78
+              </a>
+            </div>
+            <div>
+              <p style={{ color: "#888", fontSize: "0.78rem", marginBottom: "0.25rem" }}>Zelle</p>
+              <p style={{ color: "#fff", fontWeight: 700, fontSize: "0.95rem" }}>Ricardo Ortiz</p>
+              <p style={{ color: "#ccc", fontSize: "0.875rem" }}>661-425-3534</p>
+            </div>
+          </div>
+          <p style={{ color: "#888", fontSize: "0.78rem", marginTop: "1rem", lineHeight: 1.6 }}>
+            Please include your full name in the payment note so we can match it to your protocol.
+          </p>
+        </div>
+
         {/* TOS */}
         <div style={{ marginBottom: "2rem" }}>
           <h2 style={{ color: "#C9A84C", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
