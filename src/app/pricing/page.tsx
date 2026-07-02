@@ -6,12 +6,28 @@ import Link from "next/link"
 export const metadata: Metadata = {
   title: "Pricing | Richard Ortiz Coaching",
   description:
-    "Two tiers of transformation coaching — product + protocol support and full coaching. Customized to your goals.",
+    "Three tiers of transformation coaching — protocol guidance, product + protocol support, and full coaching. Customized to your goals.",
 }
 
 const tiers = [
   {
     num: "01",
+    name: "Protocol Guidance",
+    price: "$99/month",
+    tagline:
+      "Guidance only — no product included. For those who already have their product and want expert direction on using it.",
+    features: [
+      "Coach-Guided Reconstitution Instructions for Your Product",
+      "Coach-Guided Dosing Protocols",
+      "What to Expect While on Your Protocol",
+      "Access to Our Client Resources Page to Set You Up for Success",
+    ],
+    differentiator: "You bring the product. I bring the protocol.",
+    highlight: false,
+    ctaLabel: "Get Started",
+  },
+  {
+    num: "02",
     name: "Product + Protocol Support",
     price: "Starting at $349/month",
     tagline:
@@ -28,7 +44,7 @@ const tiers = [
     ctaLabel: "Get Started",
   },
   {
-    num: "02",
+    num: "03",
     name: "Full Transformation Coaching",
     price: "Starting at $599/month",
     tagline:
