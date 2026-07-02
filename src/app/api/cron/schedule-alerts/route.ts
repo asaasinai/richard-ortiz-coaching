@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       await createNotification({
         // protocol_end is filtered out above — only actionable types remain
         type: i.type as "checkin_due" | "renewal_due",
-        refId: `${i.client_id}:${i.type}:${i.due_date}`,
+        refId: i.key,
         refType: "schedule",
         message: i.type === "renewal_due"
           ? `Payment renewal due for ${i.client_name}${i.rate ? ` — $${i.rate}` : ""}${late}`

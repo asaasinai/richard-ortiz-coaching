@@ -14,6 +14,7 @@ export interface ScheduleItem {
   days_overdue: number
   detail: string
   rate: number | null
+  key: string // client_id:type:due_date — dismissal + notification-dedup handle
 }
 
 export interface ScheduleData {
@@ -28,7 +29,7 @@ const addMonth = (d: Date) => { const n = new Date(d); n.setUTCMonth(n.getUTCMon
 const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })
 
 export async function computeSchedule(horizonDays = 30): Promise<ScheduleData> {
-  const [clients, lastCheckins, proposalDates] = await Promise.all([
+  const [clients, lastCheckins, proposalDates, dismissals] = await Promise.all([
     // Active coaching clients (approved or with a signed proposal) and their protocol
     query<{
       client_id: string; first_name: string; last_name: string; email: string; phone: string | null
@@ -56,7 +57,12 @@ export async function computeSchedule(horizonDays = 30): Promise<ScheduleData> {
        FROM roc.proposals
        GROUP BY 1`,
     ),
+    // Manually-addressed items (one cycle each). Degrade-safe pre-migration.
+    query<{ key: string }>(`SELECT key FROM roc.schedule_dismissals`)
+      .catch(() => ({ rows: [] as { key: string }[] })),
   ])
+
+  const dismissed = new Set(dismissals.rows.map(r => r.key))
 
   const checkinByEmail = new Map(lastCheckins.rows.map(r => [r.email, new Date(r.last)]))
   const payByClient = new Map(proposalDates.rows.map(r => [r.intake_id, r]))
@@ -78,9 +84,12 @@ export async function computeSchedule(horizonDays = 30): Promise<ScheduleData> {
     const lastSigned = pay?.last_signed ? new Date(pay.last_signed) : null
     const lastCheckin = checkinByEmail.get(c.email.toLowerCase()) ?? null
 
-    const push = (item: ScheduleItem, due: Date) => {
-      if (due < today) items.push({ ...item, days_overdue: Math.round((today.getTime() - due.getTime()) / DAY) })
-      else if (due <= horizon) items.push(item)
+    const push = (item: Omit<ScheduleItem, "key">, due: Date) => {
+      const key = `${item.client_id}:${item.type}:${item.due_date}`
+      if (dismissed.has(key)) return // coach already addressed this cycle
+      const full: ScheduleItem = { ...item, key }
+      if (due < today) items.push({ ...full, days_overdue: Math.round((today.getTime() - due.getTime()) / DAY) })
+      else if (due <= horizon) items.push(full)
     }
 
     // ── 2-week check-in due ───────────────────────────────────────────────
@@ -114,10 +123,10 @@ export async function computeSchedule(horizonDays = 30): Promise<ScheduleData> {
 
     // ── Protocol completion (re-up marker, upcoming only) ─────────────────
     if (end && end >= today && end <= horizon) {
-      items.push({
+      push({
         ...base, type: "protocol_end", due_date: ymd(end), days_overdue: 0,
         detail: `${c.peptide ?? "Protocol"} completes (${c.duration_weeks} wks)`, rate: null,
-      })
+      }, end)
     }
   }
 

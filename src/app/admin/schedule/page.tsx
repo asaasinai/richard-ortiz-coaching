@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays, MessageSquare, AlertTriangle } from "lucide-react"
+import { CalendarDays, MessageSquare, AlertTriangle, Check } from "lucide-react"
 import PageHeader from "@/components/admin/PageHeader"
 
 interface ScheduleItem {
@@ -14,6 +14,7 @@ interface ScheduleItem {
   days_overdue: number
   detail: string
   rate: number | null
+  key: string
 }
 
 interface ScheduleDay {
@@ -85,7 +86,7 @@ function TypeChip({ type }: { type: ScheduleItem["type"] }) {
   )
 }
 
-function ItemCard({ item, overdue }: { item: ScheduleItem; overdue: boolean }) {
+function ItemCard({ item, overdue, onDismiss }: { item: ScheduleItem; overdue: boolean; onDismiss: (key: string) => void }) {
   const clientHref =
     item.type === "renewal_due"
       ? `/admin/clients/${item.client_id}?tab=billing`
@@ -122,11 +123,26 @@ function ItemCard({ item, overdue }: { item: ScheduleItem; overdue: boolean }) {
           </div>
           <div style={{ color: "var(--text-mute)", fontSize: "0.85rem", marginTop: "0.4rem" }}>{item.detail}</div>
         </div>
-        {item.type === "renewal_due" && item.rate !== null && (
-          <div style={{ color: "var(--gold)", fontWeight: 700, fontSize: "1rem", marginLeft: "auto", textAlign: "right" }}>
-            ${item.rate}
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginLeft: "auto" }}>
+          {item.type === "renewal_due" && item.rate !== null && (
+            <div style={{ color: "var(--gold)", fontWeight: 700, fontSize: "1rem", textAlign: "right" }}>
+              ${item.rate}
+            </div>
+          )}
+          <button
+            type="button"
+            title="Mark addressed — hides this until the next cycle"
+            onClick={() => onDismiss(item.key)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "0.3rem",
+              background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)",
+              borderRadius: "var(--radius-pill)", color: "#34D399", fontSize: "0.72rem",
+              fontWeight: 700, padding: "0.3rem 0.7rem", cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            <Check size={12} /> Done
+          </button>
+        </div>
       </div>
       {overdue && item.type === "checkin_due" && item.phone && (
         <div style={{ marginTop: "0.7rem" }}>
@@ -184,6 +200,22 @@ export default function SchedulePage() {
     }
   }, [])
 
+  const dismiss = (key: string) => {
+    // Optimistic: drop it locally, persist in the background.
+    setData(prev => prev ? {
+      ...prev,
+      overdue: prev.overdue.filter(i => i.key !== key),
+      days: prev.days
+        .map(d => ({ ...d, items: d.items.filter(i => i.key !== key) }))
+        .filter(d => d.items.length > 0),
+    } : prev)
+    fetch("/api/admin/schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    }).catch(() => {})
+  }
+
   const overdue = data?.overdue ?? []
   const days = data?.days ?? []
   const isEmpty = !loading && overdue.length === 0 && days.length === 0
@@ -224,8 +256,8 @@ export default function SchedulePage() {
             <AlertTriangle size={13} /> Needs attention
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {overdue.map((item, i) => (
-              <ItemCard key={`${item.type}-${item.client_id}-${i}`} item={item} overdue />
+            {overdue.map(item => (
+              <ItemCard key={item.key} item={item} overdue onDismiss={dismiss} />
             ))}
           </div>
         </div>
@@ -238,8 +270,8 @@ export default function SchedulePage() {
               <CalendarDays size={13} /> {dayLabel(day.date)}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-              {day.items.map((item, i) => (
-                <ItemCard key={`${item.type}-${item.client_id}-${i}`} item={item} overdue={false} />
+              {day.items.map(item => (
+                <ItemCard key={item.key} item={item} overdue={false} onDismiss={dismiss} />
               ))}
             </div>
           </div>
