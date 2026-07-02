@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarDays, MessageSquare, AlertTriangle, Check } from "lucide-react"
+import { CalendarDays, MessageSquare, AlertTriangle, Trash2 } from "lucide-react"
 import PageHeader from "@/components/admin/PageHeader"
 
 interface ScheduleItem {
@@ -131,16 +131,16 @@ function ItemCard({ item, overdue, onDismiss }: { item: ScheduleItem; overdue: b
           )}
           <button
             type="button"
-            title="Mark addressed — hides this until the next cycle"
+            title="Delete — hides this until the next cycle"
             onClick={() => onDismiss(item.key)}
             style={{
               display: "inline-flex", alignItems: "center", gap: "0.3rem",
-              background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)",
-              borderRadius: "var(--radius-pill)", color: "#34D399", fontSize: "0.72rem",
+              background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.4)",
+              borderRadius: "var(--radius-pill)", color: "#F87171", fontSize: "0.72rem",
               fontWeight: 700, padding: "0.3rem 0.7rem", cursor: "pointer", flexShrink: 0,
             }}
           >
-            <Check size={12} /> Done
+            <Trash2 size={12} /> Delete
           </button>
         </div>
       </div>
